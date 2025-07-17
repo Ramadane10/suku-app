@@ -15,6 +15,7 @@ export default function LoginScreen() {
 
   const handleLogin = () => {
     // Logique de connexion à implémenter
+    router.push('/home');
     console.log('Login with:', email, password);
   };
 
