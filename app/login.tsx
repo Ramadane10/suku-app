@@ -1,67 +1,94 @@
-import React from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import BackButton from '../src/components/ui/BackButton';
+import Button from '../src/components/ui/Button';
+import Divider from '../src/components/ui/Divider';
+import InputField from '../src/components/ui/InputField';
 import colors from '../src/constants/colors';
+import fonts from '../src/constants/fonts';
 
 export default function LoginScreen() {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = () => {
+    // Logique de connexion à implémenter
+    console.log('Login with:', email, password);
+  };
+
+  const handleFacebookLogin = () => {
+    // Logique de connexion Facebook à implémenter
+    console.log('Facebook login');
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Connexion</Text>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.light} />
       
-      <View style={styles.inputContainer}>
-        <TextInput 
-          style={styles.input}
-          placeholder="Email"
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-        
-        <TextInput 
-          style={styles.input}
-          placeholder="Mot de passe"
-          secureTextEntry
-        />
+      <View style={styles.header}>
+        <BackButton onPress={() => router.back()} />
+        <Text style={styles.title}>Sign In</Text>
       </View>
       
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Se connecter</Text>
-      </TouchableOpacity>
-    </View>
+      <View style={styles.content}>
+        <InputField style={{}}
+          placeholder="E-mail or phone number"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+        />
+        
+        <InputField style={{}}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        
+        <Button
+          title="Log in"
+          onPress={handleLogin}
+          backgroundColor={colors.dark}
+          textColor={colors.light}
+          style={styles.loginButton}
+        />
+        
+        <Divider text="OR" />
+        
+        <Button style={{}}
+          title="Facebook Login"
+          onPress={handleFacebookLogin}
+          backgroundColor="#3b5998"
+          textColor={colors.light}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    justifyContent: 'center',
+    backgroundColor: colors.light,
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    marginBottom: 40,
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 30,
-    textAlign: 'center',
+    fontFamily: fonts.bold,
+    color: colors.dark,
+    marginTop: 16,
   },
-  inputContainer: {
-    marginBottom: 20,
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
   },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    marginBottom: 15,
-    paddingHorizontal: 15,
-  },
-  button: {
-    backgroundColor: colors.primary,
-    height: 50,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
+  loginButton: {
+    marginTop: 16,
   },
 });

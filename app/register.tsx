@@ -1,45 +1,76 @@
-import React from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, SafeAreaView } from 'react-native';
 import { router } from 'expo-router';
+import React, { useState } from 'react';
+import { SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import BackButton from '../src/components/ui/BackButton';
+import Button from '../src/components/ui/Button';
+import InputField from '../src/components/ui/InputField';
 import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
 
 export default function RegisterScreen() {
+  const [fullName, setFullName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSignUp = () => {
+    // Logique d'inscription à implémenter
+    console.log('Sign up with:', { fullName, phoneNumber, email, password });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Créer un compte</Text>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.light} />
       
-      <View style={styles.inputContainer}>
-        <TextInput 
-          style={styles.input}
-          placeholder="Nom complet"
+      <View style={styles.header}>
+        <BackButton onPress={() => router.back()} />
+        <Text style={styles.title}>Create new account</Text>
+      </View>
+      
+      <View style={styles.content}>
+        <InputField style={{}}
+          placeholder="Full Name"
+          value={fullName}
+          onChangeText={setFullName}
           autoCapitalize="words"
         />
         
-        <TextInput 
-          style={styles.input}
-          placeholder="Email"
-          keyboardType="email-address"
-          autoCapitalize="none"
+        <InputField style={{}}
+          placeholder="Phone Number"
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+          keyboardType="phone-pad"
         />
         
-        <TextInput 
-          style={styles.input}
-          placeholder="Mot de passe"
+        <InputField style={{}}
+          placeholder="E-mail Address"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+        />
+        
+        <InputField style={{}}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
           secureTextEntry
         />
+
+        <InputField style={{}}
+          placeholder="Confirm Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        
+        <Button
+          title="Sign Up"
+          onPress={handleSignUp}
+          backgroundColor={colors.dark}
+          textColor={colors.light}
+          style={styles.signUpButton}
+        />
       </View>
-      
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>S'inscrire</Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity 
-        style={styles.linkContainer}
-        onPress={() => router.push('/login')}
-      >
-        <Text style={styles.linkText}>Déjà un compte? Se connecter</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -47,50 +78,26 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: colors.background,
+    backgroundColor: colors.light,
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    marginBottom: 40,
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    marginTop: 50,
-    marginBottom: 30,
-    textAlign: 'center',
+    fontFamily: fonts.bold,
     color: colors.dark,
-    fontFamily: fonts.bold,
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    marginBottom: 15,
-    paddingHorizontal: 15,
-    fontFamily: fonts.regular,
-  },
-  button: {
-    backgroundColor: colors.primary,
-    height: 50,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
+    marginTop: 16,
     fontWeight: 'bold',
-    fontFamily: fonts.bold,
   },
-  linkContainer: {
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  signUpButton: {
     marginTop: 20,
-    alignItems: 'center',
-  },
-  linkText: {
-    color: colors.primary,
-    fontSize: 14,
-    fontFamily: fonts.medium,
+    width: '100%',
   },
 });

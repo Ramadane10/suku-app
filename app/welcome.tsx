@@ -20,9 +20,9 @@ export default function WelcomeScreen() {
       </View>
       
       <View style={styles.contentContainer}>
-        <Text style={styles.title}>Welcome to Shopertino</Text>
+        <Text style={styles.title}>Bienvenue a Suku</Text>
         <Text style={styles.subtitle}>
-          Shop & get updates on new products and sales with our mobile app.
+          Achetez et recevez les dernières nouveautés et promotions grâce à notre application mobile. 
         </Text>
       </View>
       
