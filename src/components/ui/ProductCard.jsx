@@ -1,31 +1,113 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import fonts from '../../constants/fonts';
 
-const ProductCard = ({ image, name, price, style = {}, priceFirst = false, centerPrice = false }) => (
-  <View style={[styles.container, style]}>
-    <View style={styles.imageContainer}>
-      <Image source={image} style={styles.image} resizeMode="cover" />
-    </View>
-    {priceFirst ? (
-      <>
-        <Text style={[styles.boldText, ]}>{price}</Text>
-        <Text style={styles.grayText} numberOfLines={1} ellipsizeMode="tail">{name}</Text>
-      </>
-    ) : (
-      <>
-        <Text style={[styles.boldText]} numberOfLines={1} ellipsizeMode="tail">{name}</Text>
-        <Text style={[styles.grayText, styles.centeredText]}>{price}</Text>
-      </>
-    )}
-  </View>
-);
+const ProductCard = ({ 
+  name, 
+  price, 
+  image, 
+  priceFirst = false, 
+  centerPrice = false,
+  tallImage = false,
+  ...props 
+}) => {
+  const router = useRouter();
+
+  const handlePress = () => {
+    // Passer les données du produit à l'écran de détails
+    router.push({
+      pathname: '/product-details',
+      params: {
+        name: name,
+        price: price,
+        image: image,
+        category: props.category || 'FRUITS',
+      }
+    });
+  };
+
+  return (
+    <TouchableOpacity 
+      style={[
+        styles.card, 
+        tallImage && styles.tallCard,
+        props.style
+      ]} 
+      onPress={handlePress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.imageContainer}>
+        <Image 
+          source={image} 
+          style={[
+            styles.image, 
+            tallImage && styles.tallImage
+          ]} 
+          resizeMode="cover"
+        />
+      </View>
+      <View style={styles.content}>
+        {priceFirst ? (
+          <>
+            <Text 
+              style={[
+                styles.price, 
+                centerPrice && styles.centeredText
+              ]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {price}
+            </Text>
+            <Text 
+              style={[
+                styles.name, 
+                centerPrice && styles.centeredText
+              ]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {name}
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text 
+              style={[
+                styles.name, 
+                centerPrice && styles.centeredText
+              ]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {name}
+            </Text>
+            <Text 
+              style={[
+                styles.price, 
+                centerPrice && styles.centeredText
+              ]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {price}
+            </Text>
+          </>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
-  container: {
+  card: {
     width: 140,
     marginRight: 16,
     alignItems: 'flex-start',
+  },
+  tallCard: {
+    width: 140,
   },
   imageContainer: {
     width: 140,
@@ -48,14 +130,20 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 12,
   },
-  boldText: {
+  tallImage: {
+    height: 220,
+  },
+  content: {
+    width: '100%',
+  },
+  name: {
     fontFamily: fonts.bold,
     fontSize: 14,
     color: '#333333',
     marginBottom: 4,
     lineHeight: 18,
   },
-  grayText: {
+  price: {
     fontFamily: fonts.medium,
     fontSize: 14,
     color: '#666666',
