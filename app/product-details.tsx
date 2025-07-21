@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
+import { useCart } from '../src/context/CartContext';
 
 const { width } = Dimensions.get('window');
 const IMAGE_HEIGHT = width * 0.9;
@@ -22,6 +23,7 @@ const IMAGE_HEIGHT = width * 0.9;
 const ProductDetails = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { addToCart } = useCart();
   
   // Récupérer les données du produit depuis les paramètres
   const productName = params.name as string || 'Produit';
@@ -108,6 +110,22 @@ const ProductDetails = () => {
     }).start(() => fadeAnim.setValue(0));
   };
 
+  const handleDecrease = () => {
+    setSelectedWeight((prev) => Math.max(1, prev - 1));
+  };
+  const handleIncrease = () => {
+    setSelectedWeight((prev) => prev + 1);
+  };
+
+  const handleAddToCart = () => {
+    addToCart({
+      name: productName,
+      price: productPrice,
+      image: getProductImage(),
+      category: productCategory,
+    }, selectedWeight);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header avec bouton retour et partage */}
@@ -182,26 +200,15 @@ const ProductDetails = () => {
 
           {/* Sélection du poids */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Choisissez le poids</Text>
-            <View style={styles.weightOptions}>
-              {weightOptions.map((weight) => (
-                <TouchableOpacity
-                  key={weight}
-                  style={[
-                    styles.weightOption,
-                    selectedWeight === weight && styles.weightOptionSelected,
-                  ]}
-                  onPress={() => animateWeightSelection(weight)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[
-                    styles.weightText,
-                    selectedWeight === weight && styles.weightTextSelected,
-                  ]}>
-                    {weight} kg
-                  </Text>
-                </TouchableOpacity>
-              ))}
+            <Text style={styles.sectionTitle}>Quantité (kg)</Text>
+            <View style={styles.weightSelectorRow}>
+              <TouchableOpacity style={styles.qtyBtn} onPress={handleDecrease}>
+                <Text style={styles.qtyBtnText}>-</Text>
+              </TouchableOpacity>
+              <Text style={styles.weightValue}>{selectedWeight} kg</Text>
+              <TouchableOpacity style={styles.qtyBtn} onPress={handleIncrease}>
+                <Text style={styles.qtyBtnText}>+</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -242,6 +249,7 @@ const ProductDetails = () => {
         <TouchableOpacity 
           style={styles.cartButton} 
           activeOpacity={0.8}
+          onPress={handleAddToCart}
         >
           <MaterialCommunityIcons name="cart-outline" size={24} color="#fff" />
           <Text style={styles.cartButtonText}>Ajouter au panier</Text>
@@ -498,6 +506,33 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     fontSize: 16,
     color: '#fff',
+  },
+  weightSelectorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
+  qtyBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.secondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 16,
+  },
+  qtyBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: 22,
+    color: colors.dark,
+  },
+  weightValue: {
+    fontFamily: fonts.bold,
+    fontSize: 20,
+    color: colors.primary,
+    minWidth: 60,
+    textAlign: 'center',
   },
 });
 

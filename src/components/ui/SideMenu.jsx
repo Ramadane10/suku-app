@@ -20,20 +20,20 @@ const SideMenu = ({ isVisible, onClose }) => {
   const router = useRouter();
 
   const menuItems = [
-    { id: 'home', title: 'HOME', icon: 'home', route: '/home' },
-    { id: 'shop', title: 'SHOP', icon: 'grid', route: '/shop' },
-    { id: 'bag', title: 'BAG', icon: 'shopping-bag', route: '/bag' },
-    { id: 'search', title: 'SEARCH', icon: 'search', route: '/search' },
-    { id: 'orders', title: 'ORDERS', icon: 'package', route: '/orders' },
-    { id: 'wishlist', title: 'WISHLIST', icon: 'heart', route: '/wishlist' },
-    { id: 'profile', title: 'PROFILE', icon: 'user', route: '/profile' },
-    { id: 'logout', title: 'LOGOUT', icon: 'log-out', route: '/logout' },
+    { id: 'home', title: 'Accueil', icon: 'home', route: '/home' },
+    { id: 'shop', title: 'Boutique', icon: 'grid', route: '/shop' },
+    { id: 'bag', title: 'Panier', icon: 'shopping-bag', route: '/cart' },
+    { id: 'search', title: 'Recherche', icon: 'search', route: '/search' },
+    { id: 'orders', title: 'Commandes', icon: 'package', route: '/orders' },
+    { id: 'wishlist', title: 'Favoris', icon: 'heart', route: '/wishlist' },
+    { id: 'profile', title: 'Compte', icon: 'user', route: '/profile' },
+    { id: 'logout', title: 'Déconnexion', icon: 'log-out', route: '/logout' },
   ];
 
   const handleMenuItemPress = (item) => {
     if (item.id === 'logout') {
       // Gérer la déconnexion
-      console.log('Logout pressed');
+      console.log('Déconnexion');
     } else {
       router.push(item.route);
     }
@@ -79,7 +79,7 @@ const SideMenu = ({ isVisible, onClose }) => {
         <View style={styles.menuContent}>
           {/* En-tête du menu */}
           <View style={styles.menuHeader}>
-            <Text style={styles.menuTitle}>Shopertino</Text>
+            <Text style={styles.menuTitle}>Menu</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <AntDesign name="close" size={24} color={colors.dark} />
             </TouchableOpacity>
@@ -98,15 +98,15 @@ const SideMenu = ({ isVisible, onClose }) => {
                   {getIconComponent(item.icon)}
                 </View>
                 <Text style={styles.menuItemText}>{item.title}</Text>
-                {/* <AntDesign name="right" size={16} color={colors.grey} /> */}
+                <AntDesign name="right" size={16} color={colors.grey} />
               </TouchableOpacity>
             ))}
           </View>
 
           {/* Informations supplémentaires */}
-          {/* <View style={styles.menuFooter}>
+          <View style={styles.menuFooter}>
             <Text style={styles.footerText}>Version 1.0.0</Text>
-          </View> */}
+          </View>
         </View>
       </View>
     </>

@@ -1,7 +1,10 @@
+import { AntDesign } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import colors from '../../constants/colors';
 import fonts from '../../constants/fonts';
+import { useFavorites } from '../../context/FavoritesContext';
 
 const ProductCard = ({ 
   name, 
@@ -13,9 +16,9 @@ const ProductCard = ({
   ...props 
 }) => {
   const router = useRouter();
+  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
 
   const handlePress = () => {
-    // Passer les données du produit à l'écran de détails
     router.push({
       pathname: '/product-details',
       params: {
@@ -25,6 +28,14 @@ const ProductCard = ({
         category: props.category || 'FRUITS',
       }
     });
+  };
+
+  const handleToggleFavorite = () => {
+    if (isFavorite(name)) {
+      removeFavorite(name);
+    } else {
+      addFavorite({ name, price, image, category: props.category || 'FRUITS' });
+    }
   };
 
   return (
@@ -46,25 +57,22 @@ const ProductCard = ({
           ]} 
           resizeMode="cover"
         />
+        <TouchableOpacity style={styles.favBtn} onPress={handleToggleFavorite} activeOpacity={0.7}>
+          <AntDesign name={isFavorite(name) ? 'heart' : 'hearto'} size={20} color={isFavorite(name) ? colors.danger : colors.grey} />
+        </TouchableOpacity>
       </View>
       <View style={styles.content}>
         {priceFirst ? (
           <>
             <Text 
-              style={[
-                styles.price, 
-                centerPrice && styles.centeredText
-              ]}
+              style={[styles.price, centerPrice && styles.centeredText]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
               {price}
             </Text>
             <Text 
-              style={[
-                styles.name, 
-                centerPrice && styles.centeredText
-              ]}
+              style={[styles.name, centerPrice && styles.centeredText]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -74,20 +82,14 @@ const ProductCard = ({
         ) : (
           <>
             <Text 
-              style={[
-                styles.name, 
-                centerPrice && styles.centeredText
-              ]}
+              style={[styles.name, centerPrice && styles.centeredText]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
               {name}
             </Text>
             <Text 
-              style={[
-                styles.price, 
-                centerPrice && styles.centeredText
-              ]}
+              style={[styles.price, centerPrice && styles.centeredText]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -153,6 +155,16 @@ const styles = StyleSheet.create({
   centeredText: {
     textAlign: 'center',
     width: '100%',
+  },
+  favBtn: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 4,
+    zIndex: 2,
+    elevation: 2,
   },
 });
 

@@ -1,13 +1,17 @@
 import { Stack } from 'expo-router';
+import React from 'react';
+import { CartProvider } from '../src/context/CartContext';
+import { FavoritesProvider } from '../src/context/FavoritesContext';
+import { OrderProvider } from '../src/context/OrderContext';
 
 export default function RootLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="home" options={{ headerShown: false }} />
-      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-      <Stack.Screen name="welcome" options={{ headerShown: false }} />
-      <Stack.Screen name="login" options={{ headerShown: false }} />
-      <Stack.Screen name="register" options={{ headerShown: false }} />
-    </Stack>
+    <CartProvider>
+      <FavoritesProvider>
+        <OrderProvider>
+          <Stack screenOptions={{ headerShown: false }} />
+        </OrderProvider>
+      </FavoritesProvider>
+    </CartProvider>
   );
 }

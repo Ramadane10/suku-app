@@ -1,87 +1,130 @@
 import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import CategoryTabs from '../../src/components/ui/CategoryTabs';
 import Header from '../../src/components/ui/Header';
 import ProductCard from '../../src/components/ui/ProductCard';
-import ProductListHorizontal from '../../src/components/ui/ProductListHorizontal';
 import SectionTitle from '../../src/components/ui/SectionTitle';
-import colors from '../../src/constants/colors';
+import SideMenu from '../../src/components/ui/SideMenu';
 
-// Données mockées pour les catégories
-const categories = ['CLOTHING', 'ACCESSORIES', 'SHOES', 'BAGS', 'JEWELRY'];
+export const options = { headerShown: false };
 
-// Données mockées pour les produits
-const newArrivals = [
-  {
-    image: require('../../assets/images/onboarding1.png'),
-    name: 'PEBBLE BEACH ROMPER',
-    price: '$16.50',
-  },
-  {
-    image: require('../../assets/images/onboarding1.png'),
-    name: "DON'T TELL A SOUL METALLIC ROMPER",
-    price: '$18.50',
-  },
-  {
-    image: require('../../assets/images/onboarding1.png'),
-    name: 'SUMMER BREEZE DRESS',
-    price: '$22.99',
-  },
-];
+// Types
+type Product = {
+  name: string;
+  price: string;
+  image: any;
+  category: string;
+};
 
-const featured = [
+type Category = 'TOUS' | 'FRUITS' | 'LÉGUMES' | 'HERBES' | 'ÉPICES' | 'BIO';
+
+// Données des catégories
+const categories: Category[] = ['TOUS', 'FRUITS', 'LÉGUMES', 'HERBES', 'ÉPICES', 'BIO'];
+
+// Données des produits
+const newArrivals: Product[] = [
   {
+    name: 'Pommes Gala Bio',
+    price: '4.99€/kg',
     image: require('../../assets/images/onboarding1.png'),
-    name: 'Katie Ruched Tube Top',
-    price: '$12.99',
+    category: 'FRUITS',
   },
   {
+    name: 'Bananes Cavendish',
+    price: '2.49€/kg',
     image: require('../../assets/images/onboarding2.png'),
-    name: 'Gema White Sandals',
-    price: '$79',
+    category: 'FRUITS',
   },
   {
+    name: 'Oranges Valencia',
+    price: '3.99€/kg',
     image: require('../../assets/images/onboarding3.png'),
-    name: 'FIONA BLACK',
-    price: '$119',
+    category: 'FRUITS',
   },
 ];
 
-const bestSellers = [
+const featured: Product[] = [
   {
+    name: 'Tomates Cerises',
+    price: '5.99€/kg',
     image: require('../../assets/images/onboarding1.png'),
-    name: 'Classic romper',
-    price: '$14',
+    category: 'LÉGUMES',
   },
   {
-    image: require('../../assets/images/onboarding1.png'),
-    name: "Don't Tell A Soul Metallic Romp...",
-    price: '$18.50',
+    name: 'Concombres Bio',
+    price: '2.99€/kg',
+    image: require('../../assets/images/onboarding2.png'),
+    category: 'LÉGUMES',
   },
   {
+    name: 'Poivrons Rouges',
+    price: '4.49€/kg',
     image: require('../../assets/images/onboarding3.png'),
-    name: 'Bess Mode Blazer',
-    price: '$59.99',
+    category: 'LÉGUMES',
   },
   {
+    name: 'Carottes Nouvelles',
+    price: '1.99€/kg',
     image: require('../../assets/images/onboarding1.png'),
-    name: "You'll Never Be Like Me",
-    price: '$39.99',
+    category: 'LÉGUMES',
+  },
+];
+
+const bestSellers: Product[] = [
+  {
+    name: 'Fraises Gariguette',
+    price: '8.99€/kg',
+    image: require('../../assets/images/onboarding2.png'),
+    category: 'FRUITS',
+  },
+  {
+    name: 'Avocats Hass Bio',
+    price: '6.99€/kg',
+    image: require('../../assets/images/onboarding3.png'),
+    category: 'BIO',
+  },
+  {
+    name: 'Kiwi Zespri',
+    price: '5.49€/kg',
+    image: require('../../assets/images/onboarding1.png'),
+    category: 'FRUITS',
+  },
+  {
+    name: 'Poires Williams Bio',
+    price: '3.99€/kg',
+    image: require('../../assets/images/onboarding2.png'),
+    category: 'BIO',
   },
 ];
 
 const HomeScreen = () => {
-  const [selectedCategory, setSelectedCategory] = useState('CLOTHING');
+  const [selectedCategory, setSelectedCategory] = useState<Category>('TOUS');
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
 
   const handleMenuPress = () => {
-    // Gérer l'ouverture du menu
-    console.log('Menu pressed');
+    setIsMenuVisible(true);
   };
+
+  const handleCloseMenu = () => {
+    setIsMenuVisible(false);
+  };
+
+  // Fonction de filtrage des produits
+  const filterProducts = (products: Product[]): Product[] => {
+    if (selectedCategory === 'TOUS') {
+      return products;
+    }
+    return products.filter(product => product.category === selectedCategory);
+  };
+
+  const filteredNewArrivals = filterProducts(newArrivals);
+  const filteredFeatured = filterProducts(featured);
+  const filteredBestSellers = filterProducts(bestSellers);
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="Shopertino" onMenuPress={handleMenuPress} />
-      
+      <Header title="Shopertino" onMenuPress={handleMenuPress} cartCount={2} />
       <ScrollView showsVerticalScrollIndicator={false}>
         <CategoryTabs
           categories={categories}
@@ -90,42 +133,99 @@ const HomeScreen = () => {
         />
 
         {/* Section New Arrivals */}
-        <SectionTitle>New Arrivals</SectionTitle>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.newArrivalsContainer}>
-          {newArrivals.map((product, index) => (
-            <View key={index} style={styles.newArrivalCard}>
-              <ProductCard {...product} style={styles.newArrivalProduct} />
-            </View>
-          ))}
-        </ScrollView>
+        {filteredNewArrivals.length > 0 && (
+          <>
+            <SectionTitle center>New Arrivals</SectionTitle>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false} 
+              style={styles.newArrivalsContainer}
+              contentContainerStyle={styles.newArrivalsContent}
+            >
+              {filteredNewArrivals.map((product, index) => (
+                <ProductCard 
+                  key={index} 
+                  {...product} 
+                  style={styles.regularProduct}
+                  centerPrice={true}
+                />
+              ))}
+            </ScrollView>
+          </>
+        )}
 
         {/* Section Featured */}
-        <SectionTitle>Featured</SectionTitle>
-        <ProductListHorizontal products={featured} />
+        {filteredFeatured.length > 0 && (
+          <>
+            <SectionTitle>Featured</SectionTitle>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginLeft: 16 }}>
+              {filteredFeatured.map((product, idx) => (
+                <ProductCard key={idx} {...product} priceFirst={true} />
+              ))}
+            </ScrollView>
+          </>
+        )}
 
         {/* Section Best Sellers */}
-        <SectionTitle>Best Sellers</SectionTitle>
-        <ProductListHorizontal products={bestSellers} />
+        {filteredBestSellers.length > 0 && (
+          <>
+            <SectionTitle>Best Sellers</SectionTitle>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginLeft: 16 }}>
+              {filteredBestSellers.map((product, idx) => (
+                <ProductCard key={idx} {...product} priceFirst={true} />
+              ))}
+            </ScrollView>
+          </>
+        )}
+
+        {/* Message si aucun produit dans aucune section */}
+        {filteredNewArrivals.length === 0 && 
+         filteredFeatured.length === 0 && 
+         filteredBestSellers.length === 0 && (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>
+              Aucun produit disponible dans cette catégorie
+            </Text>
+          </View>
+        )}
       </ScrollView>
+      <SideMenu 
+        isVisible={isMenuVisible} 
+        onClose={handleCloseMenu} 
+      />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 100,
     flex: 1,
-    backgroundColor: colors.light,
+    backgroundColor: '#fff',
   },
   newArrivalsContainer: {
     marginLeft: 16,
   },
+  newArrivalsContent: {
+    paddingRight: 16,
+  },
   newArrivalCard: {
     marginRight: 16,
   },
-  newArrivalProduct: {
-    width: 160,
-    height: 200,
+  regularProduct: {
+    width: 140,
+    height: 240,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontFamily: 'System',
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
 });
 
