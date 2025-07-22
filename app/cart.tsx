@@ -3,11 +3,11 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Header from '../../src/components/ui/Header';
-import SideMenu from '../../src/components/ui/SideMenu';
-import colors from '../../src/constants/colors';
-import fonts from '../../src/constants/fonts';
-import { useCart } from '../../src/context/CartContext';
+import Header from '../src/components/ui/Header';
+import SideMenu from '../src/components/ui/SideMenu';
+import colors from '../src/constants/colors';
+import fonts from '../src/constants/fonts';
+import { useCart } from '../src/context/CartContext';
 
 export const options = { headerShown: false };
 

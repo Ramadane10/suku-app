@@ -1,4 +1,4 @@
-import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
+import { AntDesign, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -36,6 +36,22 @@ const CheckoutScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+              <TouchableOpacity 
+                onPress={() => router.back()} 
+                style={styles.iconButton}
+                activeOpacity={0.7}
+              >
+                <AntDesign name="arrowleft" size={24} color={colors.dark} />
+              </TouchableOpacity>
+              
+              {/* <TouchableOpacity 
+                style={styles.iconButton}
+                activeOpacity={0.7}
+              >
+                <Feather name="share-2" size={22} color={colors.dark} />
+              </TouchableOpacity> */}
+            </View>
       {/* <Header title="Récapitulatif" /> */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.sectionTitle}>Adresse de livraison</Text>
@@ -58,7 +74,6 @@ const CheckoutScreen = () => {
           <Text style={styles.orderBtnText}>Payer maintenant</Text>
         </TouchableOpacity>
       </ScrollView>
-      <BottomTabBar />
     </SafeAreaView>
   );
 };
@@ -73,6 +88,26 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 12,
     marginLeft: 16,
+  },
+    header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   infoBox: {
     backgroundColor: colors.light,

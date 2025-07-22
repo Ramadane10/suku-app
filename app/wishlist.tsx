@@ -1,19 +1,31 @@
 import { AntDesign } from '@expo/vector-icons';
-import React from 'react';
+import React, { useState }from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomTabBar from '../src/components/ui/BottomTabBar';
 import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
 import { useFavorites } from '../src/context/FavoritesContext';
-
+import Header from '../src/components/ui/Header'
+import SideMenu from '@/src/components/ui/SideMenu';
 export const options = { headerShown: false };
 
 const WishlistScreen = () => {
   const { favorites, removeFavorite } = useFavorites();
+  const [isMenuVisible, setIsMenuVisible] = useState(false)
+
+   const handleMenuPress = () => {
+    setIsMenuVisible(true);
+  };
+
+  const handleCloseMenu = () => {
+    setIsMenuVisible(false);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* <Header title="Shopertino" onMenuPress={handleMenuPress} cartCount={2} /> */}
+      <Header title="Favoris" onMenuPress={handleMenuPress} cartCount={2} />
       {favorites.length === 0 ? (
         <View style={styles.emptyContainer}>
           <AntDesign name="hearto" size={60} color={colors.grey} />
@@ -35,7 +47,10 @@ const WishlistScreen = () => {
           ))}
         </ScrollView>
       )}
-      <BottomTabBar />
+      <SideMenu 
+        isVisible={isMenuVisible} 
+        onClose={handleCloseMenu} 
+      />
     </SafeAreaView>
   );
 };

@@ -15,6 +15,7 @@ export default function RegisterScreen() {
 
   const handleSignUp = () => {
     // Logique d'inscription à implémenter
+    router.push('/home');
     console.log('Sign up with:', { fullName, phoneNumber, email, password });
   };
 

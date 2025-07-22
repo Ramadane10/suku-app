@@ -1,21 +1,30 @@
 import { AntDesign, Feather, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Header from '../../src/components/ui/Header';
-import SideMenu from '../../src/components/ui/SideMenu';
-import colors from '../../src/constants/colors';
-import fonts from '../../src/constants/fonts';
+import SideMenu from '../src/components/ui/SideMenu';
+import colors from '../src/constants/colors';
+import fonts from '../src/constants/fonts';
+import Header from '../src/components/ui/Header'
 
 export const options = { headerShown: false };
 
 const ProfileScreen = () => {
   const router = useRouter();
-  const [isMenuVisible, setIsMenuVisible] = React.useState(false);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  
+    const handleMenuPress = () => {
+      setIsMenuVisible(true);
+    };
+  
+    const handleCloseMenu = () => {
+      setIsMenuVisible(false);
+    };
+  
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="Profil" onMenuPress={() => setIsMenuVisible(true)} />
+      <Header title="Profil" onMenuPress={handleMenuPress} cartCount={2} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Avatar */}
         <View style={styles.avatarContainer}>

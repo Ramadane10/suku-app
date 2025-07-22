@@ -19,16 +19,17 @@ const { width } = Dimensions.get('window');
 const SideMenu = ({ isVisible, onClose }) => {
   const router = useRouter();
 
-  const menuItems = [
+  const mainMenuItems = [
     { id: 'home', title: 'Accueil', icon: 'home', route: '/home' },
-    { id: 'shop', title: 'Boutique', icon: 'grid', route: '/shop' },
+    // { id: 'shop', title: 'Boutique', icon: 'grid', route: '/shop' },
     { id: 'bag', title: 'Panier', icon: 'shopping-bag', route: '/cart' },
     { id: 'search', title: 'Recherche', icon: 'search', route: '/search' },
     { id: 'orders', title: 'Commandes', icon: 'package', route: '/orders' },
     { id: 'wishlist', title: 'Favoris', icon: 'heart', route: '/wishlist' },
     { id: 'profile', title: 'Compte', icon: 'user', route: '/profile' },
-    { id: 'logout', title: 'Déconnexion', icon: 'log-out', route: '/logout' },
   ];
+
+  const logoutItem = { id: 'logout', title: 'Déconnexion', icon: 'log-out', route: '/logout' };
 
   const handleMenuItemPress = (item) => {
     if (item.id === 'logout') {
@@ -85,9 +86,9 @@ const SideMenu = ({ isVisible, onClose }) => {
             </TouchableOpacity>
           </View>
 
-          {/* Liste des options */}
-          <View style={styles.menuItems}>
-            {menuItems.map((item) => (
+          {/* Liste des options principales */}
+          <View style={styles.mainMenuItems}>
+            {mainMenuItems.map((item) => (
               <TouchableOpacity
                 key={item.id}
                 style={styles.menuItem}
@@ -102,6 +103,22 @@ const SideMenu = ({ isVisible, onClose }) => {
               </TouchableOpacity>
             ))}
           </View>
+
+          {/* Espace flexible qui pousse le logout vers le bas */}
+          <View style={styles.spacer} />
+
+          {/* Option de déconnexion */}
+          <TouchableOpacity
+            style={styles.logoutItem}
+            onPress={() => handleMenuItemPress(logoutItem)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuItemIcon}>
+              {getIconComponent(logoutItem.icon)}
+            </View>
+            <Text style={[styles.menuItemText, styles.logoutText]}>{logoutItem.title}</Text>
+            <AntDesign name="right" size={16} color={colors.grey} />
+          </TouchableOpacity>
 
           {/* Informations supplémentaires */}
           <View style={styles.menuFooter}>
@@ -143,6 +160,7 @@ const styles = StyleSheet.create({
   menuContent: {
     flex: 1,
     paddingTop: 60,
+    paddingBottom: 20,
   },
   menuHeader: {
     flexDirection: 'row',
@@ -166,9 +184,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  menuItems: {
+  mainMenuItems: {
+    // flex: 1, // Retiré pour permettre au spacer de fonctionner
+  },
+  spacer: {
     flex: 1,
-    paddingTop: 20,
   },
   menuItem: {
     flexDirection: 'row',
@@ -177,6 +197,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: colors.light,
+  },
+  logoutItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: colors.light,
+    marginBottom: 10,
   },
   menuItemIcon: {
     width: 40,
@@ -189,11 +219,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.dark,
   },
+  logoutText: {
+    color: colors.danger, // Ajout d'une couleur différente pour le bouton de déconnexion
+  },
   menuFooter: {
     paddingHorizontal: 20,
-    paddingVertical: 20,
-    borderTopWidth: 1,
-    borderTopColor: colors.light,
+    paddingVertical: 10,
   },
   footerText: {
     fontFamily: fonts.regular,
@@ -203,4 +234,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SideMenu; 
+export default SideMenu;

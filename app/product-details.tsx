@@ -2,6 +2,7 @@ import { AntDesign, Feather, FontAwesome, MaterialCommunityIcons } from '@expo/v
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  Alert,
     Animated,
     Dimensions,
     Easing,
@@ -124,7 +125,22 @@ const ProductDetails = () => {
       image: getProductImage(),
       category: productCategory,
     }, selectedWeight);
+
+    Alert.alert('Produit ajouté au panier');
+    router.push('/home');
   };
+
+  const handleBuyNow = () => {
+    // addToCart({
+    //   name: productName,
+    //   price: productPrice,
+    //   image: getProductImage(),
+    //   category: productCategory,
+    // }, selectedWeight);
+
+    // Alert.alert('Achat effectué');
+    router.push('/shipping');
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -258,7 +274,9 @@ const ProductDetails = () => {
         <TouchableOpacity 
           style={styles.buyButton} 
           activeOpacity={0.8}
+          onPress={handleBuyNow}
         >
+          
           <Text style={styles.buyButtonText}>Acheter maintenant</Text>
         </TouchableOpacity>
       </View>
@@ -270,6 +288,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    paddingTop: 20,
   },
   scrollContent: {
     paddingBottom: 100,
@@ -281,6 +300,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     position: 'absolute',
+    paddingTop:20,
     top: 0,
     left: 0,
     right: 0,

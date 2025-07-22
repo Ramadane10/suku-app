@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import CategoryTabs from '../../src/components/ui/CategoryTabs';
-import Header from '../../src/components/ui/Header';
-import ProductCard from '../../src/components/ui/ProductCard';
-import SectionTitle from '../../src/components/ui/SectionTitle';
-import SideMenu from '../../src/components/ui/SideMenu';
+import CategoryTabs from '../src/components/ui/CategoryTabs';
+import Header from '../src/components/ui/Header';
+import ProductCard from '../src/components/ui/ProductCard';
+import SectionTitle from '../src/components/ui/SectionTitle';
+import SideMenu from '../src/components/ui/SideMenu';
 
 export const options = { headerShown: false };
 
@@ -27,19 +27,19 @@ const newArrivals: Product[] = [
   {
     name: 'Pommes Gala Bio',
     price: '4.99€/kg',
-    image: require('../../assets/images/onboarding1.png'),
+    image: require('../assets/images/onboarding1.png'),
     category: 'FRUITS',
   },
   {
     name: 'Bananes Cavendish',
     price: '2.49€/kg',
-    image: require('../../assets/images/onboarding2.png'),
+    image: require('../assets/images/onboarding2.png'),
     category: 'FRUITS',
   },
   {
     name: 'Oranges Valencia',
     price: '3.99€/kg',
-    image: require('../../assets/images/onboarding3.png'),
+    image: require('../assets/images/onboarding3.png'),
     category: 'FRUITS',
   },
 ];
@@ -48,25 +48,25 @@ const featured: Product[] = [
   {
     name: 'Tomates Cerises',
     price: '5.99€/kg',
-    image: require('../../assets/images/onboarding1.png'),
+    image: require('../assets/images/onboarding1.png'),
     category: 'LÉGUMES',
   },
   {
     name: 'Concombres Bio',
     price: '2.99€/kg',
-    image: require('../../assets/images/onboarding2.png'),
+    image: require('../assets/images/onboarding2.png'),
     category: 'LÉGUMES',
   },
   {
     name: 'Poivrons Rouges',
     price: '4.49€/kg',
-    image: require('../../assets/images/onboarding3.png'),
+    image: require('../assets/images/onboarding3.png'),
     category: 'LÉGUMES',
   },
   {
     name: 'Carottes Nouvelles',
     price: '1.99€/kg',
-    image: require('../../assets/images/onboarding1.png'),
+    image: require('../assets/images/onboarding1.png'),
     category: 'LÉGUMES',
   },
 ];
@@ -75,25 +75,25 @@ const bestSellers: Product[] = [
   {
     name: 'Fraises Gariguette',
     price: '8.99€/kg',
-    image: require('../../assets/images/onboarding2.png'),
+    image: require('../assets/images/onboarding2.png'),
     category: 'FRUITS',
   },
   {
     name: 'Avocats Hass Bio',
     price: '6.99€/kg',
-    image: require('../../assets/images/onboarding3.png'),
+    image: require('../assets/images/onboarding3.png'),
     category: 'BIO',
   },
   {
     name: 'Kiwi Zespri',
     price: '5.49€/kg',
-    image: require('../../assets/images/onboarding1.png'),
+    image: require('../assets/images/onboarding1.png'),
     category: 'FRUITS',
   },
   {
     name: 'Poires Williams Bio',
     price: '3.99€/kg',
-    image: require('../../assets/images/onboarding2.png'),
+    image: require('../assets/images/onboarding2.png'),
     category: 'BIO',
   },
 ];

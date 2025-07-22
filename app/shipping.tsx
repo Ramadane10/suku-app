@@ -7,6 +7,7 @@ import Header from '../src/components/ui/Header';
 import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
 import { useOrder } from '../src/context/OrderContext';
+import { AntDesign, Feather } from '@expo/vector-icons';
 
 export const options = { headerShown: false };
 
@@ -29,6 +30,22 @@ const ShippingScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+              <TouchableOpacity 
+                onPress={() => router.back()} 
+                style={styles.iconButton}
+                activeOpacity={0.7}
+              >
+                <AntDesign name="arrowleft" size={24} color={colors.dark} />
+              </TouchableOpacity>
+              
+              {/* <TouchableOpacity 
+                style={styles.iconButton}
+                activeOpacity={0.7}
+              >
+                <Feather name="share-2" size={22} color={colors.dark} />
+              </TouchableOpacity> */}
+            </View>
       {/* <Header title="Adresse de livraison" /> */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.sectionTitle}>Adresse de livraison</Text>
@@ -63,13 +80,32 @@ const ShippingScreen = () => {
           <Text style={styles.continueBtnText}>Continuer</Text>
         </TouchableOpacity>
       </ScrollView>
-      <BottomTabBar />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
+    header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
   scrollContent: { paddingBottom: 100 },
   sectionTitle: {
     fontFamily: fonts.bold,
