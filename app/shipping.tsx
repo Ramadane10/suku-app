@@ -39,9 +39,10 @@ const ShippingScreen = () => {
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.iconButton}
-          activeOpacity={0.7}
+          activeOpacity={0.3}
+          delayPressIn={0}
         >
-          <AntDesign name="arrowleft" size={24} color={colors.dark} />
+          <Ionicons name="arrow-back" size={24} color={colors.dark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Adresse de livraison</Text>
         <View style={{ width: 44 }} />

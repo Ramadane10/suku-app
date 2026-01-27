@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import colors from '../../constants/colors';
 import fonts from '../../constants/fonts';
@@ -20,7 +20,7 @@ const ProductCard = ({
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const { addToCart } = useCart();
 
-  const handlePress = () => {
+  const handlePress = useCallback(() => {
     router.push({
       pathname: '/product-details',
       params: {
@@ -30,17 +30,19 @@ const ProductCard = ({
         category: props.category || 'FRUITS',
       }
     });
-  };
+  }, [name, price, image, props.category, router]);
 
-  const handleToggleFavorite = () => {
+  const handleToggleFavorite = useCallback((e) => {
+    e.stopPropagation();
     if (isFavorite(name)) {
       removeFavorite(name);
     } else {
       addFavorite({ name, price, image, category: props.category || 'FRUITS' });
     }
-  };
+  }, [name, price, image, props.category, isFavorite, addFavorite, removeFavorite]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = useCallback((e) => {
+    e.stopPropagation();
     addToCart(
       {
         name,
@@ -50,7 +52,7 @@ const ProductCard = ({
       },
       1
     );
-  };
+  }, [name, price, image, props.category, addToCart]);
 
   return (
     <TouchableOpacity
@@ -60,7 +62,8 @@ const ProductCard = ({
         props.style
       ]}
       onPress={handlePress}
-      activeOpacity={0.7}
+      activeOpacity={0.5}
+      delayPressIn={0}
     >
       <View style={styles.imageContainer}>
         <Image
@@ -71,14 +74,24 @@ const ProductCard = ({
           ]}
           resizeMode="cover"
         />
-        <TouchableOpacity style={styles.favBtn} onPress={handleToggleFavorite} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.favBtn}
+          onPress={handleToggleFavorite}
+          activeOpacity={0.3}
+          delayPressIn={0}
+        >
           <Ionicons
             name={isFavorite(name) ? 'heart' : 'heart-outline'}
             size={20}
             color={isFavorite(name) ? colors.danger : colors.grey}
           />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cartBtn} onPress={handleAddToCart} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.cartBtn}
+          onPress={handleAddToCart}
+          activeOpacity={0.3}
+          delayPressIn={0}
+        >
           <Ionicons name="cart-outline" size={18} color={colors.primary} />
         </TouchableOpacity>
       </View>

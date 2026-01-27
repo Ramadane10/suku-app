@@ -1,4 +1,4 @@
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState }from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -35,7 +35,7 @@ const WishlistScreen = () => {
       />
       {favorites.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <AntDesign name="hearto" size={60} color={colors.grey} />
+          <Ionicons name="heart-outline" size={60} color={colors.grey} />
           <Text style={styles.emptyText}>Aucun favori pour le moment.</Text>
         </View>
       ) : (
@@ -54,7 +54,8 @@ const WishlistScreen = () => {
                   }
                 });
               }}
-              activeOpacity={0.7}
+              activeOpacity={0.3}
+              delayPressIn={0}
             >
               <Image source={item.image} style={styles.itemImage} />
               <View style={styles.itemInfo}>

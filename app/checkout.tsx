@@ -1,4 +1,4 @@
-import { AntDesign, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { AntDesign, Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -40,14 +40,16 @@ const CheckoutScreen = () => {
               <TouchableOpacity
                 onPress={() => router.back()}
                 style={styles.iconButton}
-                activeOpacity={0.7}
+                activeOpacity={0.3}
+                delayPressIn={0}
               >
-                <AntDesign name="arrowleft" size={24} color={colors.dark} />
+                <Ionicons name="arrow-back" size={24} color={colors.dark} />
               </TouchableOpacity>
 
               {/* <TouchableOpacity
                 style={styles.iconButton}
-                activeOpacity={0.7}
+                activeOpacity={0.3}
+                delayPressIn={0}
               >
                 <Feather name="share-2" size={22} color={colors.dark} />
               </TouchableOpacity> */}
@@ -67,7 +69,7 @@ const CheckoutScreen = () => {
         </View>
         <Text style={styles.sectionTitle}>Total à payer</Text>
         <View style={styles.infoBoxRow}>
-          <AntDesign name="shoppingcart" size={22} color={colors.primary} style={{ marginRight: 8 }} />
+          <Ionicons name="cart-outline" size={22} color={colors.primary} style={{ marginRight: 8 }} />
           <Text style={styles.totalValue}>{getCartTotal()}€</Text>
         </View>
         <TouchableOpacity style={styles.orderBtn} onPress={handlePay}>

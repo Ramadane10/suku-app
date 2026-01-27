@@ -1,4 +1,4 @@
-import { AntDesign, Feather, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
+import { AntDesign, Feather, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -150,9 +150,10 @@ const ProductDetails = () => {
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.iconButton}
-          activeOpacity={0.7}
+          activeOpacity={0.3}
+          delayPressIn={0}
         >
-          <AntDesign name="arrowleft" size={24} color={colors.dark} />
+          <Ionicons name="arrow-back" size={24} color={colors.dark} />
         </TouchableOpacity>
       </View>
 
@@ -172,7 +173,8 @@ const ProductDetails = () => {
           <TouchableOpacity
             style={styles.favoriteButton}
             onPress={toggleFavorite}
-            activeOpacity={0.8}
+            activeOpacity={0.3}
+            delayPressIn={0}
           >
             <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
               <MaterialCommunityIcons
@@ -258,7 +260,8 @@ const ProductDetails = () => {
       <View style={[styles.actionContainer, { paddingBottom: 15 + insets.bottom }]}>
         <TouchableOpacity
           style={styles.cartButton}
-          activeOpacity={0.8}
+          activeOpacity={0.5}
+          delayPressIn={0}
           onPress={handleAddToCart}
         >
           <MaterialCommunityIcons name="cart-outline" size={24} color="#fff" />
@@ -267,7 +270,8 @@ const ProductDetails = () => {
 
         <TouchableOpacity
           style={styles.buyButton}
-          activeOpacity={0.8}
+          activeOpacity={0.5}
+          delayPressIn={0}
           onPress={handleBuyNow}
         >
 

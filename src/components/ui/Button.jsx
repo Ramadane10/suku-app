@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import { Pressable, Text, StyleSheet, View } from 'react-native';
 import colors from '../../constants/colors';
 import fonts from '../../constants/fonts';
 
@@ -12,15 +12,21 @@ const Button = ({
   style,
 }) => {
   return (
-    <TouchableOpacity
-      style={[styles.button, { backgroundColor }, style]}
+    <Pressable
+      style={({ pressed }) => [
+        styles.button,
+        { backgroundColor },
+        pressed && styles.pressed,
+        style,
+      ]}
       onPress={onPress}
+      android_ripple={{ color: 'rgba(255, 255, 255, 0.1)' }}
     >
       <View style={styles.content}>
         {leftIcon ? <View style={styles.icon}>{leftIcon}</View> : null}
         <Text style={[styles.buttonText, { color: textColor }]}>{title}</Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
@@ -31,6 +37,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 8,
+  },
+  pressed: {
+    opacity: 0.7,
   },
   content: {
     flexDirection: 'row',

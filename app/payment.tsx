@@ -1,4 +1,4 @@
-import { AntDesign, Feather, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
+import { AntDesign, Feather, Ionicons, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -53,14 +53,16 @@ const PaymentScreen = () => {
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.iconButton}
-          activeOpacity={0.7}
+          activeOpacity={0.3}
+          delayPressIn={0}
         >
-          <AntDesign name="arrowleft" size={24} color={colors.dark} />
+          <Ionicons name="arrow-back" size={24} color={colors.dark} />
         </TouchableOpacity>
 
         {/* <TouchableOpacity
           style={styles.iconButton}
-          activeOpacity={0.7}
+          activeOpacity={0.3}
+          delayPressIn={0}
         >
           <Feather name="share-2" size={22} color={colors.dark} />
         </TouchableOpacity> */}
@@ -78,7 +80,8 @@ const PaymentScreen = () => {
                 selected === method.key && styles.paymentCardSelected
               ]}
               onPress={() => setSelected(method.key)}
-              activeOpacity={0.8}
+              activeOpacity={0.3}
+              delayPressIn={0}
             >
               <View style={styles.cardContent}>
                 <View style={styles.iconContainer}>
@@ -87,7 +90,7 @@ const PaymentScreen = () => {
                 <Text style={styles.paymentLabel}>{method.label}</Text>
                 {selected === method.key && (
                   <View style={styles.checkIcon}>
-                    <AntDesign name="checkcircle" size={20} color={colors.primary} />
+                    <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
                   </View>
                 )}
               </View>

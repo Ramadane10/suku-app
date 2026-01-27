@@ -11,7 +11,13 @@ export default function RootLayout() {
       <FavoritesProvider>
         <OrderProvider>
           <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
-          <Stack screenOptions={{ headerShown: false }} />
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              animation: 'fade',
+              animationDuration: 150,
+            }}
+          />
         </OrderProvider>
       </FavoritesProvider>
     </CartProvider>

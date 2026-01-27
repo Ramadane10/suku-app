@@ -55,7 +55,8 @@ const BottomTabBar = () => {
               if (focused) return;
               router.push(tab.route);
             }}
-            activeOpacity={0.8}
+            activeOpacity={0.3}
+            delayPressIn={0}
           >
             <View style={styles.iconWrapper}>
               {tab.icon(focused)}
