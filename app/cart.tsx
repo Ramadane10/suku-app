@@ -18,7 +18,12 @@ const CartScreen = () => {
   const router = useRouter();
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="Mon Panier" cartCount={cartItems.length} onMenuPress={() => setIsMenuVisible(true)} />
+      <Header
+        title="Mon Panier"
+        cartCount={cartItems.length}
+        onMenuPress={() => setIsMenuVisible(true)}
+        onCartPress={() => router.push('/cart')}
+      />
       {cartItems.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Feather name="shopping-cart" size={60} color={colors.grey} />

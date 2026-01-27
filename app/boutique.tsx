@@ -1,4 +1,5 @@
 import { Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -88,6 +89,7 @@ const allProducts: Product[] = [
 ];
 
 export default function BoutiqueScreen() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMenuVisible, setIsMenuVisible] = useState(false);
 
@@ -99,7 +101,12 @@ export default function BoutiqueScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="Boutique" onMenuPress={() => setIsMenuVisible(true)} cartCount={0} />
+      <Header
+        title="Boutique"
+        onMenuPress={() => setIsMenuVisible(true)}
+        cartCount={0}
+        onCartPress={() => router.push('/cart')}
+      />
       <View style={styles.searchContainer}>
         <View style={styles.searchInput}>
           <Feather name="search" size={18} color={colors.grey} />

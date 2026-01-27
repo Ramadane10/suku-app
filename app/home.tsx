@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -100,6 +101,7 @@ const bestSellers: Product[] = [
 ];
 
 const HomeScreen = () => {
+  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<Category>('TOUS');
   const [isMenuVisible, setIsMenuVisible] = useState(false);
 
@@ -125,7 +127,12 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="Shopertino" onMenuPress={handleMenuPress} cartCount={2} />
+      <Header
+        title="Shopertino"
+        onMenuPress={handleMenuPress}
+        cartCount={2}
+        onCartPress={() => router.push('/cart')}
+      />
       <ScrollView showsVerticalScrollIndicator={false}>
         <CategoryTabs
           categories={categories}

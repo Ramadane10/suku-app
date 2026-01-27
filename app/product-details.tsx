@@ -13,7 +13,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
 import { useCart } from '../src/context/CartContext';
@@ -25,15 +25,16 @@ const ProductDetails = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { addToCart } = useCart();
-  
+  const insets = useSafeAreaInsets();
+
   // Récupérer les données du produit depuis les paramètres
   const productName = params.name as string || 'Produit';
   const productPrice = params.price as string || '0€/kg';
   const productCategory = params.category as string || 'FRUITS';
-  
+
   // Extraire le prix par kilo du string (ex: "4.99€/kg" -> 4.99)
   const pricePerKilo = parseFloat(productPrice.replace('€/kg', '')) || 4.99;
-  
+
   const [selectedWeight, setSelectedWeight] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
@@ -144,25 +145,18 @@ const ProductDetails = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header avec bouton retour et partage */}
+      {/* Header avec bouton retour */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => router.back()} 
+        <TouchableOpacity
+          onPress={() => router.back()}
           style={styles.iconButton}
           activeOpacity={0.7}
         >
           <AntDesign name="arrowleft" size={24} color={colors.dark} />
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.iconButton}
-          activeOpacity={0.7}
-        >
-          <Feather name="share-2" size={22} color={colors.dark} />
-        </TouchableOpacity>
       </View>
 
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
@@ -173,18 +167,18 @@ const ProductDetails = () => {
             style={styles.productImage}
             resizeMode="contain"
           />
-          
+
           {/* Bouton favoris avec animation */}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.favoriteButton}
             onPress={toggleFavorite}
             activeOpacity={0.8}
           >
             <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-              <MaterialCommunityIcons 
-                name={isFavorite ? "heart" : "heart-outline"} 
-                size={28} 
-                color={isFavorite ? colors.primary : colors.dark} 
+              <MaterialCommunityIcons
+                name={isFavorite ? "heart" : "heart-outline"}
+                size={28}
+                color={isFavorite ? colors.primary : colors.dark}
               />
             </Animated.View>
           </TouchableOpacity>
@@ -199,16 +193,16 @@ const ProductDetails = () => {
               <Text style={styles.organicText}>{productCategory}</Text>
             </View>
           </View>
-          
+
           <Text style={styles.productOrigin}>Producteur local - France</Text>
-          
+
           <View style={styles.ratingContainer}>
             {[1, 2, 3, 4, 5].map((star) => (
-              <AntDesign 
-                key={star} 
-                name="star" 
-                size={16} 
-                color={star <= 4 ? colors.primary : colors.grey} 
+              <AntDesign
+                key={star}
+                name="star"
+                size={16}
+                color={star <= 4 ? colors.primary : colors.grey}
               />
             ))}
             <Text style={styles.ratingText}>(24 avis)</Text>
@@ -232,7 +226,7 @@ const ProductDetails = () => {
           <View style={styles.priceSection}>
             <Text style={styles.priceLabel}>Prix au kilo</Text>
             <Text style={styles.pricePerKilo}>{pricePerKilo}€/kg</Text>
-            
+
             <View style={styles.totalPriceContainer}>
               <Text style={styles.totalPriceLabel}>Total</Text>
               <Text style={styles.totalPrice}>{totalPrice}€</Text>
@@ -261,22 +255,22 @@ const ProductDetails = () => {
       </ScrollView>
 
       {/* Boutons d'action fixés en bas */}
-      <View style={styles.actionContainer}>
-        <TouchableOpacity 
-          style={styles.cartButton} 
+      <View style={[styles.actionContainer, { paddingBottom: 15 + insets.bottom }]}>
+        <TouchableOpacity
+          style={styles.cartButton}
           activeOpacity={0.8}
           onPress={handleAddToCart}
         >
           <MaterialCommunityIcons name="cart-outline" size={24} color="#fff" />
           <Text style={styles.cartButtonText}>Ajouter au panier</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.buyButton} 
+
+        <TouchableOpacity
+          style={styles.buyButton}
           activeOpacity={0.8}
           onPress={handleBuyNow}
         >
-          
+
           <Text style={styles.buyButtonText}>Acheter maintenant</Text>
         </TouchableOpacity>
       </View>
@@ -291,7 +285,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   scrollContent: {
-    paddingBottom: 100,
+    paddingBottom: 140,
   },
   header: {
     flexDirection: 'row',

@@ -8,6 +8,7 @@ const Header = ({
   title,
   onMenuPress,
   cartCount = 0,
+  onCartPress,
   showMenu = true,
   showCart = true,
 }) => (
@@ -22,7 +23,7 @@ const Header = ({
     <Text style={styles.title}>{title}</Text>
     {showCart ? (
       <View style={styles.cartContainer}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={onCartPress} disabled={!onCartPress}>
           <Ionicons name="bag-handle-outline" size={24} color={colors.dark} />
           {cartCount > 0 && (
             <View style={styles.badge}>

@@ -1,4 +1,5 @@
 import { AntDesign } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useState }from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +14,7 @@ export const options = { headerShown: false };
 const WishlistScreen = () => {
   const { favorites, removeFavorite } = useFavorites();
   const [isMenuVisible, setIsMenuVisible] = useState(false)
+  const router = useRouter();
 
    const handleMenuPress = () => {
     setIsMenuVisible(true);
@@ -25,7 +27,12 @@ const WishlistScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* <Header title="Shopertino" onMenuPress={handleMenuPress} cartCount={2} /> */}
-      <Header title="Favoris" onMenuPress={handleMenuPress} cartCount={2} />
+      <Header
+        title="Favoris"
+        onMenuPress={handleMenuPress}
+        cartCount={2}
+        onCartPress={() => router.push('/cart')}
+      />
       {favorites.length === 0 ? (
         <View style={styles.emptyContainer}>
           <AntDesign name="hearto" size={60} color={colors.grey} />

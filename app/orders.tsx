@@ -1,11 +1,13 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomTabBar from '../src/components/ui/BottomTabBar';
 import Header from '../src/components/ui/Header';
 import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
+import { useCart } from '../src/context/CartContext';
 
 export const options = { headerShown: false };
 
@@ -49,10 +51,30 @@ const statusStyles = {
 };
 
 export default function OrdersScreen() {
+  const router = useRouter();
+  const { getCartCount } = useCart();
+
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="Commandes" showMenu={false} showCart={false} />
+      <Header
+        title="Commandes"
+        showMenu={false}
+        showCart={true}
+        cartCount={getCartCount()}
+        onCartPress={() => router.push('/cart')}
+      />
       <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.cartCard}>
+          <View>
+            <Text style={styles.cartTitle}>Panier en cours</Text>
+            <Text style={styles.cartSubtitle}>Vérifiez vos articles avant paiement</Text>
+          </View>
+          <TouchableOpacity style={styles.cartButton} onPress={() => router.push('/cart')}>
+            <Text style={styles.cartButtonText}>Voir le panier</Text>
+            <Feather name="chevron-right" size={18} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+
         {orders.map((order) => {
           const statusStyle = statusStyles[order.status] || {
             bg: colors.secondary,
@@ -119,6 +141,35 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
     paddingBottom: 80,
+  },
+  cartCard: {
+    backgroundColor: colors.secondary,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 16,
+  },
+  cartTitle: {
+    fontFamily: fonts.bold,
+    fontSize: 16,
+    color: colors.dark,
+  },
+  cartSubtitle: {
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    color: colors.grey,
+    marginTop: 4,
+  },
+  cartButton: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 6,
+  },
+  cartButtonText: {
+    fontFamily: fonts.bold,
+    fontSize: 14,
+    color: colors.primary,
   },
   card: {
     backgroundColor: '#fff',

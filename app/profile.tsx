@@ -25,7 +25,12 @@ const ProfileScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="Profil" onMenuPress={handleMenuPress} cartCount={2} />
+      <Header
+        title="Profil"
+        onMenuPress={handleMenuPress}
+        cartCount={2}
+        onCartPress={() => router.push('/cart')}
+      />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Avatar */}
         <View style={styles.avatarContainer}>
