@@ -6,9 +6,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/ui/Header';
 import SideMenu from '../src/components/ui/SideMenu';
 import BottomTabBar from '../src/components/ui/BottomTabBar';
-import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
 import { useCart } from '../src/context/CartContext';
+import { useTheme } from '../src/hooks/useTheme';
 
 export const options = { headerShown: false };
 
@@ -16,8 +16,9 @@ const CartScreen = () => {
   const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const router = useRouter();
+  const { colors } = useTheme();
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Header
         title="Mon Panier"
         cartCount={cartItems.length}
@@ -27,25 +28,25 @@ const CartScreen = () => {
       {cartItems.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Feather name="shopping-cart" size={60} color={colors.grey} />
-          <Text style={styles.emptyText}>Votre panier est vide.</Text>
+          <Text style={[styles.emptyText, { color: colors.grey }]}>Votre panier est vide.</Text>
         </View>
       ) : (
         <>
           <ScrollView style={styles.itemsList}>
             {cartItems.map((item: any) => (
-              <View key={item.id} style={styles.itemRow}>
+              <View key={item.id} style={[styles.itemRow, { backgroundColor: colors.surface }]}>
                 <Image source={item.image} style={styles.itemImage} />
                 <View style={styles.itemInfo}>
-                  <Text style={styles.itemName}>{item.name}</Text>
-                  <Text style={styles.itemPrice}>{item.price} x {item.quantity}kg</Text>
-                  <Text style={styles.itemTotal}>Total : {item.totalPrice}€</Text>
+                  <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
+                  <Text style={[styles.itemPrice, { color: colors.textSecondary }]}>{item.price} x {item.quantity}kg</Text>
+                  <Text style={[styles.itemTotal, { color: colors.primary }]}>Total : {item.totalPrice}€</Text>
                   <View style={styles.quantityRow}>
-                    <TouchableOpacity onPress={() => updateQuantity(item.id, item.quantity - 1)} style={styles.qtyBtn}>
-                      <Text style={styles.qtyBtnText}>-</Text>
+                    <TouchableOpacity onPress={() => updateQuantity(item.id, item.quantity - 1)} style={[styles.qtyBtn, { backgroundColor: colors.secondary }]}>
+                      <Text style={[styles.qtyBtnText, { color: colors.text }]}>-</Text>
                     </TouchableOpacity>
-                    <Text style={styles.qtyText}>{item.quantity} kg</Text>
-                    <TouchableOpacity onPress={() => updateQuantity(item.id, item.quantity + 1)} style={styles.qtyBtn}>
-                      <Text style={styles.qtyBtnText}>+</Text>
+                    <Text style={[styles.qtyText, { color: colors.text }]}>{item.quantity} kg</Text>
+                    <TouchableOpacity onPress={() => updateQuantity(item.id, item.quantity + 1)} style={[styles.qtyBtn, { backgroundColor: colors.secondary }]}>
+                      <Text style={[styles.qtyBtnText, { color: colors.text }]}>+</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => removeFromCart(item.id)} style={styles.removeBtn}>
                       <MaterialCommunityIcons name="delete-outline" size={22} color={colors.danger} />
@@ -55,14 +56,14 @@ const CartScreen = () => {
               </View>
             ))}
           </ScrollView>
-          <View style={styles.footer}>
-            <Text style={styles.totalLabel}>Total :</Text>
-            <Text style={styles.totalValue}>{getCartTotal()}€</Text>
-            <TouchableOpacity style={styles.clearBtn} onPress={clearCart}>
+          <View style={[styles.footer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.totalLabel, { color: colors.text }]}>Total :</Text>
+            <Text style={[styles.totalValue, { color: colors.primary }]}>{getCartTotal()}€</Text>
+            <TouchableOpacity style={[styles.clearBtn, { backgroundColor: colors.danger }]} onPress={clearCart}>
               <Text style={styles.clearBtnText}>Vider le panier</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.orderBtn} onPress={() => router.push('/shipping')}>
+          <TouchableOpacity style={[styles.orderBtn, { backgroundColor: colors.primary }]} onPress={() => router.push('/shipping')}>
             <Text style={styles.orderBtnText}>Commander</Text>
           </TouchableOpacity>
         </>
@@ -76,7 +77,6 @@ const CartScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     paddingTop: 20,
   },
   emptyContainer: {
@@ -88,7 +88,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontFamily: fonts.regular,
     fontSize: 16,
-    color: colors.grey,
     marginTop: 16,
   },
   itemsList: {
@@ -98,7 +97,6 @@ const styles = StyleSheet.create({
   itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.light,
     borderRadius: 12,
     marginBottom: 16,
     padding: 12,
@@ -119,18 +117,15 @@ const styles = StyleSheet.create({
   itemName: {
     fontFamily: fonts.bold,
     fontSize: 16,
-    color: colors.dark,
     marginBottom: 4,
   },
   itemPrice: {
     fontFamily: fonts.regular,
     fontSize: 14,
-    color: colors.grey,
   },
   itemTotal: {
     fontFamily: fonts.bold,
     fontSize: 15,
-    color: colors.primary,
     marginTop: 2,
   },
   quantityRow: {
@@ -142,7 +137,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 4,
@@ -150,12 +144,10 @@ const styles = StyleSheet.create({
   qtyBtnText: {
     fontFamily: fonts.bold,
     fontSize: 18,
-    color: colors.dark,
   },
   qtyText: {
     fontFamily: fonts.medium,
     fontSize: 16,
-    color: colors.dark,
     marginHorizontal: 8,
   },
   removeBtn: {
@@ -167,22 +159,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
     borderTopWidth: 1,
-    borderColor: colors.light,
-    backgroundColor: '#fff',
   },
   totalLabel: {
     fontFamily: fonts.bold,
     fontSize: 18,
-    color: colors.dark,
   },
   totalValue: {
     fontFamily: fonts.bold,
     fontSize: 20,
-    color: colors.primary,
   },
   clearBtn: {
     marginLeft: 16,
-    backgroundColor: colors.danger,
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 14,
@@ -194,7 +181,6 @@ const styles = StyleSheet.create({
   },
   orderBtn: {
     marginHorizontal: 16,
-    backgroundColor: colors.primary,
     borderRadius: 8,
     paddingVertical: 16,
     alignItems: 'center',

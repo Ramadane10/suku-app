@@ -6,11 +6,12 @@ import BackButton from '../src/components/ui/BackButton';
 import Button from '../src/components/ui/Button';
 import Divider from '../src/components/ui/Divider';
 import InputField from '../src/components/ui/InputField';
-import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
+import { useTheme } from '../src/hooks/useTheme';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -35,12 +36,12 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.light} />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={colors.background === '#000000' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       <View style={styles.header}>
         <BackButton onPress={() => router.back()} />
-        <Text style={styles.title}>Sign In</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Sign In</Text>
       </View>
 
       <View style={styles.content}>
@@ -61,15 +62,15 @@ export default function LoginScreen() {
         />
 
         <TouchableOpacity style={styles.forgotButton} onPress={handleForgotPassword}>
-          <Text style={styles.forgotText}>Forgot password?</Text>
+          <Text style={[styles.forgotText, { color: colors.primary }]}>Forgot password?</Text>
         </TouchableOpacity>
 
         <Button
           title="Log in"
           onPress={handleLogin}
-          backgroundColor={colors.dark}
-          textColor={colors.light}
-          leftIcon={<FontAwesome name="sign-in" size={18} color={colors.light} />}
+          backgroundColor={colors.primary}
+          textColor="#fff"
+          leftIcon={<FontAwesome name="sign-in" size={18} color="#fff" />}
           style={styles.loginButton}
         />
 
@@ -79,14 +80,14 @@ export default function LoginScreen() {
           title="Google Login"
           onPress={handleFacebookLogin}
           backgroundColor="#4285F4"
-          textColor={colors.light}
-          leftIcon={<FontAwesome name="google" size={18} color={colors.light} />}
+          textColor="#fff"
+          leftIcon={<FontAwesome name="google" size={18} color="#fff" />}
         />
 
         <View style={styles.registerRow}>
-          <Text style={styles.registerText}>No account yet?</Text>
+          <Text style={[styles.registerText, { color: colors.textSecondary }]}>No account yet?</Text>
           <TouchableOpacity onPress={handleGoToRegister}>
-            <Text style={styles.registerLink}>Create one</Text>
+            <Text style={[styles.registerLink, { color: colors.primary }]}>Create one</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -97,7 +98,6 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.light,
   },
   header: {
     paddingHorizontal: 20,
@@ -107,7 +107,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontFamily: fonts.bold,
-    color: colors.dark,
     marginTop: 16,
   },
   content: {
@@ -125,7 +124,6 @@ const styles = StyleSheet.create({
   forgotText: {
     fontFamily: fonts.medium,
     fontSize: 14,
-    color: colors.primary,
   },
   registerRow: {
     flexDirection: 'row',
@@ -137,11 +135,9 @@ const styles = StyleSheet.create({
   registerText: {
     fontFamily: fonts.regular,
     fontSize: 14,
-    color: colors.grey,
   },
   registerLink: {
     fontFamily: fonts.bold,
     fontSize: 14,
-    color: colors.primary,
   },
 });

@@ -2,10 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import colors from '../../constants/colors';
 import fonts from '../../constants/fonts';
 import { useCart } from '../../context/CartContext';
 import { useFavorites } from '../../context/FavoritesContext';
+import { useTheme } from '../../hooks/useTheme';
 
 const ProductCard = ({
   name,
@@ -19,6 +19,7 @@ const ProductCard = ({
   const router = useRouter();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const { addToCart } = useCart();
+  const { colors } = useTheme();
 
   const handlePress = useCallback(() => {
     router.push({
@@ -65,7 +66,7 @@ const ProductCard = ({
       activeOpacity={0.5}
       delayPressIn={0}
     >
-      <View style={styles.imageContainer}>
+      <View style={[styles.imageContainer, { backgroundColor: colors.light }]}>
         <Image
           source={image}
           style={[
@@ -75,7 +76,7 @@ const ProductCard = ({
           resizeMode="cover"
         />
         <TouchableOpacity
-          style={styles.favBtn}
+          style={[styles.favBtn, { backgroundColor: colors.surface }]}
           onPress={handleToggleFavorite}
           activeOpacity={0.3}
           delayPressIn={0}
@@ -87,7 +88,7 @@ const ProductCard = ({
           />
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.cartBtn}
+          style={[styles.cartBtn, { backgroundColor: colors.surface }]}
           onPress={handleAddToCart}
           activeOpacity={0.3}
           delayPressIn={0}
@@ -99,14 +100,14 @@ const ProductCard = ({
         {priceFirst ? (
           <>
             <Text
-              style={[styles.price, centerPrice && styles.centeredText]}
+              style={[styles.price, { color: colors.textSecondary }, centerPrice && styles.centeredText]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
               {price}
             </Text>
             <Text
-              style={[styles.name, centerPrice && styles.centeredText]}
+              style={[styles.name, { color: colors.text }, centerPrice && styles.centeredText]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -116,14 +117,14 @@ const ProductCard = ({
         ) : (
           <>
             <Text
-              style={[styles.name, centerPrice && styles.centeredText]}
+              style={[styles.name, { color: colors.text }, centerPrice && styles.centeredText]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
               {name}
             </Text>
             <Text
-              style={[styles.price, centerPrice && styles.centeredText]}
+              style={[styles.price, { color: colors.textSecondary }, centerPrice && styles.centeredText]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -148,7 +149,6 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: 140,
     height: 180,
-    backgroundColor: '#F5F5F5',
     borderRadius: 12,
     marginBottom: 8,
     overflow: 'hidden',
@@ -175,14 +175,12 @@ const styles = StyleSheet.create({
   name: {
     fontFamily: fonts.bold,
     fontSize: 14,
-    color: '#333333',
     marginBottom: 4,
     lineHeight: 18,
   },
   price: {
     fontFamily: fonts.medium,
     fontSize: 14,
-    color: '#666666',
     marginBottom: 4,
     lineHeight: 18,
   },
@@ -194,7 +192,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 4,
     zIndex: 2,
@@ -204,7 +201,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 8,
     right: 8,
-    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 6,
     zIndex: 2,

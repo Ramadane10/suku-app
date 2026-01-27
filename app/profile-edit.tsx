@@ -3,68 +3,72 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
+import { useTheme } from '../src/hooks/useTheme';
 
 export const options = { headerShown: false };
 
 const ProfileEdit = () => {
   const router = useRouter();
+  const { colors } = useTheme();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { backgroundColor: colors.surface }]}>
             <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color={colors.dark} />
+              <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Modifier le profil</Text>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>Modifier le profil</Text>
             <View style={{ width: 24 }} />
           </View>
 
-          <Text style={styles.sectionLabel}>PROFIL PUBLIC</Text>
-          <View style={styles.inputRow}>
-            <Text style={styles.inputLabel}>Prénom</Text>
-            <View style={styles.inputField}>
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>PROFIL PUBLIC</Text>
+          <View style={[styles.inputRow, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Prénom</Text>
+            <View style={[styles.inputField, { backgroundColor: colors.background }]}>
               <FontAwesome name="user" size={18} color={colors.grey} style={styles.inputIcon} />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.text }]}
                 placeholder="Votre prénom"
+                placeholderTextColor={colors.textSecondary}
                 value={firstName}
                 onChangeText={setFirstName}
               />
             </View>
           </View>
-          <View style={styles.inputRow}>
-            <Text style={styles.inputLabel}>Nom</Text>
-            <View style={styles.inputField}>
+          <View style={[styles.inputRow, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Nom</Text>
+            <View style={[styles.inputField, { backgroundColor: colors.background }]}>
               <FontAwesome name="user-o" size={18} color={colors.grey} style={styles.inputIcon} />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.text }]}
                 placeholder="Votre nom"
+                placeholderTextColor={colors.textSecondary}
                 value={lastName}
                 onChangeText={setLastName}
               />
             </View>
           </View>
 
-          <Text style={styles.sectionLabel}>INFOS PRIVÉES</Text>
-          <View style={styles.inputRow}>
-            <Text style={styles.inputLabel}>Adresse e-mail</Text>
-            <View style={styles.inputField}>
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>INFOS PRIVÉES</Text>
+          <View style={[styles.inputRow, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Adresse e-mail</Text>
+            <View style={[styles.inputField, { backgroundColor: colors.background }]}>
               <FontAwesome name="envelope" size={18} color={colors.grey} style={styles.inputIcon} />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.text }]}
                 placeholder="Votre e-mail"
+                placeholderTextColor={colors.textSecondary}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -72,13 +76,14 @@ const ProfileEdit = () => {
               />
             </View>
           </View>
-          <View style={styles.inputRow}>
-            <Text style={styles.inputLabel}>Téléphone</Text>
-            <View style={styles.inputField}>
+          <View style={[styles.inputRow, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Téléphone</Text>
+            <View style={[styles.inputField, { backgroundColor: colors.background }]}>
               <FontAwesome name="phone" size={18} color={colors.grey} style={styles.inputIcon} />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.text }]}
                 placeholder="Votre numéro"
+                placeholderTextColor={colors.textSecondary}
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
@@ -92,7 +97,7 @@ const ProfileEdit = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1 },
   scrollContent: { paddingBottom: 100 },
   header: {
     flexDirection: 'row',
@@ -101,23 +106,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     marginBottom: 12,
-    backgroundColor: '#fff',
   },
   headerTitle: {
     fontFamily: fonts.bold,
     fontSize: 20,
-    color: colors.dark,
   },
   sectionLabel: {
     fontFamily: fonts.bold,
     fontSize: 14,
-    color: colors.grey,
     marginTop: 24,
     marginBottom: 8,
     marginLeft: 16,
   },
   inputRow: {
-    backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 12,
@@ -131,13 +132,11 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontFamily: fonts.regular,
     fontSize: 14,
-    color: colors.grey,
     marginBottom: 4,
   },
   inputField: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -149,7 +148,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: fonts.regular,
     fontSize: 16,
-    color: colors.dark,
     paddingVertical: 4,
   },
 });

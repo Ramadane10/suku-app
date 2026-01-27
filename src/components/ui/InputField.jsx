@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TextInput, StyleSheet } from 'react-native';
-import colors from '../../constants/colors';
 import fonts from '../../constants/fonts';
+import { useTheme } from '../../hooks/useTheme';
 
 const InputField = ({
   placeholder,
@@ -13,12 +13,19 @@ const InputField = ({
   leftIcon = null,
   style,
 }) => {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container}>
       {leftIcon ? <View style={styles.iconContainer}>{leftIcon}</View> : null}
       <TextInput
         style={[
           styles.input,
+          {
+            borderColor: colors.border,
+            color: colors.text,
+            backgroundColor: colors.surface,
+          },
           leftIcon ? styles.inputWithIcon : null,
           style,
         ]}
@@ -28,7 +35,7 @@ const InputField = ({
         secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
-        placeholderTextColor={colors.grey}
+        placeholderTextColor={colors.textSecondary}
       />
     </View>
   );
@@ -50,13 +57,10 @@ const styles = StyleSheet.create({
   input: {
     height: 56,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
     borderRadius: 12,
     paddingHorizontal: 16,
     fontFamily: fonts.regular,
     fontSize: 16,
-    color: colors.dark,
-    backgroundColor: colors.light,
   },
   inputWithIcon: {
     paddingLeft: 48,

@@ -5,10 +5,11 @@ import { SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from 'rea
 import BackButton from '../src/components/ui/BackButton';
 import Button from '../src/components/ui/Button';
 import InputField from '../src/components/ui/InputField';
-import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
+import { useTheme } from '../src/hooks/useTheme';
 
 export default function RegisterScreen() {
+  const { colors } = useTheme();
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
@@ -23,18 +24,18 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.light} />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={colors.background === '#000000' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       <View style={styles.header}>
         <BackButton onPress={() => router.back()} />
-        <Text style={styles.title}>Create new account</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Create new account</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         {step === 1 ? (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Infos personnelles</Text>
+          <View style={[styles.section, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Infos personnelles</Text>
             <InputField
               placeholder="Full Name"
               value={fullName}
@@ -54,16 +55,16 @@ export default function RegisterScreen() {
             <Button
               title="Suivant"
               onPress={() => setStep(2)}
-              backgroundColor={colors.dark}
-              textColor={colors.light}
-              leftIcon={<FontAwesome name="arrow-right" size={18} color={colors.light} />}
+              backgroundColor={colors.primary}
+              textColor="#fff"
+              leftIcon={<FontAwesome name="arrow-right" size={18} color="#fff" />}
               style={styles.nextButton}
             />
 
             <View style={styles.loginRow}>
-              <Text style={styles.loginText}>Déjà un compte ?</Text>
+              <Text style={[styles.loginText, { color: colors.textSecondary }]}>Déjà un compte ?</Text>
               <Text
-                style={styles.loginLink}
+                style={[styles.loginLink, { color: colors.primary }]}
                 onPress={() => router.push('/login')}
               >
                 Se connecter
@@ -71,8 +72,8 @@ export default function RegisterScreen() {
             </View>
           </View>
         ) : (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Compte</Text>
+          <View style={[styles.section, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Compte</Text>
             <InputField
               placeholder="E-mail Address"
               value={email}
@@ -100,9 +101,9 @@ export default function RegisterScreen() {
             <Button
               title="Créer le compte"
               onPress={handleSignUp}
-              backgroundColor={colors.dark}
-              textColor={colors.light}
-              leftIcon={<FontAwesome name="user-plus" size={18} color={colors.light} />}
+              backgroundColor={colors.primary}
+              textColor="#fff"
+              leftIcon={<FontAwesome name="user-plus" size={18} color="#fff" />}
               style={styles.signUpButton}
             />
           </View>
@@ -115,7 +116,6 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.light,
   },
   header: {
     paddingHorizontal: 20,
@@ -125,7 +125,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontFamily: fonts.bold,
-    color: colors.dark,
     marginTop: 16,
     fontWeight: 'bold',
   },
@@ -134,7 +133,6 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   section: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -146,7 +144,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: fonts.bold,
     fontSize: 14,
-    color: colors.grey,
     marginBottom: 12,
   },
   nextButton: {
@@ -163,12 +160,10 @@ const styles = StyleSheet.create({
   loginText: {
     fontFamily: fonts.regular,
     fontSize: 14,
-    color: colors.grey,
   },
   loginLink: {
     fontFamily: fonts.bold,
     fontSize: 14,
-    color: colors.primary,
   },
   signUpButton: {
     marginTop: 20,

@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import colors from '../../constants/colors';
 import fonts from '../../constants/fonts';
+import { useTheme } from '../../hooks/useTheme';
 
 const Header = ({
   title,
@@ -11,32 +11,36 @@ const Header = ({
   onCartPress,
   showMenu = true,
   showCart = true,
-}) => (
-  <View style={styles.container}>
-    {showMenu ? (
-      <TouchableOpacity onPress={onMenuPress}>
-        <Ionicons name="menu" size={28} color={colors.dark} />
-      </TouchableOpacity>
-    ) : (
-      <View style={styles.spacer} />
-    )}
-    <Text style={styles.title}>{title}</Text>
-    {showCart ? (
-      <View style={styles.cartContainer}>
-        <TouchableOpacity onPress={onCartPress} disabled={!onCartPress}>
-          <Ionicons name="bag-handle-outline" size={24} color={colors.dark} />
-          {cartCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{cartCount}</Text>
-            </View>
-          )}
+}) => {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.surface }]}>
+      {showMenu ? (
+        <TouchableOpacity onPress={onMenuPress}>
+          <Ionicons name="menu" size={28} color={colors.text} />
         </TouchableOpacity>
-      </View>
-    ) : (
-      <View style={styles.spacer} />
-    )}
-  </View>
-);
+      ) : (
+        <View style={styles.spacer} />
+      )}
+      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+      {showCart ? (
+        <View style={styles.cartContainer}>
+          <TouchableOpacity onPress={onCartPress} disabled={!onCartPress}>
+            <Ionicons name="bag-handle-outline" size={24} color={colors.text} />
+            {cartCount > 0 && (
+              <View style={[styles.badge, { backgroundColor: colors.danger }]}>
+                <Text style={styles.badgeText}>{cartCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.spacer} />
+      )}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -45,7 +49,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
   },
   spacer: {
     width: 32,
@@ -53,7 +56,6 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: fonts.bold,
     fontSize: 20,
-    color: colors.dark,
   },
   cartContainer: {
     position: 'relative',
@@ -62,7 +64,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -5,
     right: -5,
-    backgroundColor: colors.danger,
     borderRadius: 10,
     minWidth: 20,
     height: 20,

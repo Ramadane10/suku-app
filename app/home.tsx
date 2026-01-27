@@ -8,6 +8,7 @@ import ProductCard from '../src/components/ui/ProductCard';
 import SectionTitle from '../src/components/ui/SectionTitle';
 import SideMenu from '../src/components/ui/SideMenu';
 import BottomTabBar from '../src/components/ui/BottomTabBar';
+import { useTheme } from '../src/hooks/useTheme';
 
 export const options = { headerShown: false };
 
@@ -102,6 +103,7 @@ const bestSellers: Product[] = [
 
 const HomeScreen = () => {
   const router = useRouter();
+  const { colors } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState<Category>('TOUS');
   const [isMenuVisible, setIsMenuVisible] = useState(false);
 
@@ -126,7 +128,7 @@ const HomeScreen = () => {
   const filteredBestSellers = filterProducts(bestSellers);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Header
         title="Shopertino"
         onMenuPress={handleMenuPress}
@@ -191,7 +193,7 @@ const HomeScreen = () => {
          filteredFeatured.length === 0 &&
          filteredBestSellers.length === 0 && (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
               Aucun produit disponible dans cette catégorie
             </Text>
           </View>
@@ -209,7 +211,6 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   newArrivalsContainer: {
     marginLeft: 16,
@@ -233,7 +234,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontFamily: 'System',
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
   },
 });

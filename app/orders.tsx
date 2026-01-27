@@ -5,9 +5,9 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomTabBar from '../src/components/ui/BottomTabBar';
 import Header from '../src/components/ui/Header';
-import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
 import { useCart } from '../src/context/CartContext';
+import { useTheme } from '../src/hooks/useTheme';
 
 export const options = { headerShown: false };
 
@@ -44,18 +44,19 @@ const orders = [
   },
 ];
 
-const statusStyles = {
-  'En cours': { bg: colors.warning + '20', text: colors.warning },
-  'Livrée': { bg: colors.success + '20', text: colors.success },
-  'Annulée': { bg: colors.danger + '20', text: colors.danger },
-};
-
 export default function OrdersScreen() {
   const router = useRouter();
   const { getCartCount } = useCart();
+  const { colors } = useTheme();
+
+  const statusStyles = {
+    'En cours': { bg: colors.warning + '20', text: colors.warning },
+    'Livrée': { bg: colors.success + '20', text: colors.success },
+    'Annulée': { bg: colors.danger + '20', text: colors.danger },
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Header
         title="Commandes"
         showMenu={false}
@@ -64,13 +65,13 @@ export default function OrdersScreen() {
         onCartPress={() => router.push('/cart')}
       />
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.cartCard}>
+        <View style={[styles.cartCard, { backgroundColor: colors.secondary }]}>
           <View>
-            <Text style={styles.cartTitle}>Panier en cours</Text>
-            <Text style={styles.cartSubtitle}>Vérifiez vos articles avant paiement</Text>
+            <Text style={[styles.cartTitle, { color: colors.text }]}>Panier en cours</Text>
+            <Text style={[styles.cartSubtitle, { color: colors.textSecondary }]}>Vérifiez vos articles avant paiement</Text>
           </View>
           <TouchableOpacity style={styles.cartButton} onPress={() => router.push('/cart')}>
-            <Text style={styles.cartButtonText}>Voir le panier</Text>
+            <Text style={[styles.cartButtonText, { color: colors.primary }]}>Voir le panier</Text>
             <Feather name="chevron-right" size={18} color={colors.primary} />
           </TouchableOpacity>
         </View>
@@ -82,11 +83,11 @@ export default function OrdersScreen() {
           };
 
           return (
-            <View key={order.id} style={styles.card}>
+            <View key={order.id} style={[styles.card, { backgroundColor: colors.surface }]}>
               <View style={styles.cardHeader}>
                 <View>
-                  <Text style={styles.orderId}>{order.id}</Text>
-                  <Text style={styles.orderDate}>{order.date}</Text>
+                  <Text style={[styles.orderId, { color: colors.text }]}>{order.id}</Text>
+                  <Text style={[styles.orderDate, { color: colors.textSecondary }]}>{order.date}</Text>
                 </View>
                 <View style={[styles.statusPill, { backgroundColor: statusStyle.bg }]}>
                   <Text style={[styles.statusText, { color: statusStyle.text }]}>
@@ -95,20 +96,20 @@ export default function OrdersScreen() {
                 </View>
               </View>
 
-              <View style={styles.divider} />
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
               <View style={styles.items}>
                 {order.items.map((item, idx) => (
                   <View key={`${order.id}-${idx}`} style={styles.itemRow}>
-                    <Text style={styles.itemName}>{item.name}</Text>
-                    <Text style={styles.itemQty}>{item.qty}</Text>
+                    <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
+                    <Text style={[styles.itemQty, { color: colors.textSecondary }]}>{item.qty}</Text>
                   </View>
                 ))}
               </View>
 
               <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Total</Text>
-                <Text style={styles.totalValue}>{order.total}</Text>
+                <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>Total</Text>
+                <Text style={[styles.totalValue, { color: colors.primary }]}>{order.total}</Text>
               </View>
 
               <View style={styles.timeline}>
@@ -120,7 +121,7 @@ export default function OrdersScreen() {
                       color={idx === order.timeline.length - 1 ? statusStyle.text : colors.primary}
                       style={styles.timelineIcon}
                     />
-                    <Text style={styles.timelineText}>{step}</Text>
+                    <Text style={[styles.timelineText, { color: colors.text }]}>{step}</Text>
                   </View>
                 ))}
               </View>
@@ -136,14 +137,12 @@ export default function OrdersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     padding: 16,
     paddingBottom: 80,
   },
   cartCard: {
-    backgroundColor: colors.secondary,
     borderRadius: 14,
     padding: 16,
     marginBottom: 16,
@@ -151,12 +150,10 @@ const styles = StyleSheet.create({
   cartTitle: {
     fontFamily: fonts.bold,
     fontSize: 16,
-    color: colors.dark,
   },
   cartSubtitle: {
     fontFamily: fonts.regular,
     fontSize: 13,
-    color: colors.grey,
     marginTop: 4,
   },
   cartButton: {
@@ -169,10 +166,8 @@ const styles = StyleSheet.create({
   cartButtonText: {
     fontFamily: fonts.bold,
     fontSize: 14,
-    color: colors.primary,
   },
   card: {
-    backgroundColor: '#fff',
     borderRadius: 14,
     padding: 16,
     marginBottom: 16,
@@ -189,12 +184,10 @@ const styles = StyleSheet.create({
   orderId: {
     fontFamily: fonts.bold,
     fontSize: 16,
-    color: colors.dark,
   },
   orderDate: {
     fontFamily: fonts.regular,
     fontSize: 13,
-    color: colors.grey,
     marginTop: 4,
   },
   statusPill: {
@@ -208,7 +201,6 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: colors.light,
     marginVertical: 12,
   },
   items: {
@@ -221,14 +213,12 @@ const styles = StyleSheet.create({
   itemName: {
     fontFamily: fonts.regular,
     fontSize: 14,
-    color: colors.dark,
     flex: 1,
     marginRight: 8,
   },
   itemQty: {
     fontFamily: fonts.medium,
     fontSize: 14,
-    color: colors.grey,
   },
   totalRow: {
     flexDirection: 'row',
@@ -238,12 +228,10 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontFamily: fonts.medium,
     fontSize: 14,
-    color: colors.grey,
   },
   totalValue: {
     fontFamily: fonts.bold,
     fontSize: 16,
-    color: colors.primary,
   },
   timeline: {
     marginTop: 14,
@@ -259,6 +247,5 @@ const styles = StyleSheet.create({
   timelineText: {
     fontFamily: fonts.regular,
     fontSize: 13,
-    color: colors.dark,
   },
 });

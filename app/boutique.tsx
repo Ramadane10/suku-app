@@ -7,8 +7,8 @@ import BottomTabBar from '../src/components/ui/BottomTabBar';
 import Header from '../src/components/ui/Header';
 import ProductCard from '../src/components/ui/ProductCard';
 import SideMenu from '../src/components/ui/SideMenu';
-import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
+import { useTheme } from '../src/hooks/useTheme';
 
 export const options = { headerShown: false };
 
@@ -90,6 +90,7 @@ const allProducts: Product[] = [
 
 export default function BoutiqueScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMenuVisible, setIsMenuVisible] = useState(false);
 
@@ -100,7 +101,7 @@ export default function BoutiqueScreen() {
   }, [searchQuery]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Header
         title="Boutique"
         onMenuPress={() => setIsMenuVisible(true)}
@@ -108,17 +109,17 @@ export default function BoutiqueScreen() {
         onCartPress={() => router.push('/cart')}
       />
       <View style={styles.searchContainer}>
-        <View style={styles.searchInput}>
+        <View style={[styles.searchInput, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Feather name="search" size={18} color={colors.grey} />
           <TextInput
-            style={styles.searchText}
+            style={[styles.searchText, { color: colors.text }]}
             placeholder="Rechercher un produit"
-            placeholderTextColor={colors.grey}
+            placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
         </View>
-        <Text style={styles.resultCount}>{filteredProducts.length} produits</Text>
+        <Text style={[styles.resultCount, { color: colors.textSecondary }]}>{filteredProducts.length} produits</Text>
       </View>
       <FlatList
         data={filteredProducts}
@@ -134,7 +135,7 @@ export default function BoutiqueScreen() {
         )}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>Aucun produit trouvé.</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Aucun produit trouvé.</Text>
           </View>
         }
       />
@@ -147,7 +148,6 @@ export default function BoutiqueScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   searchContainer: {
     paddingHorizontal: 16,
@@ -156,25 +156,21 @@ const styles = StyleSheet.create({
   searchInput: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.light,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: colors.light,
   },
   searchText: {
     flex: 1,
     marginLeft: 8,
     fontFamily: fonts.regular,
     fontSize: 15,
-    color: colors.dark,
   },
   resultCount: {
     marginTop: 8,
     fontFamily: fonts.medium,
     fontSize: 13,
-    color: colors.grey,
   },
   listContent: {
     paddingHorizontal: 16,
@@ -198,6 +194,5 @@ const styles = StyleSheet.create({
   emptyText: {
     fontFamily: fonts.regular,
     fontSize: 14,
-    color: colors.grey,
   },
 });

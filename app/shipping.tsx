@@ -4,15 +4,16 @@ import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomTabBar from '../src/components/ui/BottomTabBar';
 import InputField from '../src/components/ui/InputField';
-import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
 import { useOrder } from '../src/context/OrderContext';
 import { AntDesign, FontAwesome, Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../src/hooks/useTheme';
 
 export const options = { headerShown: false };
 
 const ShippingScreen = () => {
   const { shipping, saveShipping } = useOrder();
+  const { colors } = useTheme();
   const [fullName, setFullName] = useState('Thierno Souleymane');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -34,22 +35,22 @@ const ShippingScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <TouchableOpacity
           onPress={() => router.back()}
-          style={styles.iconButton}
+          style={[styles.iconButton, { backgroundColor: colors.light }]}
           activeOpacity={0.3}
           delayPressIn={0}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.dark} />
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Adresse de livraison</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Adresse de livraison</Text>
         <View style={{ width: 44 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.sectionTitle}>Informations de livraison</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Informations de livraison</Text>
 
         <View style={styles.formGroup}>
           <InputField
@@ -82,7 +83,7 @@ const ShippingScreen = () => {
           />
         </View>
 
-        <TouchableOpacity style={styles.continueBtn} onPress={handleContinue}>
+        <TouchableOpacity style={[styles.continueBtn, { backgroundColor: colors.primary, shadowColor: colors.primary }]} onPress={handleContinue}>
           <Ionicons name="arrow-forward" size={20} color="#fff" style={styles.btnIcon} />
           <Text style={styles.continueBtnText}>Continuer</Text>
         </TouchableOpacity>
@@ -95,7 +96,6 @@ const ShippingScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background
   },
   header: {
     flexDirection: 'row',
@@ -103,20 +103,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: colors.light,
   },
   headerTitle: {
     fontFamily: fonts.bold,
     fontSize: 20,
-    color: colors.dark,
   },
   iconButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.light,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -127,7 +123,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: fonts.bold,
     fontSize: 20,
-    color: colors.dark,
     marginTop: 8,
     marginBottom: 20,
     marginHorizontal: 16,
@@ -138,14 +133,12 @@ const styles = StyleSheet.create({
   },
   continueBtn: {
     marginHorizontal: 16,
-    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 32,
-    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

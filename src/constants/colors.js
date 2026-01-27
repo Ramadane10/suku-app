@@ -1,4 +1,5 @@
-
+// Couleurs par défaut (pour compatibilité avec le code existant)
+// Utilisez useTheme() dans vos composants pour obtenir les couleurs dynamiques
 export default {
     primary: '#FF6B00',          // Orange vif (boutons, accents)
     secondary: '#FFE7D6',        // Orange clair (fonds doux)
@@ -12,4 +13,3 @@ export default {
     warning: '#FF9F43',          // Avertissements
     transparent: 'transparent',
   };
-  

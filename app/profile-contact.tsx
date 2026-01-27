@@ -4,13 +4,14 @@ import React from 'react';
 import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomTabBar from '../src/components/ui/BottomTabBar';
-import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
+import { useTheme } from '../src/hooks/useTheme';
 
 export const options = { headerShown: false };
 
 const ProfileContact = () => {
   const router = useRouter();
+  const { colors } = useTheme();
   const handleCall = () => {
     Linking.openURL('tel:+2246269279451');
   };
@@ -19,31 +20,31 @@ const ProfileContact = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: colors.surface }]}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={colors.dark} />
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Contactez-nous</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Contactez-nous</Text>
           <View style={{ width: 24 }} />
         </View>
 
-        <Text style={styles.sectionLabel}>CONTACT</Text>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Notre adresse</Text>
-          <Text style={styles.infoValue}>1412 rue Steiner, Paris, 75015</Text>
+        <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>CONTACT</Text>
+        <View style={[styles.infoRow, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+          <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Notre adresse</Text>
+          <Text style={[styles.infoValue, { color: colors.text }]}>1412 rue Steiner, Paris, 75015</Text>
         </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>E-mail</Text>
+        <View style={[styles.infoRow, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+          <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>E-mail</Text>
           <TouchableOpacity onPress={handleEmail}>
-            <Text style={styles.infoValueLink}>contact@suku-app.com</Text>
+            <Text style={[styles.infoValueLink, { color: colors.primary }]}>contact@suku-app.com</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.infoNote}>Notre service client est ouvert du lundi au vendredi, 10h - 17h.</Text>
-        <TouchableOpacity style={styles.callBtn} onPress={handleCall}>
-          <Text style={styles.callBtnText}>Appeler</Text>
+        <Text style={[styles.infoNote, { color: colors.textSecondary }]}>Notre service client est ouvert du lundi au vendredi, 10h - 17h.</Text>
+        <TouchableOpacity style={[styles.callBtn, { backgroundColor: colors.surface, borderColor: colors.primary }]} onPress={handleCall}>
+          <Text style={[styles.callBtnText, { color: colors.primary }]}>Appeler</Text>
         </TouchableOpacity>
       </ScrollView>
       <BottomTabBar />
@@ -52,7 +53,7 @@ const ProfileContact = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1 },
   scrollContent: { paddingBottom: 100 },
   header: {
     flexDirection: 'row',
@@ -61,49 +62,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     marginBottom: 12,
-    backgroundColor: '#fff',
   },
   headerTitle: {
     fontFamily: fonts.bold,
     fontSize: 20,
-    color: colors.dark,
   },
   sectionLabel: {
     fontFamily: fonts.bold,
     fontSize: 14,
-    color: colors.grey,
     marginTop: 24,
     marginBottom: 8,
     marginLeft: 16,
   },
   infoRow: {
-    backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.light,
   },
   infoLabel: {
     fontFamily: fonts.regular,
     fontSize: 14,
-    color: colors.grey,
     marginBottom: 2,
   },
   infoValue: {
     fontFamily: fonts.regular,
     fontSize: 16,
-    color: colors.dark,
   },
   infoValueLink: {
     fontFamily: fonts.regular,
     fontSize: 16,
-    color: colors.primary,
     textDecorationLine: 'underline',
   },
   infoNote: {
     fontFamily: fonts.regular,
     fontSize: 13,
-    color: colors.grey,
     marginHorizontal: 16,
     marginTop: 10,
     marginBottom: 20,
@@ -112,17 +104,14 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 16,
     borderWidth: 1,
-    borderColor: colors.primary,
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: 'center',
-    backgroundColor: '#fff',
   },
   callBtnText: {
     fontFamily: fonts.bold,
     fontSize: 16,
-    color: colors.primary,
   },
 });
 
-export default ProfileContact; 
+export default ProfileContact;

@@ -13,13 +13,14 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import colors from '../../constants/colors';
 import fonts from '../../constants/fonts';
+import { useTheme } from '../../hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 
 const SideMenu = ({ isVisible, onClose }) => {
   const router = useRouter();
+  const { colors } = useTheme();
 
   const mainMenuItems = [
     { id: 'home', title: 'Accueil', icon: 'home', route: '/home' },
@@ -46,23 +47,23 @@ const SideMenu = ({ isVisible, onClose }) => {
   const getIconComponent = (iconName) => {
     switch (iconName) {
       case 'home':
-        return <Ionicons name="home-outline" size={24} color={colors.dark} />;
+        return <Ionicons name="home-outline" size={24} color={colors.text} />;
       case 'grid':
-        return <Ionicons name="grid-outline" size={24} color={colors.dark} />;
+        return <Ionicons name="grid-outline" size={24} color={colors.text} />;
       case 'shopping-bag':
-        return <Ionicons name="bag-outline" size={24} color={colors.dark} />;
+        return <Ionicons name="bag-outline" size={24} color={colors.text} />;
       case 'search':
-        return <Ionicons name="search-outline" size={24} color={colors.dark} />;
+        return <Ionicons name="search-outline" size={24} color={colors.text} />;
       case 'package':
-        return <Ionicons name="cube-outline" size={24} color={colors.dark} />;
+        return <Ionicons name="cube-outline" size={24} color={colors.text} />;
       case 'heart':
-        return <Ionicons name="heart-outline" size={24} color={colors.dark} />;
+        return <Ionicons name="heart-outline" size={24} color={colors.text} />;
       case 'user':
-        return <Ionicons name="person-outline" size={24} color={colors.dark} />;
+        return <Ionicons name="person-outline" size={24} color={colors.text} />;
       case 'log-out':
-        return <Ionicons name="log-out-outline" size={24} color={colors.dark} />;
+        return <Ionicons name="log-out-outline" size={24} color={colors.text} />;
       default:
-        return <Ionicons name="ellipse-outline" size={24} color={colors.dark} />;
+        return <Ionicons name="ellipse-outline" size={24} color={colors.text} />;
     }
   };
 
@@ -82,12 +83,12 @@ const SideMenu = ({ isVisible, onClose }) => {
 
       {/* Menu latéral */}
       <View style={styles.menuContainer}>
-        <View style={styles.menuContent}>
+        <View style={[styles.menuContent, { backgroundColor: colors.surface }]}>
           {/* En-tête du menu */}
-          <View style={styles.menuHeader}>
-            <Text style={styles.menuTitle}>Menu</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color={colors.dark} />
+          <View style={[styles.menuHeader, { borderBottomColor: colors.border }]}>
+            <Text style={[styles.menuTitle, { color: colors.text }]}>Menu</Text>
+            <TouchableOpacity onPress={onClose} style={[styles.closeButton, { backgroundColor: colors.light }]}>
+              <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
 
@@ -96,14 +97,14 @@ const SideMenu = ({ isVisible, onClose }) => {
             {mainMenuItems.map((item) => (
               <TouchableOpacity
                 key={item.id}
-                style={styles.menuItem}
+                style={[styles.menuItem, { borderBottomColor: colors.border }]}
                 onPress={() => handleMenuItemPress(item)}
                 activeOpacity={0.7}
               >
                 <View style={styles.menuItemIcon}>
                   {getIconComponent(item.icon)}
                 </View>
-                <Text style={styles.menuItemText}>{item.title}</Text>
+                <Text style={[styles.menuItemText, { color: colors.text }]}>{item.title}</Text>
                 <Ionicons name="chevron-forward" size={16} color={colors.grey} />
               </TouchableOpacity>
             ))}
@@ -114,20 +115,20 @@ const SideMenu = ({ isVisible, onClose }) => {
 
           {/* Option de déconnexion */}
           <TouchableOpacity
-            style={styles.logoutItem}
+            style={[styles.logoutItem, { borderColor: colors.border }]}
             onPress={() => handleMenuItemPress(logoutItem)}
             activeOpacity={0.7}
           >
             <View style={styles.menuItemIcon}>
               {getIconComponent(logoutItem.icon)}
             </View>
-            <Text style={[styles.menuItemText, styles.logoutText]}>{logoutItem.title}</Text>
+            <Text style={[styles.menuItemText, styles.logoutText, { color: colors.danger }]}>{logoutItem.title}</Text>
             <Ionicons name="chevron-forward" size={16} color={colors.grey} />
           </TouchableOpacity>
 
           {/* Informations supplémentaires */}
           <View style={styles.menuFooter}>
-            <Text style={styles.footerText}>Version 1.0.0</Text>
+            <Text style={[styles.footerText, { color: colors.textSecondary }]}>Version 1.0.0</Text>
           </View>
         </View>
       </View>
@@ -148,7 +149,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: width * 0.75,
     height: '100%',
-    backgroundColor: '#fff',
     zIndex: 1001,
     shadowColor: '#000',
     shadowOffset: {
@@ -171,18 +171,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: colors.light,
   },
   menuTitle: {
     fontFamily: fonts.bold,
     fontSize: 20,
-    color: colors.dark,
   },
   closeButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.light,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -198,7 +195,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: colors.light,
   },
   logoutItem: {
     flexDirection: 'row',
@@ -207,7 +203,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: colors.light,
     marginBottom: 10,
   },
   menuItemIcon: {
@@ -219,10 +214,9 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: fonts.medium,
     fontSize: 16,
-    color: colors.dark,
   },
   logoutText: {
-    color: colors.danger, // Ajout d'une couleur différente pour le bouton de déconnexion
+    // Couleur gérée dynamiquement
   },
   menuFooter: {
     paddingHorizontal: 20,
@@ -231,7 +225,6 @@ const styles = StyleSheet.create({
   footerText: {
     fontFamily: fonts.regular,
     fontSize: 12,
-    color: colors.grey,
     textAlign: 'center',
   },
 });

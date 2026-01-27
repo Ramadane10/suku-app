@@ -1,17 +1,19 @@
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
-import colors from '../../constants/colors';
 import fonts from '../../constants/fonts';
+import { useTheme } from '../../hooks/useTheme';
 
-const SectionTitle = ({ children, center = false }) => (
-  <Text style={[styles.title, center && styles.centered]}>{children}</Text>
-);
+const SectionTitle = ({ children, center = false }) => {
+  const { colors } = useTheme();
+  return (
+    <Text style={[styles.title, { color: colors.text }, center && styles.centered]}>{children}</Text>
+  );
+};
 
 const styles = StyleSheet.create({
   title: {
     fontFamily: fonts.bold,
     fontSize: 22,
-    color: colors.dark,
     marginVertical: 12,
     marginLeft: 16,
   },

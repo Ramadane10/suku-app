@@ -14,9 +14,9 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
 import { useCart } from '../src/context/CartContext';
+import { useTheme } from '../src/hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 const IMAGE_HEIGHT = width * 0.9;
@@ -26,6 +26,7 @@ const ProductDetails = () => {
   const params = useLocalSearchParams();
   const { addToCart } = useCart();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
 
   // Récupérer les données du produit depuis les paramètres
   const productName = params.name as string || 'Produit';
@@ -144,22 +145,22 @@ const ProductDetails = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header avec bouton retour */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
-          style={styles.iconButton}
+          style={[styles.iconButton, { backgroundColor: colors.surface }]}
           activeOpacity={0.3}
           delayPressIn={0}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.dark} />
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { backgroundColor: colors.background }]}
       >
         {/* Section Image */}
         <View style={styles.imageContainer}>
@@ -171,7 +172,7 @@ const ProductDetails = () => {
 
           {/* Bouton favoris avec animation */}
           <TouchableOpacity
-            style={styles.favoriteButton}
+            style={[styles.favoriteButton, { backgroundColor: colors.surface }]}
             onPress={toggleFavorite}
             activeOpacity={0.3}
             delayPressIn={0}
@@ -180,7 +181,7 @@ const ProductDetails = () => {
               <MaterialCommunityIcons
                 name={isFavorite ? "heart" : "heart-outline"}
                 size={28}
-                color={isFavorite ? colors.primary : colors.dark}
+                color={isFavorite ? colors.primary : colors.text}
               />
             </Animated.View>
           </TouchableOpacity>
@@ -189,14 +190,14 @@ const ProductDetails = () => {
         {/* Section Info Produit */}
         <View style={styles.productInfoContainer}>
           <View style={styles.titleRow}>
-            <Text style={styles.productName}>{productName}</Text>
-            <View style={styles.organicBadge}>
+            <Text style={[styles.productName, { color: colors.text }]}>{productName}</Text>
+            <View style={[styles.organicBadge, { backgroundColor: colors.primary }]}>
               <FontAwesome name="leaf" size={14} color="#fff" />
               <Text style={styles.organicText}>{productCategory}</Text>
             </View>
           </View>
 
-          <Text style={styles.productOrigin}>Producteur local - France</Text>
+          <Text style={[styles.productOrigin, { color: colors.textSecondary }]}>Producteur local - France</Text>
 
           <View style={styles.ratingContainer}>
             {[1, 2, 3, 4, 5].map((star) => (
@@ -207,48 +208,48 @@ const ProductDetails = () => {
                 color={star <= 4 ? colors.primary : colors.grey}
               />
             ))}
-            <Text style={styles.ratingText}>(24 avis)</Text>
+            <Text style={[styles.ratingText, { color: colors.textSecondary }]}>(24 avis)</Text>
           </View>
 
           {/* Sélection du poids */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Quantité (kg)</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Quantité (kg)</Text>
             <View style={styles.weightSelectorRow}>
-              <TouchableOpacity style={styles.qtyBtn} onPress={handleDecrease}>
-                <Text style={styles.qtyBtnText}>-</Text>
+              <TouchableOpacity style={[styles.qtyBtn, { backgroundColor: colors.secondary }]} onPress={handleDecrease}>
+                <Text style={[styles.qtyBtnText, { color: colors.text }]}>-</Text>
               </TouchableOpacity>
-              <Text style={styles.weightValue}>{selectedWeight} kg</Text>
-              <TouchableOpacity style={styles.qtyBtn} onPress={handleIncrease}>
-                <Text style={styles.qtyBtnText}>+</Text>
+              <Text style={[styles.weightValue, { color: colors.primary }]}>{selectedWeight} kg</Text>
+              <TouchableOpacity style={[styles.qtyBtn, { backgroundColor: colors.secondary }]} onPress={handleIncrease}>
+                <Text style={[styles.qtyBtnText, { color: colors.text }]}>+</Text>
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Prix */}
-          <View style={styles.priceSection}>
-            <Text style={styles.priceLabel}>Prix au kilo</Text>
-            <Text style={styles.pricePerKilo}>{pricePerKilo}€/kg</Text>
+          <View style={[styles.priceSection, { borderColor: colors.border }]}>
+            <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>Prix au kilo</Text>
+            <Text style={[styles.pricePerKilo, { color: colors.text }]}>{pricePerKilo}€/kg</Text>
 
             <View style={styles.totalPriceContainer}>
-              <Text style={styles.totalPriceLabel}>Total</Text>
-              <Text style={styles.totalPrice}>{totalPrice}€</Text>
+              <Text style={[styles.totalPriceLabel, { color: colors.textSecondary }]}>Total</Text>
+              <Text style={[styles.totalPrice, { color: colors.primary }]}>{totalPrice}€</Text>
             </View>
           </View>
 
           {/* Description */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Description</Text>
-            <Text style={styles.description}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Description</Text>
+            <Text style={[styles.description, { color: colors.text }]}>
               {getProductDescription()}
             </Text>
           </View>
 
           {/* Conseils de conservation */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Conservation</Text>
-            <View style={styles.tipContainer}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Conservation</Text>
+            <View style={[styles.tipContainer, { backgroundColor: colors.secondary + '40' }]}>
               <Feather name="info" size={18} color={colors.primary} />
-              <Text style={styles.tipText}>
+              <Text style={[styles.tipText, { color: colors.text }]}>
                 {getConservationTips()}
               </Text>
             </View>
@@ -257,9 +258,9 @@ const ProductDetails = () => {
       </ScrollView>
 
       {/* Boutons d'action fixés en bas */}
-      <View style={[styles.actionContainer, { paddingBottom: 15 + insets.bottom }]}>
+      <View style={[styles.actionContainer, { paddingBottom: 15 + insets.bottom, backgroundColor: colors.surface, borderColor: colors.border }]}>
         <TouchableOpacity
-          style={styles.cartButton}
+          style={[styles.cartButton, { backgroundColor: colors.primary }]}
           activeOpacity={0.5}
           delayPressIn={0}
           onPress={handleAddToCart}
@@ -269,12 +270,11 @@ const ProductDetails = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.buyButton}
+          style={[styles.buyButton, { backgroundColor: colors.primary }]}
           activeOpacity={0.5}
           delayPressIn={0}
           onPress={handleBuyNow}
         >
-
           <Text style={styles.buyButtonText}>Acheter maintenant</Text>
         </TouchableOpacity>
       </View>
@@ -308,7 +308,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -338,7 +337,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -359,13 +357,11 @@ const styles = StyleSheet.create({
   productName: {
     fontFamily: fonts.bold,
     fontSize: 24,
-    color: colors.dark,
     marginRight: 10,
   },
   organicBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 3,
     paddingHorizontal: 8,
@@ -379,7 +375,6 @@ const styles = StyleSheet.create({
   productOrigin: {
     fontFamily: fonts.regular,
     fontSize: 14,
-    color: colors.grey,
     marginBottom: 10,
   },
   ratingContainer: {
@@ -390,7 +385,6 @@ const styles = StyleSheet.create({
   ratingText: {
     fontFamily: fonts.regular,
     fontSize: 13,
-    color: colors.grey,
     marginLeft: 8,
   },
   section: {
@@ -399,7 +393,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: fonts.bold,
     fontSize: 18,
-    color: colors.dark,
     marginBottom: 15,
   },
   weightOptions: {
@@ -411,21 +404,16 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 18,
     borderRadius: 10,
-    backgroundColor: colors.light,
     borderWidth: 1,
-    borderColor: colors.light,
   },
   weightOptionSelected: {
-    backgroundColor: colors.secondary,
-    borderColor: colors.primary,
+    // Styles gérés dynamiquement
   },
   weightText: {
     fontFamily: fonts.medium,
     fontSize: 15,
-    color: colors.dark,
   },
   weightTextSelected: {
-    color: colors.primary,
     fontFamily: fonts.bold,
   },
   priceSection: {
@@ -436,17 +424,14 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: colors.light,
   },
   priceLabel: {
     fontFamily: fonts.regular,
     fontSize: 14,
-    color: colors.grey,
   },
   pricePerKilo: {
     fontFamily: fonts.bold,
     fontSize: 16,
-    color: colors.dark,
   },
   totalPriceContainer: {
     alignItems: 'flex-end',
@@ -454,23 +439,19 @@ const styles = StyleSheet.create({
   totalPriceLabel: {
     fontFamily: fonts.regular,
     fontSize: 14,
-    color: colors.grey,
   },
   totalPrice: {
     fontFamily: fonts.bold,
     fontSize: 22,
-    color: colors.primary,
   },
   description: {
     fontFamily: fonts.regular,
     fontSize: 15,
-    color: colors.dark,
     lineHeight: 22,
   },
   tipContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: colors.secondary + '40',
     borderRadius: 10,
     padding: 12,
     marginTop: 5,
@@ -478,7 +459,6 @@ const styles = StyleSheet.create({
   tipText: {
     fontFamily: fonts.regular,
     fontSize: 14,
-    color: colors.dark,
     marginLeft: 10,
     flex: 1,
     lineHeight: 20,
@@ -488,9 +468,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderColor: colors.light,
     position: 'absolute',
     bottom: 0,
     left: 0,
@@ -499,7 +477,6 @@ const styles = StyleSheet.create({
   cartButton: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: colors.primary,
     borderRadius: 10,
     paddingVertical: 16,
     justifyContent: 'center',
@@ -514,7 +491,6 @@ const styles = StyleSheet.create({
   },
   buyButton: {
     flex: 1,
-    backgroundColor: colors.dark,
     borderRadius: 10,
     paddingVertical: 16,
     justifyContent: 'center',
@@ -535,7 +511,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 16,
@@ -543,12 +518,10 @@ const styles = StyleSheet.create({
   qtyBtnText: {
     fontFamily: fonts.bold,
     fontSize: 22,
-    color: colors.dark,
   },
   weightValue: {
     fontFamily: fonts.bold,
     fontSize: 20,
-    color: colors.primary,
     minWidth: 60,
     textAlign: 'center',
   },

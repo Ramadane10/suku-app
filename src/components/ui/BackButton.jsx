@@ -2,11 +2,13 @@ import React from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import colors from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 
-const BackButton = ({ onPress, color = colors.dark }) => {
+const BackButton = ({ onPress, color }) => {
   const router = useRouter();
-  
+  const { colors } = useTheme();
+  const iconColor = color || colors.text;
+
   const handlePress = () => {
     if (onPress) {
       onPress();
@@ -17,7 +19,7 @@ const BackButton = ({ onPress, color = colors.dark }) => {
 
   return (
     <TouchableOpacity style={styles.container} onPress={handlePress}>
-      <Ionicons name="arrow-back" size={24} color={color} />
+      <Ionicons name="arrow-back" size={24} color={iconColor} />
     </TouchableOpacity>
   );
 };
