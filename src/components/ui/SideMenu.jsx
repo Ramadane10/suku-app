@@ -1,6 +1,7 @@
 import {
     AntDesign,
-    Feather
+    Feather,
+    Ionicons
 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -45,23 +46,23 @@ const SideMenu = ({ isVisible, onClose }) => {
   const getIconComponent = (iconName) => {
     switch (iconName) {
       case 'home':
-        return <AntDesign name="home" size={24} color={colors.dark} />;
+        return <Ionicons name="home-outline" size={24} color={colors.dark} />;
       case 'grid':
-        return <Feather name="grid" size={24} color={colors.dark} />;
+        return <Ionicons name="grid-outline" size={24} color={colors.dark} />;
       case 'shopping-bag':
-        return <Feather name="shopping-bag" size={24} color={colors.dark} />;
+        return <Ionicons name="bag-outline" size={24} color={colors.dark} />;
       case 'search':
-        return <Feather name="search" size={24} color={colors.dark} />;
+        return <Ionicons name="search-outline" size={24} color={colors.dark} />;
       case 'package':
-        return <Feather name="package" size={24} color={colors.dark} />;
+        return <Ionicons name="cube-outline" size={24} color={colors.dark} />;
       case 'heart':
-        return <AntDesign name="hearto" size={24} color={colors.dark} />;
+        return <Ionicons name="heart-outline" size={24} color={colors.dark} />;
       case 'user':
-        return <Feather name="user" size={24} color={colors.dark} />;
+        return <Ionicons name="person-outline" size={24} color={colors.dark} />;
       case 'log-out':
-        return <Feather name="log-out" size={24} color={colors.dark} />;
+        return <Ionicons name="log-out-outline" size={24} color={colors.dark} />;
       default:
-        return <Feather name="circle" size={24} color={colors.dark} />;
+        return <Ionicons name="ellipse-outline" size={24} color={colors.dark} />;
     }
   };
 
@@ -86,7 +87,7 @@ const SideMenu = ({ isVisible, onClose }) => {
           <View style={styles.menuHeader}>
             <Text style={styles.menuTitle}>Menu</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <AntDesign name="close" size={24} color={colors.dark} />
+              <Ionicons name="close" size={24} color={colors.dark} />
             </TouchableOpacity>
           </View>
 
@@ -103,7 +104,7 @@ const SideMenu = ({ isVisible, onClose }) => {
                   {getIconComponent(item.icon)}
                 </View>
                 <Text style={styles.menuItemText}>{item.title}</Text>
-                <AntDesign name="right" size={16} color={colors.grey} />
+                <Ionicons name="chevron-forward" size={16} color={colors.grey} />
               </TouchableOpacity>
             ))}
           </View>
@@ -121,7 +122,7 @@ const SideMenu = ({ isVisible, onClose }) => {
               {getIconComponent(logoutItem.icon)}
             </View>
             <Text style={[styles.menuItemText, styles.logoutText]}>{logoutItem.title}</Text>
-            <AntDesign name="right" size={16} color={colors.grey} />
+            <Ionicons name="chevron-forward" size={16} color={colors.grey} />
           </TouchableOpacity>
 
           {/* Informations supplémentaires */}

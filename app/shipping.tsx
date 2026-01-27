@@ -1,82 +1,88 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomTabBar from '../src/components/ui/BottomTabBar';
-import Header from '../src/components/ui/Header';
+import InputField from '../src/components/ui/InputField';
 import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
 import { useOrder } from '../src/context/OrderContext';
-import { AntDesign, Feather } from '@expo/vector-icons';
+import { AntDesign, FontAwesome, Ionicons } from '@expo/vector-icons';
 
 export const options = { headerShown: false };
 
 const ShippingScreen = () => {
   const { shipping, saveShipping } = useOrder();
-  const [address, setAddress] = useState(shipping.address);
-  const [city, setCity] = useState(shipping.city);
-  const [postalCode, setPostalCode] = useState(shipping.postalCode);
-  const [country, setCountry] = useState(shipping.country);
+  const [fullName, setFullName] = useState('Thierno Souleymane');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
   const router = useRouter();
 
   const handleContinue = () => {
-    if (!address || !city || !postalCode || !country) {
+    if (!fullName || !phone || !address || !city) {
       Alert.alert('Erreur', 'Merci de remplir tous les champs de livraison.');
       return;
     }
-    saveShipping({ address, city, postalCode, country });
+    saveShipping({
+      address,
+      city,
+      postalCode: '',
+      country: 'Guinée'
+    });
     router.push('/payment');
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-              <TouchableOpacity
-                onPress={() => router.back()}
-                style={styles.iconButton}
-                activeOpacity={0.7}
-              >
-                <AntDesign name="arrowleft" size={24} color={colors.dark} />
-              </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.iconButton}
+          activeOpacity={0.7}
+        >
+          <AntDesign name="arrowleft" size={24} color={colors.dark} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Adresse de livraison</Text>
+        <View style={{ width: 44 }} />
+      </View>
 
-              {/* <TouchableOpacity
-                style={styles.iconButton}
-                activeOpacity={0.7}
-              >
-                <Feather name="share-2" size={22} color={colors.dark} />
-              </TouchableOpacity> */}
-            </View>
-      {/* <Header title="Adresse de livraison" /> */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.sectionTitle}>Adresse de livraison</Text>
+        <Text style={styles.sectionTitle}>Informations de livraison</Text>
+
         <View style={styles.formGroup}>
-          <TextInput
-            style={styles.input}
-            placeholder="Adresse complète"
+          <InputField
+            placeholder="Nom complet"
+            value={fullName}
+            onChangeText={setFullName}
+            leftIcon={<FontAwesome name="user" size={18} color={colors.grey} />}
+          />
+
+          <InputField
+            placeholder="Numéro de téléphone"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+            leftIcon={<FontAwesome name="phone" size={18} color={colors.grey} />}
+          />
+
+          <InputField
+            placeholder="Sonfonia rail, juste avant la station shell à côté AfricoF"
             value={address}
             onChangeText={setAddress}
+            leftIcon={<Ionicons name="location-outline" size={20} color={colors.grey} />}
           />
-          <TextInput
-            style={styles.input}
-            placeholder="Ville"
+
+          <InputField
+            placeholder="Labé, Conakry"
             value={city}
             onChangeText={setCity}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Code postal"
-            value={postalCode}
-            onChangeText={setPostalCode}
-            keyboardType="numeric"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Pays"
-            value={country}
-            onChangeText={setCountry}
+            leftIcon={<Ionicons name="map-outline" size={20} color={colors.grey} />}
           />
         </View>
+
         <TouchableOpacity style={styles.continueBtn} onPress={handleContinue}>
+          <Ionicons name="arrow-forward" size={20} color="#fff" style={styles.btnIcon} />
           <Text style={styles.continueBtnText}>Continuer</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -86,57 +92,66 @@ const ShippingScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-    header: {
+  container: {
+    flex: 1,
+    backgroundColor: colors.background
+  },
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.light,
+  },
+  headerTitle: {
+    fontFamily: fonts.bold,
+    fontSize: 20,
+    color: colors.dark,
   },
   iconButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: colors.light,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  scrollContent: { paddingBottom: 100 },
+  scrollContent: {
+    paddingBottom: 100,
+    paddingTop: 20,
+  },
   sectionTitle: {
     fontFamily: fonts.bold,
-    fontSize: 18,
+    fontSize: 20,
     color: colors.dark,
-    marginTop: 24,
-    marginBottom: 12,
-    marginLeft: 16,
+    marginTop: 8,
+    marginBottom: 20,
+    marginHorizontal: 16,
   },
   formGroup: {
     marginHorizontal: 16,
     marginBottom: 24,
   },
-  input: {
-    fontFamily: fonts.regular,
-    fontSize: 15,
-    color: colors.dark,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 12,
-  },
   continueBtn: {
     marginHorizontal: 16,
     backgroundColor: colors.primary,
-    borderRadius: 8,
+    borderRadius: 12,
     paddingVertical: 16,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 32,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  btnIcon: {
+    marginRight: 8,
   },
   continueBtnText: {
     fontFamily: fonts.bold,

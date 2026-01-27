@@ -41,16 +41,36 @@ const WishlistScreen = () => {
       ) : (
         <ScrollView style={styles.itemsList}>
           {favorites.map((item) => (
-            <View key={item.name} style={styles.itemRow}>
+            <TouchableOpacity
+              key={item.name}
+              style={styles.itemRow}
+              onPress={() => {
+                router.push({
+                  pathname: '/product-details',
+                  params: {
+                    name: item.name,
+                    price: item.price,
+                    category: item.category || 'FRUITS',
+                  }
+                });
+              }}
+              activeOpacity={0.7}
+            >
               <Image source={item.image} style={styles.itemImage} />
               <View style={styles.itemInfo}>
                 <Text style={styles.itemName}>{item.name}</Text>
                 <Text style={styles.itemPrice}>{item.price}</Text>
               </View>
-              <TouchableOpacity onPress={() => removeFavorite(item.name)} style={styles.favBtn}>
+              <TouchableOpacity
+                onPress={(e) => {
+                  e.stopPropagation();
+                  removeFavorite(item.name);
+                }}
+                style={styles.favBtn}
+              >
                 <AntDesign name="heart" size={24} color={colors.danger} />
               </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           ))}
         </ScrollView>
       )}
