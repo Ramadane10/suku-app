@@ -37,15 +37,15 @@ const CheckoutScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-              <TouchableOpacity 
-                onPress={() => router.back()} 
+              <TouchableOpacity
+                onPress={() => router.back()}
                 style={styles.iconButton}
                 activeOpacity={0.7}
               >
                 <AntDesign name="arrowleft" size={24} color={colors.dark} />
               </TouchableOpacity>
-              
-              {/* <TouchableOpacity 
+
+              {/* <TouchableOpacity
                 style={styles.iconButton}
                 activeOpacity={0.7}
               >
@@ -74,6 +74,7 @@ const CheckoutScreen = () => {
           <Text style={styles.orderBtnText}>Payer maintenant</Text>
         </TouchableOpacity>
       </ScrollView>
+      <BottomTabBar />
     </SafeAreaView>
   );
 };
@@ -152,4 +153,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CheckoutScreen; 
+export default CheckoutScreen;

@@ -12,18 +12,29 @@ const tabs = [
     label: 'Accueil',
     icon: (focused) => <AntDesign name="home" size={24} color={focused ? colors.primary : colors.grey} />,
     route: '/home',
+    matchers: ['/home'],
   },
   {
-    key: 'cart',
-    label: 'Panier',
-    icon: (focused) => <Feather name="shopping-bag" size={24} color={focused ? colors.primary : colors.grey} />,
+    key: 'shop',
+    label: 'Boutique',
+    icon: (focused) => <AntDesign name="appstore-o" size={24} color={focused ? colors.primary : colors.grey} />,
+    route: '/boutique',
+    matchers: ['/boutique', '/product-details'],
+  },
+  {
+    key: 'orders',
+    label: 'Commande',
+    icon: (focused) => <Feather name="package" size={24} color={focused ? colors.primary : colors.grey} />,
     route: '/cart',
+    matchers: ['/cart', '/shipping', '/payment', '/checkout'],
+    showBadge: true,
   },
   {
     key: 'profile',
-    label: 'Compte',
+    label: 'Profil',
     icon: (focused) => <Feather name="user" size={24} color={focused ? colors.primary : colors.grey} />,
     route: '/profile',
+    matchers: ['/profile', '/profile-edit', '/profile-settings', '/profile-contact', '/wishlist'],
   },
 ];
 
@@ -35,7 +46,7 @@ const BottomTabBar = () => {
   return (
     <View style={styles.container}>
       {tabs.map((tab) => {
-        const focused = pathname === tab.route;
+        const focused = tab.matchers.some((matcher) => pathname.startsWith(matcher));
         return (
           <TouchableOpacity
             key={tab.key}
@@ -45,7 +56,7 @@ const BottomTabBar = () => {
           >
             <View style={styles.iconWrapper}>
               {tab.icon(focused)}
-              {tab.key === 'cart' && getCartCount() > 0 && (
+              {tab.showBadge && getCartCount() > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{getCartCount()}</Text>
                 </View>
@@ -113,4 +124,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BottomTabBar; 
+export default BottomTabBar;

@@ -1,9 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomTabBar from '../src/components/ui/BottomTabBar';
 import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
 
@@ -35,47 +34,58 @@ const ProfileEdit = () => {
           <Text style={styles.sectionLabel}>PROFIL PUBLIC</Text>
           <View style={styles.inputRow}>
             <Text style={styles.inputLabel}>Prénom</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Votre prénom"
-              value={firstName}
-              onChangeText={setFirstName}
-            />
+            <View style={styles.inputField}>
+              <FontAwesome name="user" size={18} color={colors.grey} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Votre prénom"
+                value={firstName}
+                onChangeText={setFirstName}
+              />
+            </View>
           </View>
           <View style={styles.inputRow}>
             <Text style={styles.inputLabel}>Nom</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Votre nom"
-              value={lastName}
-              onChangeText={setLastName}
-            />
+            <View style={styles.inputField}>
+              <FontAwesome name="user-o" size={18} color={colors.grey} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Votre nom"
+                value={lastName}
+                onChangeText={setLastName}
+              />
+            </View>
           </View>
 
           <Text style={styles.sectionLabel}>INFOS PRIVÉES</Text>
           <View style={styles.inputRow}>
             <Text style={styles.inputLabel}>Adresse e-mail</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Votre e-mail"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+            <View style={styles.inputField}>
+              <FontAwesome name="envelope" size={18} color={colors.grey} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Votre e-mail"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
           </View>
           <View style={styles.inputRow}>
             <Text style={styles.inputLabel}>Téléphone</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Votre numéro"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-            />
+            <View style={styles.inputField}>
+              <FontAwesome name="phone" size={18} color={colors.grey} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Votre numéro"
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+              />
+            </View>
           </View>
         </ScrollView>
-        <BottomTabBar />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -110,8 +120,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.light,
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
   inputLabel: {
     fontFamily: fonts.regular,
@@ -119,15 +134,24 @@ const styles = StyleSheet.create({
     color: colors.grey,
     marginBottom: 4,
   },
-  input: {
-    fontFamily: fonts.regular,
-    fontSize: 16,
-    color: colors.dark,
+  inputField: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#f5f5f5',
-    borderRadius: 8,
+    borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
+  inputIcon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    fontFamily: fonts.regular,
+    fontSize: 16,
+    color: colors.dark,
+    paddingVertical: 4,
+  },
 });
 
-export default ProfileEdit; 
+export default ProfileEdit;

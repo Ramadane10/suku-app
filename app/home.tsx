@@ -6,6 +6,7 @@ import Header from '../src/components/ui/Header';
 import ProductCard from '../src/components/ui/ProductCard';
 import SectionTitle from '../src/components/ui/SectionTitle';
 import SideMenu from '../src/components/ui/SideMenu';
+import BottomTabBar from '../src/components/ui/BottomTabBar';
 
 export const options = { headerShown: false };
 
@@ -136,16 +137,16 @@ const HomeScreen = () => {
         {filteredNewArrivals.length > 0 && (
           <>
             <SectionTitle center>New Arrivals</SectionTitle>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false} 
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
               style={styles.newArrivalsContainer}
               contentContainerStyle={styles.newArrivalsContent}
             >
               {filteredNewArrivals.map((product, index) => (
-                <ProductCard 
-                  key={index} 
-                  {...product} 
+                <ProductCard
+                  key={index}
+                  {...product}
                   style={styles.regularProduct}
                   centerPrice={true}
                 />
@@ -179,8 +180,8 @@ const HomeScreen = () => {
         )}
 
         {/* Message si aucun produit dans aucune section */}
-        {filteredNewArrivals.length === 0 && 
-         filteredFeatured.length === 0 && 
+        {filteredNewArrivals.length === 0 &&
+         filteredFeatured.length === 0 &&
          filteredBestSellers.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyText}>
@@ -189,9 +190,10 @@ const HomeScreen = () => {
           </View>
         )}
       </ScrollView>
-      <SideMenu 
-        isVisible={isMenuVisible} 
-        onClose={handleCloseMenu} 
+      <BottomTabBar />
+      <SideMenu
+        isVisible={isMenuVisible}
+        onClose={handleCloseMenu}
       />
     </SafeAreaView>
   );

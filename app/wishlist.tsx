@@ -47,10 +47,11 @@ const WishlistScreen = () => {
           ))}
         </ScrollView>
       )}
-      <SideMenu 
-        isVisible={isMenuVisible} 
-        onClose={handleCloseMenu} 
+      <SideMenu
+        isVisible={isMenuVisible}
+        onClose={handleCloseMenu}
       />
+      <BottomTabBar />
     </SafeAreaView>
   );
 };
@@ -114,4 +115,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default WishlistScreen; 
+export default WishlistScreen;

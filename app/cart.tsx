@@ -5,6 +5,7 @@ import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/ui/Header';
 import SideMenu from '../src/components/ui/SideMenu';
+import BottomTabBar from '../src/components/ui/BottomTabBar';
 import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
 import { useCart } from '../src/context/CartContext';
@@ -61,6 +62,7 @@ const CartScreen = () => {
           </TouchableOpacity>
         </>
       )}
+      <BottomTabBar />
       <SideMenu isVisible={isMenuVisible} onClose={() => setIsMenuVisible(false)} />
     </SafeAreaView>
   );
@@ -200,4 +202,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CartScreen; 
+export default CartScreen;

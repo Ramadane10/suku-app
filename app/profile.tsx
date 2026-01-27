@@ -7,21 +7,22 @@ import SideMenu from '../src/components/ui/SideMenu';
 import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
 import Header from '../src/components/ui/Header'
+import BottomTabBar from '../src/components/ui/BottomTabBar';
 
 export const options = { headerShown: false };
 
 const ProfileScreen = () => {
   const router = useRouter();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-  
+
     const handleMenuPress = () => {
       setIsMenuVisible(true);
     };
-  
+
     const handleCloseMenu = () => {
       setIsMenuVisible(false);
     };
-  
+
   return (
     <SafeAreaView style={styles.container}>
       <Header title="Profil" onMenuPress={handleMenuPress} cartCount={2} />
@@ -67,6 +68,7 @@ const ProfileScreen = () => {
           <Text style={styles.logoutText}>Se déconnecter</Text>
         </TouchableOpacity>
       </ScrollView>
+      <BottomTabBar />
       <SideMenu isVisible={isMenuVisible} onClose={() => setIsMenuVisible(false)} />
     </SafeAreaView>
   );
@@ -149,4 +151,4 @@ const styles = StyleSheet.create({
     color: colors.dark,
   },
 });
-export default ProfileScreen; 
+export default ProfileScreen;

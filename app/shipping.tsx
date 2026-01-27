@@ -31,15 +31,15 @@ const ShippingScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-              <TouchableOpacity 
-                onPress={() => router.back()} 
+              <TouchableOpacity
+                onPress={() => router.back()}
                 style={styles.iconButton}
                 activeOpacity={0.7}
               >
                 <AntDesign name="arrowleft" size={24} color={colors.dark} />
               </TouchableOpacity>
-              
-              {/* <TouchableOpacity 
+
+              {/* <TouchableOpacity
                 style={styles.iconButton}
                 activeOpacity={0.7}
               >
@@ -80,6 +80,7 @@ const ShippingScreen = () => {
           <Text style={styles.continueBtnText}>Continuer</Text>
         </TouchableOpacity>
       </ScrollView>
+      <BottomTabBar />
     </SafeAreaView>
   );
 };
@@ -144,4 +145,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ShippingScreen; 
+export default ShippingScreen;

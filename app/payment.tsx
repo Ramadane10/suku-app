@@ -11,25 +11,25 @@ import { useOrder } from '../src/context/OrderContext';
 export const options = { headerShown: false };
 
 const paymentMethods = [
-  { 
-    key: 'orange', 
-    label: 'Orange Money', 
-    icon: <MaterialCommunityIcons name="cellphone" size={24} color={colors.primary} /> 
+  {
+    key: 'orange',
+    label: 'Orange Money',
+    icon: <MaterialCommunityIcons name="cellphone" size={24} color={colors.primary} />
   },
-  { 
-    key: 'mobile', 
-    label: 'Mobile Money', 
-    icon: <MaterialCommunityIcons name="cellphone" size={24} color={colors.success} /> 
+  {
+    key: 'mobile',
+    label: 'Mobile Money',
+    icon: <MaterialCommunityIcons name="cellphone" size={24} color={colors.success} />
   },
-  { 
-    key: 'card', 
-    label: 'Carte bancaire', 
-    icon: <FontAwesome name="credit-card" size={22} color={colors.dark} /> 
+  {
+    key: 'card',
+    label: 'Carte bancaire',
+    icon: <FontAwesome name="credit-card" size={22} color={colors.dark} />
   },
-  { 
-    key: 'visa', 
-    label: 'Carte Visa', 
-    icon: <FontAwesome name="cc-visa" size={24} color={colors.info} /> 
+  {
+    key: 'visa',
+    label: 'Carte Visa',
+    icon: <FontAwesome name="cc-visa" size={24} color={colors.info} />
   },
 ];
 
@@ -50,15 +50,15 @@ const PaymentScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => router.back()} 
+        <TouchableOpacity
+          onPress={() => router.back()}
           style={styles.iconButton}
           activeOpacity={0.7}
         >
           <AntDesign name="arrowleft" size={24} color={colors.dark} />
         </TouchableOpacity>
-        
-        {/* <TouchableOpacity 
+
+        {/* <TouchableOpacity
           style={styles.iconButton}
           activeOpacity={0.7}
         >
@@ -68,7 +68,7 @@ const PaymentScreen = () => {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.sectionTitle}>Mode de paiement</Text>
-        
+
         <View style={styles.paymentGrid}>
           {paymentMethods.map((method) => (
             <TouchableOpacity
@@ -99,16 +99,17 @@ const PaymentScreen = () => {
           <Text style={styles.continueBtnText}>Continuer</Text>
         </TouchableOpacity>
       </ScrollView>
+      <BottomTabBar />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#fff' 
+  container: {
+    flex: 1,
+    backgroundColor: '#fff'
   },
-  scrollContent: { 
+  scrollContent: {
     paddingBottom: 100,
     paddingHorizontal: 16,
   },
