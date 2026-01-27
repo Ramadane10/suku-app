@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import {
     Dimensions,
+    Modal,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -64,17 +65,20 @@ const SideMenu = ({ isVisible, onClose }) => {
     }
   };
 
-  if (!isVisible) return null;
-
   return (
-    <>
+    <Modal
+      visible={isVisible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       {/* Overlay sombre */}
       <TouchableOpacity
         style={styles.overlay}
         activeOpacity={1}
         onPress={onClose}
       />
-      
+
       {/* Menu latéral */}
       <View style={styles.menuContainer}>
         <View style={styles.menuContent}>
@@ -126,17 +130,13 @@ const SideMenu = ({ isVisible, onClose }) => {
           </View>
         </View>
       </View>
-    </>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
   overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     zIndex: 1000,
   },
@@ -144,6 +144,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
+    bottom: 0,
     width: width * 0.75,
     height: '100%',
     backgroundColor: '#fff',

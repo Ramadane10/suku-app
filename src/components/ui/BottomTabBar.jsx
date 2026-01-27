@@ -1,4 +1,4 @@
-import { AntDesign, Feather } from '@expo/vector-icons';
+import { AntDesign, Feather, FontAwesome } from '@expo/vector-icons';
 import { usePathname, useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -17,7 +17,7 @@ const tabs = [
   {
     key: 'shop',
     label: 'Boutique',
-    icon: (focused) => <AntDesign name="appstore-o" size={24} color={focused ? colors.primary : colors.grey} />,
+    icon: (focused) => <FontAwesome name="shopping-bag" size={22} color={focused ? colors.primary : colors.grey} />,
     route: '/boutique',
     matchers: ['/boutique', '/product-details'],
   },
@@ -25,8 +25,8 @@ const tabs = [
     key: 'orders',
     label: 'Commande',
     icon: (focused) => <Feather name="package" size={24} color={focused ? colors.primary : colors.grey} />,
-    route: '/cart',
-    matchers: ['/cart', '/shipping', '/payment', '/checkout'],
+    route: '/orders',
+    matchers: ['/orders', '/cart', '/shipping', '/payment', '/checkout'],
     showBadge: true,
   },
   {
@@ -51,7 +51,10 @@ const BottomTabBar = () => {
           <TouchableOpacity
             key={tab.key}
             style={styles.tab}
-            onPress={() => router.push(tab.route)}
+            onPress={() => {
+              if (focused) return;
+              router.push(tab.route);
+            }}
             activeOpacity={0.8}
           >
             <View style={styles.iconWrapper}>

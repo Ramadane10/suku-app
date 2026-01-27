@@ -1,22 +1,24 @@
-import { AntDesign } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import colors from '../../constants/colors';
 import fonts from '../../constants/fonts';
+import { useCart } from '../../context/CartContext';
 import { useFavorites } from '../../context/FavoritesContext';
 
-const ProductCard = ({ 
-  name, 
-  price, 
-  image, 
-  priceFirst = false, 
+const ProductCard = ({
+  name,
+  price,
+  image,
+  priceFirst = false,
   centerPrice = false,
   tallImage = false,
-  ...props 
+  ...props
 }) => {
   const router = useRouter();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
+  const { addToCart } = useCart();
 
   const handlePress = () => {
     router.push({
@@ -38,40 +40,59 @@ const ProductCard = ({
     }
   };
 
+  const handleAddToCart = () => {
+    addToCart(
+      {
+        name,
+        price,
+        image,
+        category: props.category || 'FRUITS',
+      },
+      1
+    );
+  };
+
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[
-        styles.card, 
+        styles.card,
         tallImage && styles.tallCard,
         props.style
-      ]} 
+      ]}
       onPress={handlePress}
       activeOpacity={0.7}
     >
       <View style={styles.imageContainer}>
-        <Image 
-          source={image} 
+        <Image
+          source={image}
           style={[
-            styles.image, 
+            styles.image,
             tallImage && styles.tallImage
-          ]} 
+          ]}
           resizeMode="cover"
         />
         <TouchableOpacity style={styles.favBtn} onPress={handleToggleFavorite} activeOpacity={0.7}>
-          <AntDesign name={isFavorite(name) ? 'heart' : 'hearto'} size={20} color={isFavorite(name) ? colors.danger : colors.grey} />
+          <Ionicons
+            name={isFavorite(name) ? 'heart' : 'heart-outline'}
+            size={20}
+            color={isFavorite(name) ? colors.danger : colors.grey}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.cartBtn} onPress={handleAddToCart} activeOpacity={0.7}>
+          <Ionicons name="cart-outline" size={18} color={colors.primary} />
         </TouchableOpacity>
       </View>
       <View style={styles.content}>
         {priceFirst ? (
           <>
-            <Text 
+            <Text
               style={[styles.price, centerPrice && styles.centeredText]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
               {price}
             </Text>
-            <Text 
+            <Text
               style={[styles.name, centerPrice && styles.centeredText]}
               numberOfLines={1}
               ellipsizeMode="tail"
@@ -81,14 +102,14 @@ const ProductCard = ({
           </>
         ) : (
           <>
-            <Text 
+            <Text
               style={[styles.name, centerPrice && styles.centeredText]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
               {name}
             </Text>
-            <Text 
+            <Text
               style={[styles.price, centerPrice && styles.centeredText]}
               numberOfLines={1}
               ellipsizeMode="tail"
@@ -163,6 +184,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 4,
+    zIndex: 2,
+    elevation: 2,
+  },
+  cartBtn: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 6,
     zIndex: 2,
     elevation: 2,
   },

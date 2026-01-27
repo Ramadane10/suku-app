@@ -4,22 +4,36 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import colors from '../../constants/colors';
 import fonts from '../../constants/fonts';
 
-const Header = ({ title, onMenuPress, cartCount = 0 }) => (
+const Header = ({
+  title,
+  onMenuPress,
+  cartCount = 0,
+  showMenu = true,
+  showCart = true,
+}) => (
   <View style={styles.container}>
-    <TouchableOpacity onPress={onMenuPress}>
-      <Ionicons name="menu" size={28} color={colors.dark} />
-    </TouchableOpacity>
-    <Text style={styles.title}>{title}</Text>
-    <View style={styles.cartContainer}>
-      <TouchableOpacity>
-        <Ionicons name="bag-handle-outline" size={24} color={colors.dark} />
-        {cartCount > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{cartCount}</Text>
-          </View>
-        )}
+    {showMenu ? (
+      <TouchableOpacity onPress={onMenuPress}>
+        <Ionicons name="menu" size={28} color={colors.dark} />
       </TouchableOpacity>
-    </View>
+    ) : (
+      <View style={styles.spacer} />
+    )}
+    <Text style={styles.title}>{title}</Text>
+    {showCart ? (
+      <View style={styles.cartContainer}>
+        <TouchableOpacity>
+          <Ionicons name="bag-handle-outline" size={24} color={colors.dark} />
+          {cartCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{cartCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+    ) : (
+      <View style={styles.spacer} />
+    )}
   </View>
 );
 
@@ -31,6 +45,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: '#fff',
+  },
+  spacer: {
+    width: 32,
   },
   title: {
     fontFamily: fonts.bold,
