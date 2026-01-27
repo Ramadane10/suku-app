@@ -1,11 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
-import { Dimensions, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import colors from '../src/constants/colors';
-
-const { width } = Dimensions.get('window');
 
 const slides = [
   {
@@ -29,12 +27,15 @@ const slides = [
 ];
 
 export default function OnboardingScreen() {
+  const { width, height } = useWindowDimensions();
+  const imageHeight = Math.round(height * 0.38);
+
   const renderItem = ({ item }: { item: { key: string; title: string; text: string; image: any } }) => (
-    <SafeAreaView style={styles.slide}>
-      <Image source={item.image} style={styles.image} />
+    <View style={styles.slide}>
+      <Image source={item.image} style={[styles.image, { width: width * 0.8, height: imageHeight }]} />
       <Text style={styles.title}>{item.title}</Text>
       <Text style={styles.text}>{item.text}</Text>
-    </SafeAreaView>
+    </View>
   );
 
   const handleDone = () => {
@@ -45,10 +46,10 @@ export default function OnboardingScreen() {
   const renderNextButton = () => {
     return (
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button}>
+        <View style={styles.button}>
           <Text style={styles.buttonText}>Suivant</Text>
           <Ionicons name="arrow-forward" size={20} color={colors.primary} style={styles.buttonIcon} />
-        </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -57,10 +58,10 @@ export default function OnboardingScreen() {
   const renderDoneButton = () => {
     return (
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button}>
+        <View style={styles.button}>
           <Text style={styles.buttonText}>Done</Text>
           <Ionicons name="checkmark" size={20} color={colors.primary} style={styles.buttonIcon} />
-        </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -69,9 +70,9 @@ export default function OnboardingScreen() {
   const renderSkipButton = () => {
     return (
       <View style={styles.skipButtonContainer}>
-        <TouchableOpacity style={styles.skipButton}>
+        <View style={styles.skipButton}>
           <Text style={styles.skipButtonText}>Passer</Text>
-        </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -88,6 +89,7 @@ export default function OnboardingScreen() {
       renderSkipButton={renderSkipButton}
       dotStyle={styles.dot}
       activeDotStyle={styles.activeDot}
+      contentContainerStyle={styles.sliderContent}
     />
   );
 }
@@ -101,8 +103,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   image: {
-    width: width * 0.8,
-    height: 300,
     resizeMode: 'contain',
     marginBottom: 30,
   },
@@ -173,5 +173,8 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
+  },
+  sliderContent: {
+    paddingBottom: 24,
   },
 });

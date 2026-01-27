@@ -1,6 +1,7 @@
+import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BackButton from '../src/components/ui/BackButton';
 import Button from '../src/components/ui/Button';
 import Divider from '../src/components/ui/Divider';
@@ -20,50 +21,74 @@ export default function LoginScreen() {
   };
 
   const handleFacebookLogin = () => {
-    // Logique de connexion Facebook à implémenter
-    console.log('Facebook login');
+    // Logique de connexion Google à implémenter
+    console.log('Google login');
+  };
+
+  const handleForgotPassword = () => {
+    // Logique mot de passe oublié à implémenter
+    console.log('Forgot password for:', email);
+  };
+
+  const handleGoToRegister = () => {
+    router.push('/register');
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.light} />
-      
+
       <View style={styles.header}>
         <BackButton onPress={() => router.back()} />
         <Text style={styles.title}>Sign In</Text>
       </View>
-      
+
       <View style={styles.content}>
         <InputField style={{}}
           placeholder="E-mail or phone number"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
+          leftIcon={<FontAwesome name="envelope" size={18} color={colors.grey} />}
         />
-        
+
         <InputField style={{}}
           placeholder="Password"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          leftIcon={<FontAwesome name="lock" size={20} color={colors.grey} />}
         />
-        
+
+        <TouchableOpacity style={styles.forgotButton} onPress={handleForgotPassword}>
+          <Text style={styles.forgotText}>Forgot password?</Text>
+        </TouchableOpacity>
+
         <Button
           title="Log in"
           onPress={handleLogin}
           backgroundColor={colors.dark}
           textColor={colors.light}
+          leftIcon={<FontAwesome name="sign-in" size={18} color={colors.light} />}
           style={styles.loginButton}
         />
-        
+
         <Divider text="OR" />
-        
+
         <Button style={{}}
-          title="Facebook Login"
+          title="Google Login"
           onPress={handleFacebookLogin}
-          backgroundColor="#3b5998"
+          backgroundColor="#4285F4"
           textColor={colors.light}
+          leftIcon={<FontAwesome name="google" size={18} color={colors.light} />}
         />
+
+        <View style={styles.registerRow}>
+          <Text style={styles.registerText}>No account yet?</Text>
+          <TouchableOpacity onPress={handleGoToRegister}>
+            <Text style={styles.registerLink}>Create one</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -91,5 +116,32 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     marginTop: 16,
+  },
+  forgotButton: {
+    alignSelf: 'flex-end',
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  forgotText: {
+    fontFamily: fonts.medium,
+    fontSize: 14,
+    color: colors.primary,
+  },
+  registerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+    gap: 6,
+  },
+  registerText: {
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    color: colors.grey,
+  },
+  registerLink: {
+    fontFamily: fonts.bold,
+    fontSize: 14,
+    color: colors.primary,
   },
 });

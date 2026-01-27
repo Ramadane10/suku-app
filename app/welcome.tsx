@@ -1,3 +1,4 @@
+import { FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
 import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -13,32 +14,49 @@ export default function WelcomeScreen() {
     router.push('/register'); // Vous devrez créer cette page plus tard
   };
 
+  const handleSkip = () => {
+    router.replace('/home');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.logoContainer}>
         <Text style={styles.logo}>S</Text>
       </View>
-      
+
       <View style={styles.contentContainer}>
         <Text style={styles.title}>Bienvenue a Suku</Text>
         <Text style={styles.subtitle}>
-          Achetez et recevez les dernières nouveautés et promotions grâce à notre application mobile. 
+          Achetez et recevez les dernières nouveautés et promotions grâce à notre application mobile.
         </Text>
       </View>
-      
+
       <View style={styles.buttonContainer}>
-        <TouchableOpacity 
-          style={styles.loginButton} 
+        <TouchableOpacity
+          style={styles.loginButton}
           onPress={handleLogin}
         >
-          <Text style={styles.loginButtonText}>Log In</Text>
+          <View style={styles.buttonContent}>
+            <FontAwesome name="sign-in" size={18} color="white" style={styles.buttonIcon} />
+            <Text style={styles.loginButtonText}>Log In</Text>
+          </View>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.signupButton} 
+
+        <TouchableOpacity
+          style={styles.signupButton}
           onPress={handleSignUp}
         >
-          <Text style={styles.signupButtonText}>Sign Up</Text>
+          <View style={styles.buttonContent}>
+            <FontAwesome name="user-plus" size={18} color={colors.dark} style={styles.buttonIcon} />
+            <Text style={styles.signupButtonText}>Sign Up</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.skipButton}
+          onPress={handleSkip}
+        >
+          <Text style={styles.skipButtonText}>Continuer sans connexion</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -114,5 +132,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     fontFamily: fonts.bold,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  buttonIcon: {
+    marginRight: 8,
+  },
+  skipButton: {
+    marginTop: 12,
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  skipButtonText: {
+    fontFamily: fonts.medium,
+    fontSize: 14,
+    color: colors.primary,
   },
 });

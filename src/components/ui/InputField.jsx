@@ -10,12 +10,18 @@ const InputField = ({
   secureTextEntry = false,
   keyboardType = 'default',
   autoCapitalize = 'none',
+  leftIcon = null,
   style,
 }) => {
   return (
     <View style={styles.container}>
+      {leftIcon ? <View style={styles.iconContainer}>{leftIcon}</View> : null}
       <TextInput
-        style={[styles.input, style]}
+        style={[
+          styles.input,
+          leftIcon ? styles.inputWithIcon : null,
+          style,
+        ]}
         placeholder={placeholder}
         value={value}
         onChangeText={onChangeText}
@@ -32,6 +38,15 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
   },
+  iconContainer: {
+    position: 'absolute',
+    left: 16,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
   input: {
     height: 56,
     borderWidth: 1,
@@ -42,6 +57,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.dark,
     backgroundColor: colors.light,
+  },
+  inputWithIcon: {
+    paddingLeft: 48,
   },
 });
 
