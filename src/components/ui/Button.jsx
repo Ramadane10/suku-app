@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, Text, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import colors from '../../constants/colors';
 import fonts from '../../constants/fonts';
 
@@ -10,6 +10,8 @@ const Button = ({
   textColor = colors.light,
   leftIcon = null,
   style,
+  isLoading = false,
+  disabled = false,
 }) => {
   return (
     <Pressable
@@ -18,14 +20,20 @@ const Button = ({
         { backgroundColor },
         pressed && styles.pressed,
         style,
+        (isLoading || disabled) && styles.disabled,
       ]}
-      onPress={onPress}
+      onPress={(isLoading || disabled) ? null : onPress}
       android_ripple={{ color: 'rgba(255, 255, 255, 0.1)' }}
+      disabled={isLoading || disabled}
     >
-      <View style={styles.content}>
-        {leftIcon ? <View style={styles.icon}>{leftIcon}</View> : null}
-        <Text style={[styles.buttonText, { color: textColor }]}>{title}</Text>
-      </View>
+      {isLoading ? (
+        <ActivityIndicator color={textColor} />
+      ) : (
+        <View style={styles.content}>
+          {leftIcon ? <View style={styles.icon}>{leftIcon}</View> : null}
+          <Text style={[styles.buttonText, { color: textColor }]}>{title}</Text>
+        </View>
+      )}
     </Pressable>
   );
 };
@@ -39,6 +47,9 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   pressed: {
+    opacity: 0.7,
+  },
+  disabled: {
     opacity: 0.7,
   },
   content: {

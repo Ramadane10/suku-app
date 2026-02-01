@@ -1,24 +1,60 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BackButton from '../src/components/ui/BackButton';
 import Button from '../src/components/ui/Button';
 import Divider from '../src/components/ui/Divider';
 import InputField from '../src/components/ui/InputField';
 import fonts from '../src/constants/fonts';
+import { useAuth } from '../src/context/AuthContext';
 import { useTheme } from '../src/hooks/useTheme';
 
 export default function LoginScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    // Logique de connexion à implémenter
-    router.push('/home');
-    console.log('Login with:', email, password);
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Erreur', 'Veuillez remplir tous les champs.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await signIn(email, password);
+
+      if (error) {
+        let title = 'Échec de la connexion';
+        let message = error.message;
+
+        if (message.includes('Invalid login credentials')) {
+          message = 'Email ou mot de passe incorrect.\nSi vous n\'avez pas de compte, veuillez vous inscrire.';
+        }
+
+        if (Platform.OS === 'web') {
+          window.alert(title + '\n' + message);
+        } else {
+          Alert.alert(title, message);
+        }
+      } else {
+        router.replace('/home');
+      }
+    } catch (err) {
+      if (Platform.OS === 'web') {
+        window.alert('Erreur\nUne erreur inattendue est survenue.');
+      } else {
+        Alert.alert('Erreur', 'Une erreur inattendue est survenue.');
+      }
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFacebookLogin = () => {
@@ -27,8 +63,7 @@ export default function LoginScreen() {
   };
 
   const handleForgotPassword = () => {
-    // Logique mot de passe oublié à implémenter
-    console.log('Forgot password for:', email);
+    router.push('/forgot-password');
   };
 
   const handleGoToRegister = () => {
@@ -40,13 +75,13 @@ export default function LoginScreen() {
       <StatusBar barStyle={colors.background === '#000000' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       <View style={styles.header}>
-        <BackButton onPress={() => router.back()} />
-        <Text style={[styles.title, { color: colors.text }]}>Sign In</Text>
+        <BackButton onPress={() => router.back()} color={colors.text} />
+        <Text style={[styles.title, { color: colors.text }]}>Connexion</Text>
       </View>
 
       <View style={styles.content}>
         <InputField style={{}}
-          placeholder="E-mail or phone number"
+          placeholder="Email ou téléphone"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -54,7 +89,7 @@ export default function LoginScreen() {
         />
 
         <InputField style={{}}
-          placeholder="Password"
+          placeholder="Mot de passe"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -62,22 +97,24 @@ export default function LoginScreen() {
         />
 
         <TouchableOpacity style={styles.forgotButton} onPress={handleForgotPassword}>
-          <Text style={[styles.forgotText, { color: colors.primary }]}>Forgot password?</Text>
+          <Text style={[styles.forgotText, { color: colors.primary }]}>Mot de passe oublié ?</Text>
         </TouchableOpacity>
 
         <Button
-          title="Log in"
+          title="Se connecter"
           onPress={handleLogin}
           backgroundColor={colors.primary}
           textColor="#fff"
           leftIcon={<FontAwesome name="sign-in" size={18} color="#fff" />}
           style={styles.loginButton}
+          isLoading={loading}
+          disabled={!email || !password}
         />
 
-        <Divider text="OR" />
+        <Divider text="OU" />
 
         <Button style={{}}
-          title="Google Login"
+          title="Connexion Google"
           onPress={handleFacebookLogin}
           backgroundColor="#4285F4"
           textColor="#fff"
@@ -85,9 +122,9 @@ export default function LoginScreen() {
         />
 
         <View style={styles.registerRow}>
-          <Text style={[styles.registerText, { color: colors.textSecondary }]}>No account yet?</Text>
+          <Text style={[styles.registerText, { color: colors.textSecondary }]}>Pas encore de compte ?</Text>
           <TouchableOpacity onPress={handleGoToRegister}>
-            <Text style={[styles.registerLink, { color: colors.primary }]}>Create one</Text>
+            <Text style={[styles.registerLink, { color: colors.primary }]}>Créer un compte</Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -1,8 +1,19 @@
 import React from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 import fonts from '../../constants/fonts';
 import { useTheme } from '../../hooks/useTheme';
 
+/**
+ * @param {object} props
+ * @param {string} [props.placeholder]
+ * @param {string} [props.value]
+ * @param {function} [props.onChangeText]
+ * @param {boolean} [props.secureTextEntry]
+ * @param {import('react-native').KeyboardTypeOptions} [props.keyboardType]
+ * @param {'none' | 'sentences' | 'words' | 'characters'} [props.autoCapitalize]
+ * @param {React.ReactNode} [props.leftIcon]
+ * @param {import('react-native').ViewStyle} [props.style]
+ */
 const InputField = ({
   placeholder,
   value,

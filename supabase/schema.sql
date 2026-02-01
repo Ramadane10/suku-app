@@ -391,6 +391,7 @@ begin
   select id into spices_id from public.categories where slug = 'epices';
   select id into bio_id from public.categories where slug = 'bio';
 
+  -- Insert products (sans RETURNING pour multi-lignes)
   insert into public.products
     (name, price_per_kg, category_id, image_url, description, origin, is_organic, is_new_arrival, is_featured, is_best_seller)
   values
@@ -398,9 +399,10 @@ begin
     ('Bananes Cavendish', 2.49, fruits_id, 'https://picsum.photos/seed/bananes/600', 'Bananes douces et mures.', 'Cote dIvoire', false, true, false, false),
     ('Tomates Cerises', 5.99, veggies_id, 'https://picsum.photos/seed/tomates/600', 'Tomates cerises sucrees.', 'France', false, false, true, false),
     ('Concombres Bio', 2.99, veggies_id, 'https://picsum.photos/seed/concombres/600', 'Concombres bio croquants.', 'France', true, false, true, false),
-    ('Fraises Gariguette', 8.99, fruits_id, 'https://picsum.photos/seed/fraises/600', 'Fraises parfumees.', 'Espagne', false, false, false, true)
-  returning id into p1;
+    ('Fraises Gariguette', 8.99, fruits_id, 'https://picsum.photos/seed/fraises/600', 'Fraises parfumees.', 'Espagne', false, false, false, true);
 
+  -- Récupère les IDs par nom (noms uniques → une seule ligne)
+  select id into p1 from public.products where name = 'Pommes Gala Bio';
   select id into p2 from public.products where name = 'Bananes Cavendish';
   select id into p3 from public.products where name = 'Tomates Cerises';
   select id into p4 from public.products where name = 'Concombres Bio';

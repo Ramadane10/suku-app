@@ -1,26 +1,87 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BackButton from '../src/components/ui/BackButton';
 import Button from '../src/components/ui/Button';
 import InputField from '../src/components/ui/InputField';
 import fonts from '../src/constants/fonts';
+import { useAuth } from '../src/context/AuthContext';
 import { useTheme } from '../src/hooks/useTheme';
 
 export default function RegisterScreen() {
   const { colors } = useTheme();
+  const { signUp } = useAuth();
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
 
-  const handleSignUp = () => {
-    // Logique d'inscription à implémenter
-    router.push('/home');
-    console.log('Sign up with:', { fullName, phoneNumber, email, password });
+  const handleSignUp = async () => {
+    if (!email || !password || !confirmPassword || !fullName) {
+      Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Erreur', 'Les mots de passe ne correspondent pas.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await signUp(email, password, {
+        full_name: fullName,
+        phone: phoneNumber,
+      });
+
+      if (error) {
+        let title = 'Inscription échouée';
+        let message = error.message;
+
+        // Traduction et gestion des erreurs courantes
+        if (message.includes('User already registered') || message.includes('unique constraint')) {
+          title = 'Compte existant';
+          message = 'Cette adresse email est déjà associée à un compte.';
+
+          if (Platform.OS === 'web') {
+            if (window.confirm(title + '\n' + message + '\n\nVoulez-vous vous connecter ?')) {
+              router.push('/login');
+            }
+            return;
+          } else {
+            Alert.alert(title, message, [
+              { text: 'Annuler', style: 'cancel' },
+              { text: 'Se connecter', onPress: () => router.push('/login') }
+            ]);
+            return;
+          }
+        } else if (message.includes('Password should be at least')) {
+          message = 'Le mot de passe doit contenir au moins 6 caractères.';
+        }
+
+        if (Platform.OS === 'web') {
+          window.alert(title + '\n' + message);
+        } else {
+          Alert.alert(title, message);
+        }
+      } else {
+        router.replace('/signup-success');
+      }
+    } catch (err) {
+      if (Platform.OS === 'web') {
+        window.alert('Erreur\nUne erreur inattendue est survenue.');
+      } else {
+        Alert.alert('Erreur', 'Une erreur inattendue est survenue.');
+      }
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -28,8 +89,8 @@ export default function RegisterScreen() {
       <StatusBar barStyle={colors.background === '#000000' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       <View style={styles.header}>
-        <BackButton onPress={() => router.back()} />
-        <Text style={[styles.title, { color: colors.text }]}>Create new account</Text>
+        <BackButton onPress={() => router.back()} color={colors.text} />
+        <Text style={[styles.title, { color: colors.text }]}>Créer un compte</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -37,7 +98,7 @@ export default function RegisterScreen() {
           <View style={[styles.section, { backgroundColor: colors.surface }]}>
             <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Infos personnelles</Text>
             <InputField
-              placeholder="Full Name"
+              placeholder="Nom complet"
               value={fullName}
               onChangeText={setFullName}
               autoCapitalize="words"
@@ -45,7 +106,7 @@ export default function RegisterScreen() {
             />
 
             <InputField
-              placeholder="Phone Number"
+              placeholder="Numéro de téléphone"
               value={phoneNumber}
               onChangeText={setPhoneNumber}
               keyboardType="phone-pad"
@@ -59,6 +120,7 @@ export default function RegisterScreen() {
               textColor="#fff"
               leftIcon={<FontAwesome name="arrow-right" size={18} color="#fff" />}
               style={styles.nextButton}
+              disabled={!fullName || !phoneNumber}
             />
 
             <View style={styles.loginRow}>
@@ -75,7 +137,7 @@ export default function RegisterScreen() {
           <View style={[styles.section, { backgroundColor: colors.surface }]}>
             <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Compte</Text>
             <InputField
-              placeholder="E-mail Address"
+              placeholder="Adresse email"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -83,7 +145,7 @@ export default function RegisterScreen() {
             />
 
             <InputField
-              placeholder="Password"
+              placeholder="Mot de passe"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -91,7 +153,7 @@ export default function RegisterScreen() {
             />
 
             <InputField
-              placeholder="Confirm Password"
+              placeholder="Confirmer mot de passe"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
@@ -105,7 +167,19 @@ export default function RegisterScreen() {
               textColor="#fff"
               leftIcon={<FontAwesome name="user-plus" size={18} color="#fff" />}
               style={styles.signUpButton}
+              isLoading={loading}
+              disabled={!email || !password || !confirmPassword}
             />
+
+            <View style={styles.loginRow}>
+              <Text style={[styles.loginText, { color: colors.textSecondary }]}>Déjà un compte ?</Text>
+              <Text
+                style={[styles.loginLink, { color: colors.primary }]}
+                onPress={() => router.push('/login')}
+              >
+                Se connecter
+              </Text>
+            </View>
           </View>
         )}
       </ScrollView>

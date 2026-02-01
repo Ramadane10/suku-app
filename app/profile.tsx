@@ -1,22 +1,25 @@
-import { AntDesign, Feather, Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import BottomTabBar from '../src/components/ui/BottomTabBar';
+import Header from '../src/components/ui/Header';
 import SideMenu from '../src/components/ui/SideMenu';
 import fonts from '../src/constants/fonts';
-import Header from '../src/components/ui/Header'
-import BottomTabBar from '../src/components/ui/BottomTabBar';
 import { useTheme } from '../src/hooks/useTheme';
 
 export const options = { headerShown: false };
 
+import { useAuth } from '../src/context/AuthContext';
+
 const ProfileScreen = () => {
   const router = useRouter();
   const { colors } = useTheme();
+  const { signOut, user } = useAuth();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-  // TODO: Remplacer par la vraie vérification d'authentification (Supabase)
-  const [isLoggedIn] = useState(true);
+
+  const isLoggedIn = !!user;
 
   const handleMenuPress = () => {
     setIsMenuVisible(true);
@@ -27,22 +30,27 @@ const ProfileScreen = () => {
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      'Déconnexion',
-      'Êtes-vous sûr de vouloir vous déconnecter ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Déconnexion',
-          style: 'destructive',
-          onPress: () => {
-            // TODO: Implémenter la déconnexion (Supabase)
-            console.log('Déconnexion...');
-            router.replace('/welcome');
+    if (Platform.OS === 'web') {
+      if (window.confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+        signOut().then(() => router.replace('/login'));
+      }
+    } else {
+      Alert.alert(
+        'Déconnexion',
+        'Êtes-vous sûr de vouloir vous déconnecter ?',
+        [
+          { text: 'Annuler', style: 'cancel' },
+          {
+            text: 'Déconnexion',
+            style: 'destructive',
+            onPress: async () => {
+              await signOut();
+              router.replace('/login');
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   const handleDeleteAccount = () => {
@@ -73,14 +81,13 @@ const ProfileScreen = () => {
         onCartPress={() => router.push('/cart')}
       />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Avatar - affiché seulement si connecté */}
         {isLoggedIn ? (
           <View style={styles.avatarContainer}>
             <Image
-              source={{ uri: 'https://randomuser.me/api/portraits/men/32.jpg' }}
+              source={{ uri: 'https://ui-avatars.com/api/?name=' + (user?.user_metadata?.full_name || 'User') + '&background=random' }}
               style={styles.avatar}
             />
-            <Text style={[styles.name, { color: colors.text }]}>Mamadou Ramadane Barry</Text>
+            <Text style={[styles.name, { color: colors.text }]}>{user?.user_metadata?.full_name || user?.email}</Text>
           </View>
         ) : (
           <View style={styles.avatarContainer}>
