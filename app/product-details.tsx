@@ -3,15 +3,15 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Alert,
-    Animated,
-    Dimensions,
-    Easing,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Animated,
+  Dimensions,
+  Easing,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import fonts from '../src/constants/fonts';
@@ -32,6 +32,7 @@ const ProductDetails = () => {
   const productName = params.name as string || 'Produit';
   const productPrice = params.price as string || '0€/kg';
   const productCategory = params.category as string || 'FRUITS';
+  const productImage = params.image as string;
 
   // Extraire le prix par kilo du string (ex: "4.99€/kg" -> 4.99)
   const pricePerKilo = parseFloat(productPrice.replace('€/kg', '')) || 4.99;
@@ -46,6 +47,10 @@ const ProductDetails = () => {
 
   // Générer une image dynamique basée sur la catégorie
   const getProductImage = () => {
+    if (productImage) {
+      return { uri: productImage };
+    }
+
     switch (productCategory) {
       case 'FRUITS':
         return require('../assets/images/onboarding1.png');
@@ -298,7 +303,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     position: 'absolute',
-    paddingTop:20,
+    paddingTop: 20,
     top: 0,
     left: 0,
     right: 0,

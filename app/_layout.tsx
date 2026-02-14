@@ -1,4 +1,4 @@
-import { FontAwesome } from '@expo/vector-icons';
+import { AntDesign, Feather, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -15,6 +15,10 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     ...FontAwesome.font,
+    ...Ionicons.font,
+    ...AntDesign.font,
+    ...Feather.font,
+    ...MaterialCommunityIcons.font,
     'SpaceMono-Regular': require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
