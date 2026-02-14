@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomTabBar from '../src/components/ui/BottomTabBar';
@@ -10,6 +10,7 @@ import SectionTitle from '../src/components/ui/SectionTitle';
 import SideMenu from '../src/components/ui/SideMenu';
 import { useProducts } from '../src/hooks/useProducts';
 import { useTheme } from '../src/hooks/useTheme';
+import { useCart } from '../src/context/CartContext';
 
 export const options = { headerShown: false };
 
@@ -57,6 +58,7 @@ const styles = StyleSheet.create({
 const HomeScreen = () => {
   const router = useRouter();
   const { colors } = useTheme();
+  const { getCartCount } = useCart();
   // Utilisation du hook useProducts pour les données dynamiques
   const {
     categories: dbCategories,
@@ -70,27 +72,31 @@ const HomeScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('TOUS');
   const [isMenuVisible, setIsMenuVisible] = useState(false);
 
-  // Construction de la liste des catégories pour les tabs
-  const categoryNames = ['TOUS', ...dbCategories.map(c => c.name)]; // Ou c.slug selon préférence
+  // Construction de la liste des catégories pour les tabs (mémorisé)
+  const categoryNames = useMemo(() => ['TOUS', ...dbCategories.map(c => c.name)], [dbCategories]);
 
-  const handleMenuPress = () => {
+  const handleMenuPress = useCallback(() => {
     setIsMenuVisible(true);
-  };
+  }, []);
 
-  const handleCloseMenu = () => {
+  const handleCloseMenu = useCallback(() => {
     setIsMenuVisible(false);
-  };
+  }, []);
 
-  // Filtrage dynamique
-  const displayedProducts = getProductsByCategory(selectedCategory);
+  // Filtrage dynamique (mémorisé)
+  const displayedProducts = useMemo(() => getProductsByCategory(selectedCategory), [selectedCategory, getProductsByCategory]);
 
   // Si "TOUS" est sélectionné, on affiche les sections par défaut (New, Featured, Best)
   // Sinon, on affiche la liste filtrée
   const isAllCategories = selectedCategory === 'TOUS';
 
-  const newArrivals = getNewArrivals();
-  const featured = getFeatured();
-  const bestSellers = getBestSellers();
+  // Mémoriser les produits spéciaux
+  const newArrivals = useMemo(() => getNewArrivals(), [getNewArrivals]);
+  const featured = useMemo(() => getFeatured(), [getFeatured]);
+  const bestSellers = useMemo(() => getBestSellers(), [getBestSellers]);
+
+  // Mémoriser le compteur de panier
+  const cartCount = useMemo(() => getCartCount(), [getCartCount]);
 
   if (loading) {
     return (
@@ -105,10 +111,13 @@ const HomeScreen = () => {
       <Header
         title="Shopertino"
         onMenuPress={handleMenuPress}
-        cartCount={2} // TODO: Connecter avec le vrai CartContext plus tard
+        cartCount={cartCount}
         onCartPress={() => router.push('/cart')}
       />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 80 }}
+      >
         <CategoryTabs
           categories={categoryNames}
           selected={selectedCategory}
@@ -130,6 +139,8 @@ const HomeScreen = () => {
                   {newArrivals.map((product) => (
                     <ProductCard
                       key={product.id}
+                      id={product.id}
+                      productId={product.id}
                       name={product.name}
                       price={`${product.price_per_kg}€/kg`}
                       image={product.image_url ? { uri: product.image_url } : require('../assets/images/onboarding1.png')}
@@ -139,10 +150,11 @@ const HomeScreen = () => {
                       onPress={() => router.push({
                         pathname: '/product-details',
                         params: {
+                          productId: product.id,
                           name: product.name,
                           price: `${product.price_per_kg}€/kg`,
                           category: product.category?.name,
-                          // On pourrait passer l'ID pour fetcher les détails, mais product-details utilise params pour l'instant
+                          image: product.image_url,
                         }
                       })}
                     />
@@ -159,6 +171,8 @@ const HomeScreen = () => {
                   {featured.map((product) => (
                     <ProductCard
                       key={product.id}
+                      id={product.id}
+                      productId={product.id}
                       name={product.name}
                       price={`${product.price_per_kg}€/kg`}
                       image={product.image_url ? { uri: product.image_url } : require('../assets/images/onboarding1.png')}
@@ -167,9 +181,11 @@ const HomeScreen = () => {
                       onPress={() => router.push({
                         pathname: '/product-details',
                         params: {
+                          productId: product.id,
                           name: product.name,
                           price: `${product.price_per_kg}€/kg`,
-                          category: product.category?.name
+                          category: product.category?.name,
+                          image: product.image_url,
                         }
                       })}
                     />
@@ -194,9 +210,11 @@ const HomeScreen = () => {
                       onPress={() => router.push({
                         pathname: '/product-details',
                         params: {
+                          productId: product.id,
                           name: product.name,
                           price: `${product.price_per_kg}€/kg`,
-                          category: product.category?.name
+                          category: product.category?.name,
+                          image: product.image_url,
                         }
                       })}
                     />
@@ -213,6 +231,8 @@ const HomeScreen = () => {
                 {displayedProducts.map((product) => (
                   <ProductCard
                     key={product.id}
+                    id={product.id}
+                    productId={product.id}
                     name={product.name}
                     price={`${product.price_per_kg}€/kg`}
                     image={product.image_url ? { uri: product.image_url } : require('../assets/images/onboarding1.png')}
@@ -222,9 +242,11 @@ const HomeScreen = () => {
                     onPress={() => router.push({
                       pathname: '/product-details',
                       params: {
+                        productId: product.id,
                         name: product.name,
                         price: `${product.price_per_kg}€/kg`,
-                        category: product.category?.name
+                        category: product.category?.name,
+                        image: product.image_url,
                       }
                     })}
                   />

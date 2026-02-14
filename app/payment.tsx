@@ -68,7 +68,7 @@ const PaymentScreen = () => {
         </TouchableOpacity> */}
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 80 }]}>
         <Text style={styles.sectionTitle}>Mode de paiement</Text>
 
         <View style={styles.paymentGrid}>

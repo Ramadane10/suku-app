@@ -8,12 +8,15 @@ import { useFavorites } from '../../context/FavoritesContext';
 import { useTheme } from '../../hooks/useTheme';
 
 const ProductCard = ({
+  id,
+  productId,
   name,
   price,
   image,
   priceFirst = false,
   centerPrice = false,
   tallImage = false,
+  onPress,
   ...props
 }) => {
   const router = useRouter();
@@ -21,39 +24,74 @@ const ProductCard = ({
   const { addToCart } = useCart();
   const { colors } = useTheme();
 
+  // Utiliser productId ou id
+  const actualProductId = productId || id;
+
   const handlePress = useCallback(() => {
+    if (onPress) {
+      onPress();
+      return;
+    }
+    
     router.push({
       pathname: '/product-details',
       params: {
+        productId: actualProductId,
         name: name,
         price: price,
-        image: image,
+        image: typeof image === 'object' && image?.uri ? image.uri : undefined,
         category: props.category || 'FRUITS',
       }
     });
-  }, [name, price, image, props.category, router]);
+  }, [actualProductId, name, price, image, props.category, router, onPress]);
 
   const handleToggleFavorite = useCallback((e) => {
     e.stopPropagation();
-    if (isFavorite(name)) {
-      removeFavorite(name);
-    } else {
-      addFavorite({ name, price, image, category: props.category || 'FRUITS' });
+    
+    if (!actualProductId) {
+      console.warn('Product ID is required to toggle favorite');
+      return;
     }
-  }, [name, price, image, props.category, isFavorite, addFavorite, removeFavorite]);
 
-  const handleAddToCart = useCallback((e) => {
+    if (isFavorite(actualProductId)) {
+      removeFavorite(actualProductId);
+    } else {
+      addFavorite({ 
+        id: actualProductId,
+        productId: actualProductId,
+        name, 
+        price, 
+        image, 
+        category: props.category || 'FRUITS' 
+      });
+    }
+  }, [actualProductId, name, price, image, props.category, isFavorite, addFavorite, removeFavorite]);
+
+  const handleAddToCart = useCallback(async (e) => {
     e.stopPropagation();
-    addToCart(
-      {
-        name,
-        price,
-        image,
-        category: props.category || 'FRUITS',
-      },
-      1
-    );
-  }, [name, price, image, props.category, addToCart]);
+    
+    if (!actualProductId) {
+      console.warn('Product ID is required to add to cart');
+      return;
+    }
+
+    try {
+      await addToCart(
+        {
+          id: actualProductId,
+          productId: actualProductId,
+          name,
+          price,
+          pricePerKilo: parseFloat(price?.replace('€/kg', '') || '0'),
+          image,
+          category: props.category || 'FRUITS',
+        },
+        1
+      );
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    }
+  }, [actualProductId, name, price, image, props.category, addToCart]);
 
   return (
     <TouchableOpacity
@@ -82,9 +120,9 @@ const ProductCard = ({
           delayPressIn={0}
         >
           <Ionicons
-            name={isFavorite(name) ? 'heart' : 'heart-outline'}
+            name={actualProductId && isFavorite(actualProductId) ? 'heart' : 'heart-outline'}
             size={20}
-            color={isFavorite(name) ? colors.danger : colors.grey}
+            color={actualProductId && isFavorite(actualProductId) ? colors.danger : colors.grey}
           />
         </TouchableOpacity>
         <TouchableOpacity

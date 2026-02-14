@@ -1,18 +1,24 @@
 import { AntDesign, Feather, FontAwesome } from '@expo/vector-icons';
 import { usePathname, useRouter } from 'expo-router';
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import fonts from '../../constants/fonts';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../hooks/useTheme';
 
-const BottomTabBar = () => {
+const BottomTabBar = React.memo(() => {
   const router = useRouter();
   const pathname = usePathname();
-  const { getCartCount } = useCart();
+  const { getCartCount, cartItems } = useCart();
   const { colors } = useTheme();
 
-  const tabs = [
+  // Mémoriser le compteur de panier - ne se met à jour que si cartItems change
+  const cartCount = useMemo(() => {
+    return getCartCount();
+  }, [cartItems, getCartCount]);
+
+  // Mémoriser les tabs avec les icônes
+  const tabs = useMemo(() => [
     {
       key: 'home',
       label: 'Accueil',
@@ -42,41 +48,57 @@ const BottomTabBar = () => {
       route: '/profile',
       matchers: ['/profile', '/profile-edit', '/profile-settings', '/profile-contact', '/wishlist'],
     },
-  ];
+  ], [colors.primary, colors.grey]);
+
+  // Mémoriser les handlers de navigation
+  const handleTabPress = useCallback((route, isFocused) => {
+    if (isFocused) return;
+    router.push(route);
+  }, [router]);
+
+  // Mémoriser le calcul de l'état focused pour chaque tab
+  const getTabFocused = useCallback((matchers) => {
+    return matchers.some((matcher) => pathname.startsWith(matcher));
+  }, [pathname]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       {tabs.map((tab) => {
-        const focused = tab.matchers.some((matcher) => pathname.startsWith(matcher));
+        const focused = getTabFocused(tab.matchers);
         return (
           <TouchableOpacity
             key={tab.key}
             style={styles.tab}
-            onPress={() => {
-              if (focused) return;
-              router.push(tab.route);
-            }}
+            onPress={() => handleTabPress(tab.route, focused)}
             activeOpacity={0.3}
             delayPressIn={0}
           >
             <View style={styles.iconWrapper}>
               {tab.icon(focused)}
-              {tab.showBadge && getCartCount() > 0 && (
+              {tab.showBadge && cartCount > 0 && (
                 <View style={[styles.badge, { backgroundColor: colors.danger }]}>
-                  <Text style={styles.badgeText}>{getCartCount()}</Text>
+                  <Text style={styles.badgeText}>{cartCount}</Text>
                 </View>
               )}
             </View>
-            <Text style={[styles.label, { color: focused ? colors.primary : colors.grey }, focused && styles.labelFocused]}>{tab.label}</Text>
+            <Text style={[styles.label, { color: focused ? colors.primary : colors.grey }, focused && styles.labelFocused]}>
+              {tab.label}
+            </Text>
           </TouchableOpacity>
         );
       })}
     </View>
   );
-};
+});
+
+BottomTabBar.displayName = 'BottomTabBar';
 
 const styles = StyleSheet.create({
   container: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
@@ -87,6 +109,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 8,
+    zIndex: 1000,
   },
   tab: {
     flex: 1,

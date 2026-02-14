@@ -1,20 +1,55 @@
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import fonts from '../src/constants/fonts';
 import { useTheme } from '../src/hooks/useTheme';
+import { useProfile } from '../src/hooks/useProfile';
+import { useAuth } from '../src/context/AuthContext';
 
 export const options = { headerShown: false };
 
 const ProfileEdit = () => {
   const router = useRouter();
   const { colors } = useTheme();
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
+  const { user } = useAuth();
+  const { profile, loading, updateProfile } = useProfile();
+  const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setFullName(profile.full_name || '');
+      setPhone(profile.phone || '');
+    } else if (user) {
+      setFullName(user.user_metadata?.full_name || '');
+      setPhone(user.user_metadata?.phone || '');
+    }
+  }, [profile, user]);
+
+  const handleSave = async () => {
+    if (!user) {
+      Alert.alert('Erreur', 'Vous devez être connecté pour modifier votre profil.');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      await updateProfile({
+        full_name: fullName,
+        phone: phone,
+      });
+      Alert.alert('Succès', 'Votre profil a été mis à jour avec succès.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } catch (error: any) {
+      Alert.alert('Erreur', error.message || 'Impossible de mettre à jour le profil.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -32,50 +67,42 @@ const ProfileEdit = () => {
             <View style={{ width: 24 }} />
           </View>
 
-          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>PROFIL PUBLIC</Text>
-          <View style={[styles.inputRow, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Prénom</Text>
-            <View style={[styles.inputField, { backgroundColor: colors.background }]}>
-              <FontAwesome name="user" size={18} color={colors.grey} style={styles.inputIcon} />
-              <TextInput
-                style={[styles.input, { color: colors.text }]}
-                placeholder="Votre prénom"
-                placeholderTextColor={colors.textSecondary}
-                value={firstName}
-                onChangeText={setFirstName}
-              />
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary} />
             </View>
-          </View>
-          <View style={[styles.inputRow, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Nom</Text>
-            <View style={[styles.inputField, { backgroundColor: colors.background }]}>
-              <FontAwesome name="user-o" size={18} color={colors.grey} style={styles.inputIcon} />
-              <TextInput
-                style={[styles.input, { color: colors.text }]}
-                placeholder="Votre nom"
-                placeholderTextColor={colors.textSecondary}
-                value={lastName}
-                onChangeText={setLastName}
-              />
-            </View>
-          </View>
+          ) : (
+            <>
+              <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>PROFIL PUBLIC</Text>
+              <View style={[styles.inputRow, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Nom complet</Text>
+                <View style={[styles.inputField, { backgroundColor: colors.background }]}>
+                  <FontAwesome name="user" size={18} color={colors.grey} style={styles.inputIcon} />
+                  <TextInput
+                    style={[styles.input, { color: colors.text }]}
+                    placeholder="Votre nom complet"
+                    placeholderTextColor={colors.textSecondary}
+                    value={fullName}
+                    onChangeText={setFullName}
+                  />
+                </View>
+              </View>
 
-          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>INFOS PRIVÉES</Text>
-          <View style={[styles.inputRow, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Adresse e-mail</Text>
-            <View style={[styles.inputField, { backgroundColor: colors.background }]}>
-              <FontAwesome name="envelope" size={18} color={colors.grey} style={styles.inputIcon} />
-              <TextInput
-                style={[styles.input, { color: colors.text }]}
-                placeholder="Votre e-mail"
-                placeholderTextColor={colors.textSecondary}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
-          </View>
+              <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>INFOS PRIVÉES</Text>
+              <View style={[styles.inputRow, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Adresse e-mail</Text>
+                <View style={[styles.inputField, { backgroundColor: colors.background }]}>
+                  <FontAwesome name="envelope" size={18} color={colors.grey} style={styles.inputIcon} />
+                  <Text style={[styles.input, { color: colors.textSecondary }]}>
+                    {profile?.email || user?.email || 'Non disponible'}
+                  </Text>
+                </View>
+                <Text style={[styles.helpText, { color: colors.textSecondary }]}>
+                  L'email ne peut pas être modifié
+                </Text>
+              </View>
+            </>
+          )}
           <View style={[styles.inputRow, { backgroundColor: colors.surface }]}>
             <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Téléphone</Text>
             <View style={[styles.inputField, { backgroundColor: colors.background }]}>
@@ -90,6 +117,20 @@ const ProfileEdit = () => {
               />
             </View>
           </View>
+
+          {!loading && (
+            <TouchableOpacity
+              style={[styles.saveButton, { backgroundColor: colors.primary }, saving && styles.saveButtonDisabled]}
+              onPress={handleSave}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.saveButtonText}>Enregistrer</Text>
+              )}
+            </TouchableOpacity>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -149,6 +190,33 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
     fontSize: 16,
     paddingVertical: 4,
+  },
+  loadingContainer: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  helpText: {
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  saveButton: {
+    marginHorizontal: 16,
+    marginTop: 24,
+    marginBottom: 32,
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
+  },
+  saveButtonText: {
+    fontFamily: fonts.bold,
+    fontSize: 16,
+    color: '#fff',
   },
 });
 

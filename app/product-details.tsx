@@ -7,16 +7,22 @@ import {
   Dimensions,
   Easing,
   Image,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import fonts from '../src/constants/fonts';
 import { useCart } from '../src/context/CartContext';
+import { useFavorites } from '../src/context/FavoritesContext';
 import { useTheme } from '../src/hooks/useTheme';
+import { useAuth } from '../src/context/AuthContext';
+import { useOrder } from '../src/context/OrderContext';
+import { useReviews } from '../src/hooks/useReviews';
 
 const { width } = Dimensions.get('window');
 const IMAGE_HEIGHT = width * 0.9;
@@ -25,10 +31,16 @@ const ProductDetails = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { addToCart } = useCart();
+  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
+  const { user } = useAuth();
+  const { setDirectPurchaseProduct } = useOrder();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
 
   // Récupérer les données du produit depuis les paramètres
+  const productId = params.productId as string;
+  const { reviews, stats, loading: reviewsLoading, createOrUpdateReview, getUserReview } = useReviews(productId);
+  const userReview = getUserReview();
   const productName = params.name as string || 'Produit';
   const productPrice = params.price as string || '0€/kg';
   const productCategory = params.category as string || 'FRUITS';
@@ -38,7 +50,11 @@ const ProductDetails = () => {
   const pricePerKilo = parseFloat(productPrice.replace('€/kg', '')) || 4.99;
 
   const [selectedWeight, setSelectedWeight] = useState(1);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewRating, setReviewRating] = useState(userReview?.rating || 0);
+  const [reviewComment, setReviewComment] = useState(userReview?.comment || '');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const favoriteStatus = productId ? isFavorite(productId) : false;
   const fadeAnim = useState(new Animated.Value(0))[0];
   const scaleAnim = useState(new Animated.Value(1))[0];
 
@@ -91,8 +107,18 @@ const ProductDetails = () => {
     }
   };
 
-  const toggleFavorite = () => {
-    setIsFavorite(!isFavorite);
+  const toggleFavorite = async () => {
+    if (!user) {
+      Alert.alert('Connexion requise', 'Veuillez vous connecter pour ajouter des favoris.');
+      router.push('/login');
+      return;
+    }
+
+    if (!productId) {
+      console.warn('Product ID is required to toggle favorite');
+      return;
+    }
+
     Animated.sequence([
       Animated.timing(scaleAnim, {
         toValue: 1.3,
@@ -107,6 +133,18 @@ const ProductDetails = () => {
         useNativeDriver: true
       })
     ]).start();
+
+    if (favoriteStatus) {
+      await removeFavorite(productId);
+    } else {
+      await addFavorite({
+        id: productId,
+        name: productName,
+        price: productPrice,
+        image: getProductImage(),
+        category: productCategory,
+      });
+    }
   };
 
   const animateWeightSelection = (weight: number) => {
@@ -125,28 +163,110 @@ const ProductDetails = () => {
     setSelectedWeight((prev) => prev + 1);
   };
 
-  const handleAddToCart = () => {
-    addToCart({
-      name: productName,
-      price: productPrice,
-      image: getProductImage(),
-      category: productCategory,
-    }, selectedWeight);
+  const handleAddToCart = async () => {
+    if (!user) {
+      Alert.alert('Connexion requise', 'Veuillez vous connecter pour ajouter des produits au panier.');
+      router.push('/login');
+      return;
+    }
 
-    Alert.alert('Produit ajouté au panier');
-    router.push('/home');
+    if (!productId) {
+      console.error('Product ID is missing:', { productId, productName, productPrice });
+      Alert.alert(
+        'Erreur', 
+        'Impossible d\'ajouter ce produit au panier. Le produit n\'a pas d\'identifiant valide.'
+      );
+      return;
+    }
+
+    try {
+      await addToCart({
+        id: productId,
+        productId: productId,
+        name: productName,
+        price: productPrice,
+        pricePerKilo: pricePerKilo,
+        image: getProductImage(),
+        category: productCategory,
+      }, selectedWeight);
+
+      Alert.alert('Succès', 'Produit ajouté au panier');
+      router.push('/home');
+    } catch (error: any) {
+      console.error('Error adding to cart:', error);
+      Alert.alert(
+        'Erreur', 
+        error?.message || 'Impossible d\'ajouter le produit au panier. Veuillez réessayer.'
+      );
+    }
   };
 
-  const handleBuyNow = () => {
-    // addToCart({
-    //   name: productName,
-    //   price: productPrice,
-    //   image: getProductImage(),
-    //   category: productCategory,
-    // }, selectedWeight);
+  const handleReviewSubmit = async (rating?: number, comment?: string) => {
+    if (!user) {
+      Alert.alert('Connexion requise', 'Veuillez vous connecter pour laisser un avis.');
+      router.push('/login');
+      return;
+    }
 
-    // Alert.alert('Achat effectué');
-    router.push('/shipping');
+    if (!productId) {
+      Alert.alert('Erreur', 'Impossible de laisser un avis. Le produit n\'a pas d\'identifiant valide.');
+      return;
+    }
+
+    const finalRating = rating || reviewRating;
+    const finalComment = comment || reviewComment;
+
+    if (finalRating < 1 || finalRating > 5) {
+      Alert.alert('Erreur', 'Veuillez sélectionner une note entre 1 et 5 étoiles.');
+      return;
+    }
+
+    setSubmittingReview(true);
+    try {
+      await createOrUpdateReview(productId, finalRating, finalComment);
+      Alert.alert('Succès', 'Votre avis a été enregistré avec succès.');
+      setShowReviewForm(false);
+      setReviewRating(0);
+      setReviewComment('');
+    } catch (error: any) {
+      Alert.alert('Erreur', error.message || 'Impossible d\'enregistrer votre avis.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!user) {
+      Alert.alert('Connexion requise', 'Veuillez vous connecter pour effectuer un achat.');
+      router.push('/login');
+      return;
+    }
+
+    if (!productId) {
+      Alert.alert('Erreur', 'Impossible d\'acheter ce produit. Le produit n\'a pas d\'identifiant valide.');
+      return;
+    }
+
+    try {
+      // Stocker le produit pour l'achat direct
+      setDirectPurchaseProduct({
+        id: productId,
+        productId: productId,
+        name: productName,
+        price: productPrice,
+        pricePerKilo: pricePerKilo,
+        image: getProductImage(),
+        category: productCategory,
+        quantity: selectedWeight,
+        totalPrice: (pricePerKilo * selectedWeight).toFixed(2),
+      });
+
+      // Naviguer vers la page de livraison
+      router.push('/shipping');
+    } catch (error: any) {
+      console.error('Error setting up direct purchase:', error);
+      Alert.alert('Erreur', 'Impossible de procéder à l\'achat. Veuillez réessayer.');
+    }
   }
 
   return (
@@ -184,9 +304,9 @@ const ProductDetails = () => {
           >
             <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
               <MaterialCommunityIcons
-                name={isFavorite ? "heart" : "heart-outline"}
+                name={favoriteStatus ? "heart" : "heart-outline"}
                 size={28}
-                color={isFavorite ? colors.primary : colors.text}
+                color={favoriteStatus ? colors.primary : colors.text}
               />
             </Animated.View>
           </TouchableOpacity>
@@ -210,10 +330,17 @@ const ProductDetails = () => {
                 key={star}
                 name="star"
                 size={16}
-                color={star <= 4 ? colors.primary : colors.grey}
+                color={star <= (stats?.averageRating || 0) ? colors.primary : colors.grey}
               />
             ))}
-            <Text style={[styles.ratingText, { color: colors.textSecondary }]}>(24 avis)</Text>
+            <Text style={[styles.ratingText, { color: colors.textSecondary }]}>
+              {stats ? `(${stats.totalReviews} avis)` : '(Aucun avis)'}
+            </Text>
+            {stats && stats.averageRating > 0 && (
+              <Text style={[styles.ratingValue, { color: colors.primary }]}>
+                {stats.averageRating.toFixed(1)}
+              </Text>
+            )}
           </View>
 
           {/* Sélection du poids */}
@@ -259,8 +386,161 @@ const ProductDetails = () => {
               </Text>
             </View>
           </View>
+
+          {/* Section Avis */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Avis clients</Text>
+            
+            {userReview ? (
+              <View style={[styles.reviewCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Text style={[styles.reviewTitle, { color: colors.text }]}>Votre avis</Text>
+                <View style={styles.starRating}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <TouchableOpacity
+                      key={star}
+                      onPress={() => handleReviewSubmit(star, userReview.comment || '')}
+                    >
+                      <AntDesign
+                        name="star"
+                        size={24}
+                        color={star <= userReview.rating ? colors.primary : colors.grey}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                {userReview.comment && (
+                  <Text style={[styles.reviewComment, { color: colors.text }]}>{userReview.comment}</Text>
+                )}
+                <TouchableOpacity
+                  style={[styles.editReviewBtn, { borderColor: colors.primary }]}
+                  onPress={() => setShowReviewForm(true)}
+                >
+                  <Text style={[styles.editReviewText, { color: colors.primary }]}>Modifier mon avis</Text>
+                </TouchableOpacity>
+              </View>
+            ) : user ? (
+              <TouchableOpacity
+                style={[styles.addReviewBtn, { backgroundColor: colors.primary }]}
+                onPress={() => setShowReviewForm(true)}
+              >
+                <Ionicons name="star-outline" size={20} color="#fff" />
+                <Text style={styles.addReviewText}>Laisser un avis</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[styles.addReviewBtn, { backgroundColor: colors.primary }]}
+                onPress={() => {
+                  Alert.alert('Connexion requise', 'Veuillez vous connecter pour laisser un avis.');
+                  router.push('/login');
+                }}
+              >
+                <Ionicons name="star-outline" size={20} color="#fff" />
+                <Text style={styles.addReviewText}>Connectez-vous pour laisser un avis</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Liste des avis */}
+            {reviews.length > 0 && (
+              <View style={styles.reviewsList}>
+                {reviews.slice(0, 5).map((review) => (
+                  <View key={review.id} style={[styles.reviewItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <View style={styles.reviewHeader}>
+                      <Text style={[styles.reviewAuthor, { color: colors.text }]}>
+                        {review.profiles?.full_name || review.profiles?.email || 'Utilisateur anonyme'}
+                      </Text>
+                      <View style={styles.reviewStars}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <AntDesign
+                            key={star}
+                            name="star"
+                            size={12}
+                            color={star <= review.rating ? colors.primary : colors.grey}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                    {review.comment && (
+                      <Text style={[styles.reviewComment, { color: colors.textSecondary }]}>{review.comment}</Text>
+                    )}
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
+
+      {/* Modal pour créer/modifier un avis */}
+      <Modal
+        visible={showReviewForm}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowReviewForm(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                {userReview ? 'Modifier mon avis' : 'Laisser un avis'}
+              </Text>
+              <TouchableOpacity onPress={() => setShowReviewForm(false)}>
+                <Ionicons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={[styles.modalLabel, { color: colors.text }]}>Note</Text>
+            <View style={styles.starRating}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity
+                  key={star}
+                  onPress={() => setReviewRating(star)}
+                >
+                  <AntDesign
+                    name="star"
+                    size={32}
+                    color={star <= reviewRating ? colors.primary : colors.grey}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={[styles.modalLabel, { color: colors.text, marginTop: 16 }]}>Commentaire (optionnel)</Text>
+            <TextInput
+              style={[styles.reviewInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+              placeholder="Partagez votre expérience..."
+              placeholderTextColor={colors.textSecondary}
+              value={reviewComment}
+              onChangeText={setReviewComment}
+              multiline
+              numberOfLines={4}
+            />
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.cancelBtn, { borderColor: colors.border }]}
+                onPress={() => {
+                  setShowReviewForm(false);
+                  setReviewRating(userReview?.rating || 0);
+                  setReviewComment(userReview?.comment || '');
+                }}
+              >
+                <Text style={[styles.cancelBtnText, { color: colors.text }]}>Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.submitBtn, { backgroundColor: colors.primary }, submittingReview && styles.submitBtnDisabled]}
+                onPress={() => handleReviewSubmit()}
+                disabled={submittingReview || reviewRating === 0}
+              >
+                {submittingReview ? (
+                  <Text style={styles.submitBtnText}>Enregistrement...</Text>
+                ) : (
+                  <Text style={styles.submitBtnText}>Enregistrer</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Boutons d'action fixés en bas */}
       <View style={[styles.actionContainer, { paddingBottom: 15 + insets.bottom, backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -529,6 +809,142 @@ const styles = StyleSheet.create({
     fontSize: 20,
     minWidth: 60,
     textAlign: 'center',
+  },
+  reviewCard: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  reviewTitle: {
+    fontFamily: fonts.bold,
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  starRating: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  reviewComment: {
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    marginTop: 8,
+    lineHeight: 20,
+  },
+  editReviewBtn: {
+    marginTop: 12,
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignSelf: 'flex-start',
+  },
+  editReviewText: {
+    fontFamily: fonts.medium,
+    fontSize: 14,
+  },
+  addReviewBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  addReviewText: {
+    fontFamily: fonts.bold,
+    fontSize: 16,
+    color: '#fff',
+    marginLeft: 8,
+  },
+  reviewsList: {
+    marginTop: 16,
+  },
+  reviewItem: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  reviewAuthor: {
+    fontFamily: fonts.bold,
+    fontSize: 14,
+  },
+  reviewStars: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontFamily: fonts.bold,
+    fontSize: 20,
+  },
+  modalLabel: {
+    fontFamily: fonts.medium,
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  reviewInput: {
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    minHeight: 100,
+    textAlignVertical: 'top',
+    fontFamily: fonts.regular,
+    fontSize: 14,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 24,
+    gap: 12,
+  },
+  cancelBtn: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  cancelBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: 16,
+  },
+  submitBtn: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  submitBtnDisabled: {
+    opacity: 0.6,
+  },
+  submitBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: 16,
+    color: '#fff',
   },
 });
 

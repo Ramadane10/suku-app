@@ -23,7 +23,10 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (error) throw error;
+    if (error) {
+      console.error('Error loading fonts:', error);
+      // Ne pas bloquer l'app si les fonts ne chargent pas
+    }
   }, [error]);
 
   useEffect(() => {
@@ -32,7 +35,8 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  if (!loaded) {
+  // Attendre que les fonts soient chargées avant d'afficher l'app
+  if (!loaded && !error) {
     return null;
   }
 

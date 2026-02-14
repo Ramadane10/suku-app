@@ -1,7 +1,7 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState, useMemo, useCallback } from 'react';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/ui/Header';
 import SideMenu from '../src/components/ui/SideMenu';
@@ -13,15 +13,48 @@ import { useTheme } from '../src/hooks/useTheme';
 export const options = { headerShown: false };
 
 const CartScreen = () => {
-  const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
+  const { cartItems, loading, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const router = useRouter();
   const { colors } = useTheme();
+
+  // Mémoriser les valeurs calculées
+  const cartTotal = useMemo(() => getCartTotal(), [getCartTotal, cartItems]);
+  const cartCount = useMemo(() => cartItems.length, [cartItems.length]);
+
+  // Mémoriser les handlers
+  const handleUpdateQuantity = useCallback((id: string, qty: number) => {
+    updateQuantity(id, qty);
+  }, [updateQuantity]);
+
+  const handleRemove = useCallback((id: string) => {
+    removeFromCart(id);
+  }, [removeFromCart]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <Header
+          title="Mon Panier"
+          cartCount={0}
+          onMenuPress={() => setIsMenuVisible(true)}
+          onCartPress={() => router.push('/cart')}
+        />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+            Chargement du panier...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Header
         title="Mon Panier"
-        cartCount={cartItems.length}
+        cartCount={cartCount}
         onMenuPress={() => setIsMenuVisible(true)}
         onCartPress={() => router.push('/cart')}
       />
@@ -32,7 +65,10 @@ const CartScreen = () => {
         </View>
       ) : (
         <>
-          <ScrollView style={styles.itemsList}>
+          <ScrollView 
+            style={styles.itemsList}
+            contentContainerStyle={{ paddingBottom: 80 }}
+          >
             {cartItems.map((item: any) => (
               <View key={item.id} style={[styles.itemRow, { backgroundColor: colors.surface }]}>
                 <Image source={item.image} style={styles.itemImage} />
@@ -41,14 +77,14 @@ const CartScreen = () => {
                   <Text style={[styles.itemPrice, { color: colors.textSecondary }]}>{item.price} x {item.quantity}kg</Text>
                   <Text style={[styles.itemTotal, { color: colors.primary }]}>Total : {item.totalPrice}€</Text>
                   <View style={styles.quantityRow}>
-                    <TouchableOpacity onPress={() => updateQuantity(item.id, item.quantity - 1)} style={[styles.qtyBtn, { backgroundColor: colors.secondary }]}>
+                    <TouchableOpacity onPress={() => handleUpdateQuantity(item.id, item.quantity - 1)} style={[styles.qtyBtn, { backgroundColor: colors.secondary }]}>
                       <Text style={[styles.qtyBtnText, { color: colors.text }]}>-</Text>
                     </TouchableOpacity>
                     <Text style={[styles.qtyText, { color: colors.text }]}>{item.quantity} kg</Text>
-                    <TouchableOpacity onPress={() => updateQuantity(item.id, item.quantity + 1)} style={[styles.qtyBtn, { backgroundColor: colors.secondary }]}>
+                    <TouchableOpacity onPress={() => handleUpdateQuantity(item.id, item.quantity + 1)} style={[styles.qtyBtn, { backgroundColor: colors.secondary }]}>
                       <Text style={[styles.qtyBtnText, { color: colors.text }]}>+</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => removeFromCart(item.id)} style={styles.removeBtn}>
+                    <TouchableOpacity onPress={() => handleRemove(item.id)} style={styles.removeBtn}>
                       <MaterialCommunityIcons name="delete-outline" size={22} color={colors.danger} />
                     </TouchableOpacity>
                   </View>
@@ -58,7 +94,7 @@ const CartScreen = () => {
           </ScrollView>
           <View style={[styles.footer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={[styles.totalLabel, { color: colors.text }]}>Total :</Text>
-            <Text style={[styles.totalValue, { color: colors.primary }]}>{getCartTotal()}€</Text>
+            <Text style={[styles.totalValue, { color: colors.primary }]}>{cartTotal}€</Text>
             <TouchableOpacity style={[styles.clearBtn, { backgroundColor: colors.danger }]} onPress={clearCart}>
               <Text style={styles.clearBtnText}>Vider le panier</Text>
             </TouchableOpacity>
@@ -89,6 +125,17 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
     fontSize: 16,
     marginTop: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    marginTop: 12,
   },
   itemsList: {
     flex: 1,

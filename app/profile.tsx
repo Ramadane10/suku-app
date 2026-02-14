@@ -12,14 +12,23 @@ import { useTheme } from '../src/hooks/useTheme';
 export const options = { headerShown: false };
 
 import { useAuth } from '../src/context/AuthContext';
+import { useAddresses } from '../src/hooks/useAddresses';
+import { useProfile } from '../src/hooks/useProfile';
 
 const ProfileScreen = () => {
   const router = useRouter();
   const { colors } = useTheme();
   const { signOut, user } = useAuth();
+  const { addresses } = useAddresses();
+  const { profile, loading: profileLoading } = useProfile();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
 
   const isLoggedIn = !!user;
+  
+  // Utiliser le profil depuis Supabase ou les métadonnées utilisateur en fallback
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email || 'User';
+  const displayEmail = profile?.email || user?.email || '';
+  const avatarUrl = profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`;
 
   const handleMenuPress = () => {
     setIsMenuVisible(true);
@@ -80,14 +89,23 @@ const ProfileScreen = () => {
         cartCount={2}
         onCartPress={() => router.push('/cart')}
       />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 80 }]}>
         {isLoggedIn ? (
           <View style={styles.avatarContainer}>
-            <Image
-              source={{ uri: 'https://ui-avatars.com/api/?name=' + (user?.user_metadata?.full_name || 'User') + '&background=random' }}
-              style={styles.avatar}
-            />
-            <Text style={[styles.name, { color: colors.text }]}>{user?.user_metadata?.full_name || user?.email}</Text>
+            {profileLoading ? (
+              <View style={[styles.avatar, { backgroundColor: colors.light, justifyContent: 'center', alignItems: 'center' }]}>
+                <Ionicons name="person" size={45} color={colors.grey} />
+              </View>
+            ) : (
+              <Image
+                source={{ uri: avatarUrl }}
+                style={styles.avatar}
+              />
+            )}
+            <Text style={[styles.name, { color: colors.text }]}>{displayName}</Text>
+            {displayEmail && (
+              <Text style={[styles.email, { color: colors.textSecondary }]}>{displayEmail}</Text>
+            )}
           </View>
         ) : (
           <View style={styles.avatarContainer}>
@@ -104,9 +122,12 @@ const ProfileScreen = () => {
               <Text style={[styles.menuText, { color: colors.text }]}>Détails du compte</Text>
               <Ionicons name="chevron-forward" size={16} color={colors.grey} />
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.border }]} onPress={() => router.push('/wishlist')}>
-              <Ionicons name="heart-outline" size={22} color={colors.danger} style={styles.menuIcon} />
-              <Text style={[styles.menuText, { color: colors.text }]}>Favoris</Text>
+            <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.border }]} onPress={() => router.push('/addresses')}>
+              <Ionicons name="location-outline" size={22} color={colors.primary} style={styles.menuIcon} />
+              <Text style={[styles.menuText, { color: colors.text }]}>Mes adresses</Text>
+              {addresses.length > 0 && (
+                <Text style={[styles.menuBadge, { color: colors.textSecondary }]}>{addresses.length}</Text>
+              )}
               <Ionicons name="chevron-forward" size={16} color={colors.grey} />
             </TouchableOpacity>
             {/* <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/orders')}>
@@ -192,6 +213,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textAlign: 'center',
   },
+  email: {
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    marginTop: 4,
+    textAlign: 'center',
+  },
   menuList: {
     marginHorizontal: 24,
     marginTop: 8,
@@ -260,6 +287,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   btnIcon: {
+    marginRight: 8,
+  },
+  menuBadge: {
+    fontFamily: fonts.medium,
+    fontSize: 14,
     marginRight: 8,
   },
 });
