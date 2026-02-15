@@ -168,7 +168,7 @@ async function registerForPushNotificationsAsync() {
   // mais les notifications push depuis un serveur ne fonctionneront pas
   try {
     const tokenData = await Notifications.getExpoPushTokenAsync({
-      projectId: projectId !== 'your-project-id' ? projectId : undefined,
+      projectId: projectId !== '26d0e89e-c0d0-49a5-9622-5caff6ea9e95' ? projectId : undefined,
     });
     token = tokenData.data;
     console.log('Expo Push Token:', token);

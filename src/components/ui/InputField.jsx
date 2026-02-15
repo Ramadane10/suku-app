@@ -1,5 +1,6 @@
-import React from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import fonts from '../../constants/fonts';
 import { useTheme } from '../../hooks/useTheme';
 
@@ -25,6 +26,7 @@ const InputField = ({
   style,
 }) => {
   const { colors } = useTheme();
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -38,16 +40,29 @@ const InputField = ({
             backgroundColor: colors.surface,
           },
           leftIcon ? styles.inputWithIcon : null,
+          secureTextEntry && !showPassword ? styles.inputWithRightIcon : null,
           style,
         ]}
         placeholder={placeholder}
         value={value}
         onChangeText={onChangeText}
-        secureTextEntry={secureTextEntry}
+        secureTextEntry={secureTextEntry && !showPassword}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
         placeholderTextColor={colors.textSecondary}
       />
+      {secureTextEntry && (
+        <TouchableOpacity
+          style={styles.eyeIconContainer}
+          onPress={() => setShowPassword(!showPassword)}
+        >
+          <FontAwesome
+            name={showPassword ? 'eye' : 'eye-slash'}
+            size={18}
+            color={colors.grey}
+          />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -65,6 +80,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 1,
   },
+  eyeIconContainer: {
+    position: 'absolute',
+    right: 16,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
   input: {
     height: 56,
     borderWidth: 1,
@@ -75,6 +99,9 @@ const styles = StyleSheet.create({
   },
   inputWithIcon: {
     paddingLeft: 48,
+  },
+  inputWithRightIcon: {
+    paddingRight: 48,
   },
 });
 
