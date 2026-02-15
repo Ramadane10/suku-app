@@ -4,10 +4,24 @@ import fonts from '../../constants/fonts';
 
 // Images pour chaque catégorie
 const categoryImages = {
+  'TOUS': require('../../../assets/images/onboarding1.png'),
   'CLOTHING': require('../../../assets/images/onboarding1.png'),
   'ACCESSORIES': require('../../../assets/images/onboarding2.png'),
   'SHOES': require('../../../assets/images/onboarding3.png'),
+  // Catégories réelles de l'app
+  'FRUITS': require('../../../assets/images/onboarding1.png'),
+  'LEGUMES': require('../../../assets/images/onboarding2.png'),
+  'BIO': require('../../../assets/images/onboarding3.png'),
+  'EPICES': require('../../../assets/images/onboarding2.png'),
 };
+
+// Normaliser les libellés pour faire correspondre les clés des images
+const normalizeCat = (s) =>
+  (s || '')
+    .toString()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase();
 
 const CategoryTabs = ({ categories, selected, onSelect }) => (
   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.container}>
@@ -21,7 +35,7 @@ const CategoryTabs = ({ categories, selected, onSelect }) => (
         onPress={() => onSelect(cat)}
       >
         <Image
-          source={categoryImages[cat] || require('../../../assets/images/onboarding1.png')}
+          source={categoryImages[normalizeCat(cat)] || require('../../../assets/images/onboarding1.png')}
           style={styles.backgroundImage}
           resizeMode="cover"
         />

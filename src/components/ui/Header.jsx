@@ -3,6 +3,7 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import fonts from '../../constants/fonts';
 import { useTheme } from '../../hooks/useTheme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Header = ({
   title,
@@ -11,11 +12,17 @@ const Header = ({
   onCartPress,
   showMenu = true,
   showCart = true,
+  fixed = false,
 }) => {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.surface }]}>
+    <View style={[
+      styles.container,
+      { backgroundColor: colors.surface },
+      fixed && [styles.fixed, { top: insets.top }]
+    ]}>
       {showMenu ? (
         <TouchableOpacity onPress={onMenuPress}>
           <Ionicons name="menu" size={28} color={colors.text} />
@@ -55,6 +62,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
+  },
+  fixed: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 9999,
+    elevation: 12,
   },
   spacer: {
     width: 32,

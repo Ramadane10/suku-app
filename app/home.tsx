@@ -8,7 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import CategoryTabs from "../src/components/ui/CategoryTabs";
 import Header from "../src/components/ui/Header";
 import ProductCard from "../src/components/ui/ProductCard";
@@ -130,6 +130,10 @@ const HomeScreen = () => {
   // Mémoriser le compteur de panier
   const cartCount = useMemo(() => getCartCount(), [getCartCount]);
 
+  const insets = useSafeAreaInsets();
+  const HEADER_HEIGHT = 56;
+  const TABS_HEIGHT = 84;
+
   if (loading) {
     return (
       <SafeAreaView
@@ -156,18 +160,21 @@ const HomeScreen = () => {
         onMenuPress={handleMenuPress}
         cartCount={cartCount}
         onCartPress={handleCartPress}
+        // fixed header not needed when placed outside scroll like other screens
       />
+      {/* Filtre de catégories visible sous le header */}
+      <View style={{ backgroundColor: colors.surface, paddingVertical: 8, borderBottomColor: colors.border, borderBottomWidth: 1 }}>
+        <CategoryTabs
+          categories={categoryNames}
+          selected={selectedCategory}
+          onSelect={setSelectedCategory}
+        />
+      </View>
       {isAllCategories ? (
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 80 }}
         >
-          <CategoryTabs
-            categories={categoryNames}
-            selected={selectedCategory}
-            onSelect={setSelectedCategory}
-          />
-
           {/* Section New Arrivals */}
           {newArrivals.length > 0 && (
             <>
@@ -298,11 +305,6 @@ const HomeScreen = () => {
         </ScrollView>
       ) : (
         <View style={{ flex: 1 }}>
-          <CategoryTabs
-            categories={categoryNames}
-            selected={selectedCategory}
-            onSelect={setSelectedCategory}
-          />
           <FlatList
             data={displayedProducts}
             keyExtractor={(item) => item.id}
