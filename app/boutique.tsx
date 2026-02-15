@@ -181,6 +181,7 @@ export default function BoutiqueScreen() {
               price={`${item.price_per_kg}€/kg`}
               image={item.image_url ? { uri: item.image_url } : require('../assets/images/onboarding1.png')}
               category={item.category?.name || 'FRUITS'}
+              stockQuantity={item.stock_quantity}
               style={styles.card}
             />
           </View>

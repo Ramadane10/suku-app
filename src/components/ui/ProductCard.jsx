@@ -16,6 +16,7 @@ const ProductCard = ({
   priceFirst = false,
   centerPrice = false,
   tallImage = false,
+  stockQuantity,
   onPress,
   ...props
 }) => {
@@ -26,6 +27,8 @@ const ProductCard = ({
 
   // Utiliser productId ou id
   const actualProductId = productId || id;
+  const isOutOfStock = stockQuantity !== undefined && stockQuantity !== null && stockQuantity <= 0;
+  const hasLowStock = stockQuantity !== undefined && stockQuantity !== null && stockQuantity > 0 && stockQuantity < 5;
 
   const handlePress = useCallback(() => {
     if (onPress) {
@@ -130,9 +133,26 @@ const ProductCard = ({
           onPress={handleAddToCart}
           activeOpacity={0.3}
           delayPressIn={0}
+          disabled={isOutOfStock}
         >
-          <Ionicons name="cart-outline" size={18} color={colors.primary} />
+          <Ionicons 
+            name="cart-outline" 
+            size={18} 
+            color={isOutOfStock ? colors.grey : colors.primary} 
+          />
         </TouchableOpacity>
+        
+        {/* Badge stock */}
+        {isOutOfStock && (
+          <View style={[styles.stockBadge, { backgroundColor: colors.danger }]}>
+            <Text style={styles.stockBadgeText}>Rupture</Text>
+          </View>
+        )}
+        {hasLowStock && !isOutOfStock && (
+          <View style={[styles.stockBadge, { backgroundColor: '#FFA500' }]}>
+            <Text style={styles.stockBadgeText}>Stock faible</Text>
+          </View>
+        )}
       </View>
       <View style={styles.content}>
         {priceFirst ? (
@@ -243,6 +263,21 @@ const styles = StyleSheet.create({
     padding: 6,
     zIndex: 2,
     elevation: 2,
+  },
+  stockBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    zIndex: 2,
+    elevation: 2,
+  },
+  stockBadgeText: {
+    color: '#fff',
+    fontFamily: fonts.bold,
+    fontSize: 10,
   },
 });
 

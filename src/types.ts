@@ -22,6 +22,7 @@ export interface Database {
                     is_featured: boolean
                     is_new_arrival: boolean
                     is_best_seller: boolean
+                    stock_quantity: number | null
                     created_at: string
                     updated_at: string
                 }
@@ -37,6 +38,7 @@ export interface Database {
                     is_featured?: boolean
                     is_new_arrival?: boolean
                     is_best_seller?: boolean
+                    stock_quantity?: number | null
                     created_at?: string
                     updated_at?: string
                 }
@@ -52,6 +54,7 @@ export interface Database {
                     is_featured?: boolean
                     is_new_arrival?: boolean
                     is_best_seller?: boolean
+                    stock_quantity?: number | null
                     created_at?: string
                     updated_at?: string
                 }

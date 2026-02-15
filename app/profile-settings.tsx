@@ -1,22 +1,110 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomTabBar from '../src/components/ui/BottomTabBar';
 import fonts from '../src/constants/fonts';
 import { useTheme } from '../src/hooks/useTheme';
+import { useUserSettings } from '../src/hooks/useUserSettings';
+import { useAuth } from '../src/context/AuthContext';
 
 export const options = { headerShown: false };
 
 const ProfileSettings = () => {
   const router = useRouter();
   const { colors, theme, toggleTheme } = useTheme();
-  const [faceId, setFaceId] = useState(true);
+  const { user, signOut } = useAuth();
+  const { settings, loading, updateSetting } = useUserSettings();
+
+  const [faceId, setFaceId] = useState(false);
   const [orderUpdates, setOrderUpdates] = useState(false);
   const [newArrivals, setNewArrivals] = useState(true);
   const [promotions, setPromotions] = useState(false);
   const [salesAlerts, setSalesAlerts] = useState(true);
+
+  // Synchroniser les états locaux avec les paramètres depuis Supabase
+  useEffect(() => {
+    if (settings) {
+      setFaceId(settings.face_id_enabled);
+      setOrderUpdates(settings.order_updates);
+      setNewArrivals(settings.new_arrivals);
+      setPromotions(settings.promotions);
+      setSalesAlerts(settings.sales_alerts);
+    }
+  }, [settings]);
+
+  const handleToggleFaceId = async (value: boolean) => {
+    setFaceId(value);
+    try {
+      await updateSetting('face_id_enabled', value);
+    } catch (error: any) {
+      Alert.alert('Erreur', 'Impossible de mettre à jour ce paramètre.');
+      setFaceId(!value); // Revenir à l'état précédent
+    }
+  };
+
+  const handleToggleOrderUpdates = async (value: boolean) => {
+    setOrderUpdates(value);
+    try {
+      await updateSetting('order_updates', value);
+    } catch (error: any) {
+      Alert.alert('Erreur', 'Impossible de mettre à jour ce paramètre.');
+      setOrderUpdates(!value);
+    }
+  };
+
+  const handleToggleNewArrivals = async (value: boolean) => {
+    setNewArrivals(value);
+    try {
+      await updateSetting('new_arrivals', value);
+    } catch (error: any) {
+      Alert.alert('Erreur', 'Impossible de mettre à jour ce paramètre.');
+      setNewArrivals(!value);
+    }
+  };
+
+  const handleTogglePromotions = async (value: boolean) => {
+    setPromotions(value);
+    try {
+      await updateSetting('promotions', value);
+    } catch (error: any) {
+      Alert.alert('Erreur', 'Impossible de mettre à jour ce paramètre.');
+      setPromotions(!value);
+    }
+  };
+
+  const handleToggleSalesAlerts = async (value: boolean) => {
+    setSalesAlerts(value);
+    try {
+      await updateSetting('sales_alerts', value);
+    } catch (error: any) {
+      Alert.alert('Erreur', 'Impossible de mettre à jour ce paramètre.');
+      setSalesAlerts(!value);
+    }
+  };
+
+  const handleLogout = async () => {
+    Alert.alert(
+      'Déconnexion',
+      'Êtes-vous sûr de vouloir vous déconnecter ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Déconnexion',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await signOut();
+              router.replace('/login');
+            } catch (error: any) {
+              Alert.alert('Erreur', 'Impossible de se déconnecter.');
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -49,9 +137,10 @@ const ProfileSettings = () => {
           <Text style={[styles.rowText, { color: colors.text }]}>Activer Face ID / Touch ID</Text>
           <Switch
             value={faceId}
-            onValueChange={setFaceId}
+            onValueChange={handleToggleFaceId}
             trackColor={{ false: colors.light, true: colors.primary }}
             thumbColor={faceId ? '#fff' : colors.light}
+            disabled={loading}
           />
         </View>
 
@@ -60,36 +149,40 @@ const ProfileSettings = () => {
           <Text style={[styles.rowText, { color: colors.text }]}>Mises à jour commandes</Text>
           <Switch
             value={orderUpdates}
-            onValueChange={setOrderUpdates}
+            onValueChange={handleToggleOrderUpdates}
             trackColor={{ false: colors.light, true: colors.primary }}
             thumbColor={orderUpdates ? '#fff' : colors.light}
+            disabled={loading}
           />
         </View>
         <View style={[styles.rowBetween, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
           <Text style={[styles.rowText, { color: colors.text }]}>Nouveautés</Text>
           <Switch
             value={newArrivals}
-            onValueChange={setNewArrivals}
+            onValueChange={handleToggleNewArrivals}
             trackColor={{ false: colors.light, true: colors.primary }}
             thumbColor={newArrivals ? '#fff' : colors.light}
+            disabled={loading}
           />
         </View>
         <View style={[styles.rowBetween, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
           <Text style={[styles.rowText, { color: colors.text }]}>Promotions</Text>
           <Switch
             value={promotions}
-            onValueChange={setPromotions}
+            onValueChange={handleTogglePromotions}
             trackColor={{ false: colors.light, true: colors.primary }}
             thumbColor={promotions ? '#fff' : colors.light}
+            disabled={loading}
           />
         </View>
         <View style={[styles.rowBetween, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
           <Text style={[styles.rowText, { color: colors.text }]}>Alertes soldes</Text>
           <Switch
             value={salesAlerts}
-            onValueChange={setSalesAlerts}
+            onValueChange={handleToggleSalesAlerts}
             trackColor={{ false: colors.light, true: colors.primary }}
             thumbColor={salesAlerts ? '#fff' : colors.light}
+            disabled={loading}
           />
         </View>
 
@@ -97,7 +190,10 @@ const ProfileSettings = () => {
         <TouchableOpacity style={[styles.supportBtn, { backgroundColor: colors.surface, borderColor: colors.primary }]}>
           <Text style={[styles.supportText, { color: colors.primary }]}>Support</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.logoutBtn, { backgroundColor: colors.surface, borderColor: colors.text }]}>
+        <TouchableOpacity 
+          style={[styles.logoutBtn, { backgroundColor: colors.surface, borderColor: colors.text }]}
+          onPress={handleLogout}
+        >
           <Text style={[styles.logoutText, { color: colors.text }]}>Se déconnecter</Text>
         </TouchableOpacity>
       </ScrollView>

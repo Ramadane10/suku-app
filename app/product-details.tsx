@@ -23,6 +23,8 @@ import { useTheme } from '../src/hooks/useTheme';
 import { useAuth } from '../src/context/AuthContext';
 import { useOrder } from '../src/context/OrderContext';
 import { useReviews } from '../src/hooks/useReviews';
+import { useProductImages } from '../src/hooks/useProductImages';
+import { supabase } from '../src/lib/supabase';
 
 const { width } = Dimensions.get('window');
 const IMAGE_HEIGHT = width * 0.9;
@@ -40,6 +42,7 @@ const ProductDetails = () => {
   // Récupérer les données du produit depuis les paramètres
   const productId = params.productId as string;
   const { reviews, stats, loading: reviewsLoading, createOrUpdateReview, getUserReview } = useReviews(productId);
+  const { images: productImages, getPrimaryImage, getAllImages } = useProductImages(productId);
   const userReview = getUserReview();
   const productName = params.name as string || 'Produit';
   const productPrice = params.price as string || '0€/kg';
@@ -50,6 +53,9 @@ const ProductDetails = () => {
   const pricePerKilo = parseFloat(productPrice.replace('€/kg', '')) || 4.99;
 
   const [selectedWeight, setSelectedWeight] = useState(1);
+  const [productStock, setProductStock] = useState<number | null>(null);
+  const [loadingProduct, setLoadingProduct] = useState(true);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewRating, setReviewRating] = useState(userReview?.rating || 0);
   const [reviewComment, setReviewComment] = useState(userReview?.comment || '');
@@ -58,15 +64,64 @@ const ProductDetails = () => {
   const fadeAnim = useState(new Animated.Value(0))[0];
   const scaleAnim = useState(new Animated.Value(1))[0];
 
+  // Charger les informations complètes du produit depuis Supabase (pour le stock)
+  React.useEffect(() => {
+    const fetchProduct = async () => {
+      if (!productId) {
+        setLoadingProduct(false);
+        return;
+      }
+
+      try {
+        setLoadingProduct(true);
+        const { data, error } = await supabase
+          .from('products')
+          .select('stock_quantity, price_per_kg, name, image_url')
+          .eq('id', productId)
+          .single();
+
+        if (error) {
+          console.error('Error fetching product:', error);
+        } else if (data) {
+          setProductStock(parseFloat(data.stock_quantity || 0));
+          // Mettre à jour le prix si disponible depuis Supabase
+          if (data.price_per_kg) {
+            // Le prix est déjà dans les params, on garde celui-ci
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching product:', err);
+      } finally {
+        setLoadingProduct(false);
+      }
+    };
+
+    fetchProduct();
+  }, [productId]);
+
+  const isOutOfStock = productStock !== null && productStock <= 0;
+  const availableStock = productStock || 0;
+
   const weightOptions = [0.5, 1, 1.5, 2, 2.5, 3];
   const totalPrice = (pricePerKilo * selectedWeight).toFixed(2);
 
-  // Générer une image dynamique basée sur la catégorie
+  // Générer une image dynamique basée sur la catégorie ou utiliser les images multiples
   const getProductImage = () => {
+    // Priorité 1: Images depuis Supabase (product_images)
+    const primaryImage = getPrimaryImage();
+    if (primaryImage) {
+      const imageUrl = primaryImage.image_url || primaryImage.url;
+      if (imageUrl) {
+        return { uri: imageUrl };
+      }
+    }
+    
+    // Priorité 2: Image depuis les paramètres
     if (productImage) {
       return { uri: productImage };
     }
 
+    // Priorité 3: Image par défaut selon la catégorie
     switch (productCategory) {
       case 'FRUITS':
         return require('../assets/images/onboarding1.png');
@@ -78,6 +133,17 @@ const ProductDetails = () => {
         return require('../assets/images/onboarding1.png');
     }
   };
+
+  // Obtenir toutes les images pour la galerie
+  const allImages = getAllImages() || [];
+  const hasMultipleImages = allImages.length > 1;
+  
+  // Si pas d'images depuis Supabase mais qu'on a une image depuis params, l'ajouter
+  const displayImages = allImages.length > 0 
+    ? allImages.map(img => ({ uri: img.image_url || img.url || '' }))
+    : productImage 
+      ? [{ uri: productImage }]
+      : [getProductImage()];
 
   // Générer une description dynamique basée sur la catégorie
   const getProductDescription = () => {
@@ -160,7 +226,11 @@ const ProductDetails = () => {
     setSelectedWeight((prev) => Math.max(1, prev - 1));
   };
   const handleIncrease = () => {
-    setSelectedWeight((prev) => prev + 1);
+    if (productStock !== null && selectedWeight < availableStock) {
+      setSelectedWeight((prev) => Math.min(prev + 1, availableStock));
+    } else if (productStock === null) {
+      setSelectedWeight((prev) => prev + 1);
+    }
   };
 
   const handleAddToCart = async () => {
@@ -247,6 +317,16 @@ const ProductDetails = () => {
       return;
     }
 
+    if (isOutOfStock) {
+      Alert.alert('Rupture de stock', 'Ce produit est actuellement en rupture de stock.');
+      return;
+    }
+
+    if (selectedWeight > availableStock) {
+      Alert.alert('Stock insuffisant', `Il ne reste que ${availableStock.toFixed(2)} kg disponible pour ce produit.`);
+      return;
+    }
+
     try {
       // Stocker le produit pour l'achat direct
       setDirectPurchaseProduct({
@@ -287,13 +367,60 @@ const ProductDetails = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scrollContent, { backgroundColor: colors.background }]}
       >
-        {/* Section Image */}
+        {/* Section Image avec galerie */}
         <View style={styles.imageContainer}>
-          <Image
-            source={getProductImage()}
-            style={styles.productImage}
-            resizeMode="contain"
-          />
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={(event) => {
+              const offsetX = event.nativeEvent.contentOffset.x;
+              const index = Math.round(offsetX / width);
+              setSelectedImageIndex(index);
+            }}
+            scrollEventThrottle={16}
+            style={styles.imageGallery}
+          >
+            {displayImages.map((img, index) => (
+              <Image
+                key={index}
+                source={img}
+                style={styles.productImage}
+                resizeMode="contain"
+              />
+            ))}
+          </ScrollView>
+
+          {/* Indicateurs de pagination si plusieurs images */}
+          {hasMultipleImages && displayImages.length > 1 && (
+            <View style={styles.imageIndicators}>
+              {displayImages.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.indicator,
+                    {
+                      backgroundColor: selectedImageIndex === index ? colors.primary : colors.grey,
+                    },
+                  ]}
+                />
+              ))}
+            </View>
+          )}
+
+          {/* Badge stock */}
+          {isOutOfStock && (
+            <View style={[styles.stockBadge, { backgroundColor: colors.danger }]}>
+              <Text style={styles.stockBadgeText}>Rupture de stock</Text>
+            </View>
+          )}
+          {!isOutOfStock && productStock !== null && productStock > 0 && (
+            <View style={[styles.stockBadge, { backgroundColor: colors.success || colors.primary }]}>
+              <Text style={styles.stockBadgeText}>
+                {availableStock.toFixed(2)} kg disponible
+              </Text>
+            </View>
+          )}
 
           {/* Bouton favoris avec animation */}
           <TouchableOpacity
@@ -545,22 +672,28 @@ const ProductDetails = () => {
       {/* Boutons d'action fixés en bas */}
       <View style={[styles.actionContainer, { paddingBottom: 15 + insets.bottom, backgroundColor: colors.surface, borderColor: colors.border }]}>
         <TouchableOpacity
-          style={[styles.cartButton, { backgroundColor: colors.primary }]}
+          style={[styles.cartButton, { backgroundColor: isOutOfStock ? colors.grey : colors.primary }, isOutOfStock && styles.buttonDisabled]}
           activeOpacity={0.5}
           delayPressIn={0}
           onPress={handleAddToCart}
+          disabled={isOutOfStock}
         >
           <MaterialCommunityIcons name="cart-outline" size={24} color="#fff" />
-          <Text style={styles.cartButtonText}>Ajouter au panier</Text>
+          <Text style={styles.cartButtonText}>
+            {isOutOfStock ? 'Rupture de stock' : 'Ajouter au panier'}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.buyButton, { backgroundColor: colors.primary }]}
+          style={[styles.buyButton, { backgroundColor: isOutOfStock ? colors.grey : colors.primary }, isOutOfStock && styles.buttonDisabled]}
           activeOpacity={0.5}
           delayPressIn={0}
           onPress={handleBuyNow}
+          disabled={isOutOfStock}
         >
-          <Text style={styles.buyButtonText}>Acheter maintenant</Text>
+          <Text style={styles.buyButtonText}>
+            {isOutOfStock ? 'Indisponible' : 'Acheter maintenant'}
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -610,10 +743,44 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
     overflow: 'hidden',
     marginBottom: 10,
+    position: 'relative',
+  },
+  imageGallery: {
+    width: width,
+    height: IMAGE_HEIGHT,
   },
   productImage: {
-    width: '80%',
-    height: '80%',
+    width: width,
+    height: IMAGE_HEIGHT,
+  },
+  imageIndicators: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  indicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  stockBadge: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    zIndex: 10,
+  },
+  stockBadgeText: {
+    color: '#fff',
+    fontFamily: fonts.bold,
+    fontSize: 12,
   },
   favoriteButton: {
     position: 'absolute',
@@ -945,6 +1112,33 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     fontSize: 16,
     color: '#fff',
+  },
+  stockHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  stockBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  stockText: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+  },
+  stockWarning: {
+    fontFamily: fonts.medium,
+    fontSize: 12,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  qtyBtnDisabled: {
+    opacity: 0.5,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });
 

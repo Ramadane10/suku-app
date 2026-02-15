@@ -40,3 +40,6 @@ app-example
 
 #marksdown
 *.md
+
+#supabase
+supabase/

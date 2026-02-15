@@ -170,8 +170,46 @@ export const CartProvider = ({ children }) => {
         return;
       }
 
-      const pricePerKilo = product.pricePerKilo || parseFloat(product.price?.replace('€/kg', '') || '0');
+      // Vérifier le stock disponible
+      const { data: productData, error: productError } = await supabase
+        .from('products')
+        .select('stock_quantity, price_per_kg')
+        .eq('id', productId)
+        .single();
+
+      if (productError || !productData) {
+        console.error('Error fetching product:', productError);
+        throw new Error('Produit introuvable');
+      }
+
+      const stockQuantity = parseFloat(productData.stock_quantity || 0);
       const quantityKg = parseFloat(weight);
+
+      // Vérifier si le produit est en stock
+      if (stockQuantity <= 0) {
+        throw new Error('Ce produit est actuellement en rupture de stock');
+      }
+
+      // Vérifier si la quantité demandée est disponible
+      const { data: existingCartItem } = await supabase
+        .from('cart_items')
+        .select('quantity_kg')
+        .eq('cart_id', currentCartId)
+        .eq('product_id', productId)
+        .single();
+
+      const currentCartQuantity = existingCartItem ? parseFloat(existingCartItem.quantity_kg || 0) : 0;
+      const totalRequested = currentCartQuantity + quantityKg;
+
+      if (totalRequested > stockQuantity) {
+        const available = stockQuantity - currentCartQuantity;
+        if (available <= 0) {
+          throw new Error('Stock insuffisant. Ce produit est déjà dans votre panier en quantité maximale.');
+        }
+        throw new Error(`Stock insuffisant. Il reste ${available.toFixed(2)} kg disponible.`);
+      }
+
+      const pricePerKilo = product.pricePerKilo || parseFloat(product.price?.replace('€/kg', '') || '0') || productData.price_per_kg;
       const totalPrice = pricePerKilo * quantityKg;
 
       // Vérifier si le produit existe déjà dans le panier

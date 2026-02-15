@@ -145,6 +145,7 @@ const HomeScreen = () => {
                       price={`${product.price_per_kg}€/kg`}
                       image={product.image_url ? { uri: product.image_url } : require('../assets/images/onboarding1.png')}
                       category={product.category?.name || 'FRUIT'}
+                      stockQuantity={product.stock_quantity}
                       style={styles.regularProduct} // Carte verticale standard utilisée aussi pour New Arrivals ici
                       centerPrice={true}
                       onPress={() => router.push({
@@ -177,6 +178,7 @@ const HomeScreen = () => {
                       price={`${product.price_per_kg}€/kg`}
                       image={product.image_url ? { uri: product.image_url } : require('../assets/images/onboarding1.png')}
                       category={product.category?.name || 'LÉGUME'}
+                      stockQuantity={product.stock_quantity}
                       priceFirst={true}
                       onPress={() => router.push({
                         pathname: '/product-details',
@@ -202,10 +204,13 @@ const HomeScreen = () => {
                   {bestSellers.map((product) => (
                     <ProductCard
                       key={product.id}
+                      id={product.id}
+                      productId={product.id}
                       name={product.name}
                       price={`${product.price_per_kg}€/kg`}
                       image={product.image_url ? { uri: product.image_url } : require('../assets/images/onboarding1.png')}
                       category={product.category?.name || 'BIO'}
+                      stockQuantity={product.stock_quantity}
                       priceFirst={true}
                       onPress={() => router.push({
                         pathname: '/product-details',
@@ -226,7 +231,7 @@ const HomeScreen = () => {
         ) : (
           /* Vue Filtrée par Catégorie */
           <View style={styles.filteredContainer}>
-            {displayedProducts.length > 0 ? (
+            {displayedProducts && displayedProducts.length > 0 ? (
               <View style={styles.gridContainer}>
                 {displayedProducts.map((product) => (
                   <ProductCard
@@ -237,6 +242,7 @@ const HomeScreen = () => {
                     price={`${product.price_per_kg}€/kg`}
                     image={product.image_url ? { uri: product.image_url } : require('../assets/images/onboarding1.png')}
                     category={product.category?.name || ''}
+                    stockQuantity={product.stock_quantity}
                     style={styles.gridProduct}
                     centerPrice={true}
                     onPress={() => router.push({
@@ -255,7 +261,10 @@ const HomeScreen = () => {
             ) : (
               <View style={styles.emptyState}>
                 <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                  Aucun produit disponible dans cette catégorie
+                  Aucun produit disponible dans la catégorie "{selectedCategory}"
+                </Text>
+                <Text style={[styles.emptyText, { color: colors.textSecondary, marginTop: 10, fontSize: 14 }]}>
+                  {displayedProducts ? `(${displayedProducts.length} produit trouvé)` : 'Chargement...'}
                 </Text>
               </View>
             )}
