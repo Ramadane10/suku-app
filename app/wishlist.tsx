@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomTabBar from '../src/components/ui/BottomTabBar';
 import fonts from '../src/constants/fonts';
 import { useFavorites } from '../src/context/FavoritesContext';
 import Header from '../src/components/ui/Header';
@@ -139,7 +138,6 @@ const WishlistScreen = () => {
         isVisible={isMenuVisible}
         onClose={handleCloseMenu}
       />
-      <BottomTabBar />
     </SafeAreaView>
   );
 };

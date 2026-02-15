@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomTabBar from '../src/components/ui/BottomTabBar';
 import fonts from '../src/constants/fonts';
 import { useTheme } from '../src/hooks/useTheme';
 import { useAddresses } from '../src/hooks/useAddresses';
@@ -69,7 +68,6 @@ export default function AddressesScreen() {
             <Text style={styles.loginBtnText}>Se connecter</Text>
           </TouchableOpacity>
         </View>
-        <BottomTabBar />
       </SafeAreaView>
     );
   }
@@ -152,7 +150,6 @@ export default function AddressesScreen() {
           ))
         )}
       </ScrollView>
-      <BottomTabBar />
     </SafeAreaView>
   );
 }

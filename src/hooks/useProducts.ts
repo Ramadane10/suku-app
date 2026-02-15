@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Category, Product } from '../types';
 
@@ -42,27 +42,19 @@ export function useProducts() {
         }
     };
 
-    // Helper functions for filtering (mémorisées avec useCallback)
-    const getNewArrivals = useCallback(() => products.filter(p => p.is_new_arrival), [products]);
-    const getFeatured = useCallback(() => products.filter(p => p.is_featured), [products]);
-    const getBestSellers = useCallback(() => products.filter(p => p.is_best_seller), [products]);
+    // Helper functions for filtering
+    const getNewArrivals = () => products.filter(p => p.is_new_arrival);
+    const getFeatured = () => products.filter(p => p.is_featured);
+    const getBestSellers = () => products.filter(p => p.is_best_seller);
 
-    const getProductsByCategory = useCallback((categoryName: string) => {
-        if (categoryName === 'TOUS' || !categoryName) return products;
-        
-        // Filtrer par nom de catégorie (comparaison insensible à la casse)
-        const normalizedCategoryName = categoryName.toUpperCase().trim();
-        
-        return products.filter(p => {
-            if (!p.category) return false;
-            
-            const dbName = (p.category.name || '').toUpperCase().trim();
-            const dbSlug = (p.category.slug || '').toUpperCase().trim();
-            
-            // Comparaison exacte
-            return dbName === normalizedCategoryName || dbSlug === normalizedCategoryName;
-        });
-    }, [products]);
+    const getProductsByCategory = (categorySlug: string) => {
+        if (categorySlug === 'TOUS' || !categorySlug) return products;
+        // Map UI "TOUS" to null or ignore
+        // Assuming UI categories match DB Slugs or Names.
+        // The home screen currently uses Names like 'FRUITS', 'LÉGUMES'. 
+        // We should better direct map slugs.
+        return products.filter(p => p.category?.slug.toUpperCase() === categorySlug.toUpperCase() || p.category?.name.toUpperCase() === categorySlug.toUpperCase());
+    };
 
     return {
         products,

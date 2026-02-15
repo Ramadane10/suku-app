@@ -2,7 +2,6 @@ import { useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomTabBar from '../src/components/ui/BottomTabBar';
 import InputField from '../src/components/ui/InputField';
 import fonts from '../src/constants/fonts';
 import { useOrder } from '../src/context/OrderContext';
@@ -234,7 +233,6 @@ const ShippingScreen = () => {
           <Text style={styles.continueBtnText}>Continuer</Text>
         </TouchableOpacity>
       </ScrollView>
-      <BottomTabBar />
     </SafeAreaView>
   );
 };

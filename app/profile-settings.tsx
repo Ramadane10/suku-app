@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomTabBar from '../src/components/ui/BottomTabBar';
 import fonts from '../src/constants/fonts';
 import { useTheme } from '../src/hooks/useTheme';
 import { useUserSettings } from '../src/hooks/useUserSettings';
@@ -197,7 +196,6 @@ const ProfileSettings = () => {
           <Text style={[styles.logoutText, { color: colors.text }]}>Se déconnecter</Text>
         </TouchableOpacity>
       </ScrollView>
-      <BottomTabBar />
     </SafeAreaView>
   );
 };

@@ -15,7 +15,7 @@ const BottomTabBar = React.memo(() => {
   // Mémoriser le compteur de panier - ne se met à jour que si cartItems change
   const cartCount = useMemo(() => {
     return getCartCount();
-  }, [cartItems, getCartCount]);
+  }, [cartItems.length, getCartCount]);
 
   // Mémoriser les tabs avec les icônes
   const tabs = useMemo(() => [
@@ -55,16 +55,25 @@ const BottomTabBar = React.memo(() => {
     if (isFocused) return;
     router.push(route);
   }, [router]);
+  
+  // Mémoriser le style du container pour éviter les re-renders
+  const containerStyle = useMemo(() => [
+    styles.container, 
+    { backgroundColor: colors.surface, borderColor: colors.border }
+  ], [colors.surface, colors.border]);
 
   // Mémoriser le calcul de l'état focused pour chaque tab
-  const getTabFocused = useCallback((matchers) => {
-    return matchers.some((matcher) => pathname.startsWith(matcher));
-  }, [pathname]);
+  const focusedTabs = useMemo(() => {
+    return tabs.map(tab => ({
+      ...tab,
+      focused: tab.matchers.some((matcher) => pathname.startsWith(matcher))
+    }));
+  }, [pathname, tabs]);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-      {tabs.map((tab) => {
-        const focused = getTabFocused(tab.matchers);
+    <View style={containerStyle}>
+      {focusedTabs.map((tab) => {
+        const focused = tab.focused;
         return (
           <TouchableOpacity
             key={tab.key}
@@ -109,7 +118,9 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 8,
-    zIndex: 1000,
+    shadowOffset: { width: 0, height: -2 },
+    zIndex: 9999,
+    backgroundColor: 'transparent', // Sera remplacé par colors.surface
   },
   tab: {
     flex: 1,

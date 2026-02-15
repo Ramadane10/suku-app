@@ -1,16 +1,15 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomTabBar from '../src/components/ui/BottomTabBar';
 import Header from '../src/components/ui/Header';
 import ProductCard from '../src/components/ui/ProductCard';
 import SideMenu from '../src/components/ui/SideMenu';
 import fonts from '../src/constants/fonts';
-import { useTheme } from '../src/hooks/useTheme';
-import { useProducts } from '../src/hooks/useProducts';
 import { useCart } from '../src/context/CartContext';
+import { useProducts } from '../src/hooks/useProducts';
+import { useTheme } from '../src/hooks/useTheme';
 
 export const options = { headerShown: false };
 
@@ -102,7 +101,7 @@ export default function BoutiqueScreen() {
             onPress={() => setShowFilters(!showFilters)}
             style={[styles.filterButton, { backgroundColor: showFilters ? colors.primary : 'transparent' }]}
           >
-            <Feather name="sliders-horizontal" size={18} color={showFilters ? '#fff' : colors.grey} />
+            <Feather name="sliders" size={18} color={showFilters ? '#fff' : colors.grey} />
           </TouchableOpacity>
         </View>
         <Text style={[styles.resultCount, { color: colors.textSecondary }]}>{filteredProducts.length} produits</Text>
@@ -183,6 +182,16 @@ export default function BoutiqueScreen() {
               category={item.category?.name || 'FRUITS'}
               stockQuantity={item.stock_quantity}
               style={styles.card}
+              onPress={() => router.push({
+                pathname: '/product-details',
+                params: {
+                  productId: item.id,
+                  name: item.name,
+                  price: `${item.price_per_kg}€/kg`,
+                  category: item.category?.name,
+                  image: item.image_url,
+                }
+              })}
             />
           </View>
         )}
@@ -192,7 +201,6 @@ export default function BoutiqueScreen() {
           </View>
         }
       />
-      <BottomTabBar />
       <SideMenu isVisible={isMenuVisible} onClose={() => setIsMenuVisible(false)} />
     </SafeAreaView>
   );

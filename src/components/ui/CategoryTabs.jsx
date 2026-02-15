@@ -25,7 +25,10 @@ const CategoryTabs = ({ categories, selected, onSelect }) => (
           style={styles.backgroundImage}
           resizeMode="cover"
         />
-        <View style={styles.overlay}>
+        <View style={[
+          styles.overlay,
+          selected === cat && styles.selectedOverlay
+        ]}>
           <Text style={[styles.tabText, styles.boldText, selected === cat && styles.selectedTabText]}>
             {cat}
           </Text>
@@ -61,10 +64,13 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
+  },
+  selectedOverlay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
   tabText: {
     fontFamily: fonts.bold,

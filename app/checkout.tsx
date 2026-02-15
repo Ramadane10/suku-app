@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomTabBar from '../src/components/ui/BottomTabBar';
 import Header from '../src/components/ui/Header';
 import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
@@ -203,7 +202,6 @@ const CheckoutScreen = () => {
           )}
         </TouchableOpacity>
       </ScrollView>
-      <BottomTabBar />
     </SafeAreaView>
   );
 };

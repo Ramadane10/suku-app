@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomTabBar from '../src/components/ui/BottomTabBar';
 import Header from '../src/components/ui/Header';
 import SideMenu from '../src/components/ui/SideMenu';
 import fonts from '../src/constants/fonts';
@@ -171,7 +170,6 @@ const ProfileScreen = () => {
           </TouchableOpacity>
         )}
       </ScrollView>
-      <BottomTabBar />
       <SideMenu isVisible={isMenuVisible} onClose={() => setIsMenuVisible(false)} />
     </SafeAreaView>
   );

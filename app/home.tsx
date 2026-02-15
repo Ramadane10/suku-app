@@ -1,16 +1,15 @@
 import { useRouter } from 'expo-router';
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomTabBar from '../src/components/ui/BottomTabBar';
 import CategoryTabs from '../src/components/ui/CategoryTabs';
 import Header from '../src/components/ui/Header';
 import ProductCard from '../src/components/ui/ProductCard';
 import SectionTitle from '../src/components/ui/SectionTitle';
 import SideMenu from '../src/components/ui/SideMenu';
+import { useCart } from '../src/context/CartContext';
 import { useProducts } from '../src/hooks/useProducts';
 import { useTheme } from '../src/hooks/useTheme';
-import { useCart } from '../src/context/CartContext';
 
 export const options = { headerShown: false };
 
@@ -129,7 +128,7 @@ const HomeScreen = () => {
             {/* Section New Arrivals */}
             {newArrivals.length > 0 && (
               <>
-                <SectionTitle center>Nouveautés</SectionTitle>
+                <SectionTitle >Nouveautés</SectionTitle>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -231,7 +230,7 @@ const HomeScreen = () => {
         ) : (
           /* Vue Filtrée par Catégorie */
           <View style={styles.filteredContainer}>
-            {displayedProducts && displayedProducts.length > 0 ? (
+            {displayedProducts.length > 0 ? (
               <View style={styles.gridContainer}>
                 {displayedProducts.map((product) => (
                   <ProductCard
@@ -261,17 +260,13 @@ const HomeScreen = () => {
             ) : (
               <View style={styles.emptyState}>
                 <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                  Aucun produit disponible dans la catégorie "{selectedCategory}"
-                </Text>
-                <Text style={[styles.emptyText, { color: colors.textSecondary, marginTop: 10, fontSize: 14 }]}>
-                  {displayedProducts ? `(${displayedProducts.length} produit trouvé)` : 'Chargement...'}
+                  Aucun produit disponible dans cette catégorie
                 </Text>
               </View>
             )}
           </View>
         )}
       </ScrollView>
-      <BottomTabBar />
       <SideMenu
         isVisible={isMenuVisible}
         onClose={handleCloseMenu}

@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomTabBar from '../src/components/ui/BottomTabBar';
 import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
 import { useOrder } from '../src/context/OrderContext';
@@ -102,7 +101,6 @@ const PaymentScreen = () => {
           <Text style={styles.continueBtnText}>Continuer</Text>
         </TouchableOpacity>
       </ScrollView>
-      <BottomTabBar />
     </SafeAreaView>
   );
 };

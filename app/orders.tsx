@@ -3,12 +3,12 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomTabBar from '../src/components/ui/BottomTabBar';
 import Header from '../src/components/ui/Header';
+import SideMenu from '../src/components/ui/SideMenu';
 import fonts from '../src/constants/fonts';
 import { useCart } from '../src/context/CartContext';
-import { useTheme } from '../src/hooks/useTheme';
 import { useOrders } from '../src/hooks/useOrders';
+import { useTheme } from '../src/hooks/useTheme';
 
 export const options = { headerShown: false };
 
@@ -53,6 +53,7 @@ export default function OrdersScreen() {
   const { getCartCount } = useCart();
   const { colors } = useTheme();
   const { orders, loading, refresh } = useOrders();
+  const [isMenuVisible, setIsMenuVisible] = React.useState(false);
 
   const statusStyles: { [key: string]: { bg: string; text: string } } = {
     'En cours': { bg: colors.warning + '20', text: colors.warning },
@@ -67,7 +68,8 @@ export default function OrdersScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <Header
           title="Commandes"
-          showMenu={false}
+          showMenu={true}
+          onMenuPress={() => setIsMenuVisible(true)}
           showCart={true}
           cartCount={getCartCount()}
           onCartPress={() => router.push('/cart')}
@@ -76,6 +78,10 @@ export default function OrdersScreen() {
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Chargement des commandes...</Text>
         </View>
+        <SideMenu
+          isVisible={isMenuVisible}
+          onClose={() => setIsMenuVisible(false)}
+        />
       </SafeAreaView>
     );
   }
@@ -84,7 +90,8 @@ export default function OrdersScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Header
         title="Commandes"
-        showMenu={false}
+        showMenu={true}
+        onMenuPress={() => setIsMenuVisible(true)}
         showCart={true}
         cartCount={getCartCount()}
         onCartPress={() => router.push('/cart')}
@@ -183,7 +190,10 @@ export default function OrdersScreen() {
           })
         )}
       </ScrollView>
-      <BottomTabBar />
+      <SideMenu
+        isVisible={isMenuVisible}
+        onClose={() => setIsMenuVisible(false)}
+      />
     </SafeAreaView>
   );
 }

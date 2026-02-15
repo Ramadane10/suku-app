@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomTabBar from '../src/components/ui/BottomTabBar';
 import fonts from '../src/constants/fonts';
 import { useTheme } from '../src/hooks/useTheme';
 
@@ -47,7 +46,6 @@ const ProfileContact = () => {
           <Text style={[styles.callBtnText, { color: colors.primary }]}>Appeler</Text>
         </TouchableOpacity>
       </ScrollView>
-      <BottomTabBar />
     </SafeAreaView>
   );
 };

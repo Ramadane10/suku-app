@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
-import { Dimensions, Image, SafeAreaView, StyleSheet, Text } from 'react-native';
+import { Dimensions, Image, StyleSheet, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import colors from '../../src/constants/colors';
 

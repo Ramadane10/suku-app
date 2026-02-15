@@ -3,11 +3,13 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
+import { View } from 'react-native';
 import ThemeProvider from '../src/components/ThemeProvider';
 import { AuthProvider } from '../src/context/AuthContext';
 import { CartProvider } from '../src/context/CartContext';
 import { FavoritesProvider } from '../src/context/FavoritesContext';
 import { OrderProvider } from '../src/context/OrderContext';
+import PersistentBottomTabBar from '../src/components/ui/PersistentBottomTabBar';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -46,13 +48,16 @@ export default function RootLayout() {
         <CartProvider>
           <FavoritesProvider>
             <OrderProvider>
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  animation: 'fade',
-                  animationDuration: 150,
-                }}
-              />
+              <View style={{ flex: 1 }}>
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    animation: 'fade',
+                    animationDuration: 150,
+                  }}
+                />
+                <PersistentBottomTabBar />
+              </View>
             </OrderProvider>
           </FavoritesProvider>
         </CartProvider>
