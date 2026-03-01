@@ -15,6 +15,7 @@ create table if not exists public.profiles (
   email text,
   phone text,
   avatar_url text,
+  push_token text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -134,6 +135,17 @@ create table if not exists public.user_settings (
   new_arrivals boolean default true,
   promotions boolean default false,
   sales_alerts boolean default true
+);
+
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  title text not null,
+  message text not null,
+  type text, -- 'order', 'promo', 'system'
+  is_read boolean default false,
+  data jsonb,
+  created_at timestamptz default now()
 );
 
 -- =========================

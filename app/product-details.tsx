@@ -17,13 +17,13 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import fonts from '../src/constants/fonts';
+import { useAuth } from '../src/context/AuthContext';
 import { useCart } from '../src/context/CartContext';
 import { useFavorites } from '../src/context/FavoritesContext';
-import { useTheme } from '../src/hooks/useTheme';
-import { useAuth } from '../src/context/AuthContext';
 import { useOrder } from '../src/context/OrderContext';
-import { useReviews } from '../src/hooks/useReviews';
 import { useProductImages } from '../src/hooks/useProductImages';
+import { useReviews } from '../src/hooks/useReviews';
+import { useTheme } from '../src/hooks/useTheme';
 import { supabase } from '../src/lib/supabase';
 
 const { width } = Dimensions.get('window');
@@ -74,11 +74,13 @@ const ProductDetails = () => {
 
       try {
         setLoadingProduct(true);
-        const { data, error } = await supabase
+        const { data: products, error } = await supabase
           .from('products')
           .select('stock_quantity, price_per_kg, name, image_url')
           .eq('id', productId)
-          .single();
+          .limit(1);
+
+        const data = (products && products.length > 0) ? products[0] : null;
 
         if (error) {
           console.error('Error fetching product:', error);
@@ -100,7 +102,7 @@ const ProductDetails = () => {
   }, [productId]);
 
   const isOutOfStock = productStock !== null && productStock <= 0;
-  const availableStock = productStock || 0;
+  const availableStock = productStock !== null ? productStock : 999;
 
   const weightOptions = [0.5, 1, 1.5, 2, 2.5, 3];
   const totalPrice = (pricePerKilo * selectedWeight).toFixed(2);
@@ -115,7 +117,7 @@ const ProductDetails = () => {
         return { uri: imageUrl };
       }
     }
-    
+
     // Priorité 2: Image depuis les paramètres
     if (productImage) {
       return { uri: productImage };
@@ -137,11 +139,11 @@ const ProductDetails = () => {
   // Obtenir toutes les images pour la galerie
   const allImages = getAllImages() || [];
   const hasMultipleImages = allImages.length > 1;
-  
+
   // Si pas d'images depuis Supabase mais qu'on a une image depuis params, l'ajouter
-  const displayImages = allImages.length > 0 
+  const displayImages = allImages.length > 0
     ? allImages.map(img => ({ uri: img.image_url || img.url || '' }))
-    : productImage 
+    : productImage
       ? [{ uri: productImage }]
       : [getProductImage()];
 
@@ -223,13 +225,18 @@ const ProductDetails = () => {
   };
 
   const handleDecrease = () => {
-    setSelectedWeight((prev) => Math.max(1, prev - 1));
+    setSelectedWeight((prev) => Math.max(0.5, prev - 0.5));
   };
   const handleIncrease = () => {
-    if (productStock !== null && selectedWeight < availableStock) {
-      setSelectedWeight((prev) => Math.min(prev + 1, availableStock));
-    } else if (productStock === null) {
-      setSelectedWeight((prev) => prev + 1);
+    if (productStock !== null) {
+      setSelectedWeight((prev) => {
+        if (prev < availableStock) {
+          return Math.min(prev + 0.5, availableStock);
+        }
+        return prev;
+      });
+    } else {
+      setSelectedWeight((prev) => prev + 0.5);
     }
   };
 
@@ -243,7 +250,7 @@ const ProductDetails = () => {
     if (!productId) {
       console.error('Product ID is missing:', { productId, productName, productPrice });
       Alert.alert(
-        'Erreur', 
+        'Erreur',
         'Impossible d\'ajouter ce produit au panier. Le produit n\'a pas d\'identifiant valide.'
       );
       return;
@@ -265,7 +272,7 @@ const ProductDetails = () => {
     } catch (error: any) {
       console.error('Error adding to cart:', error);
       Alert.alert(
-        'Erreur', 
+        'Erreur',
         error?.message || 'Impossible d\'ajouter le produit au panier. Veuillez réessayer.'
       );
     }
@@ -351,8 +358,8 @@ const ProductDetails = () => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header avec bouton retour */}
-      <View style={styles.header}>
+      {/* Header avec boutons retour et favoris */}
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={[styles.iconButton, { backgroundColor: colors.surface }]}
@@ -360,6 +367,21 @@ const ProductDetails = () => {
           delayPressIn={0}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.favoriteButtonHeader, { backgroundColor: colors.surface }]}
+          onPress={toggleFavorite}
+          activeOpacity={0.3}
+          delayPressIn={0}
+        >
+          <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+            <MaterialCommunityIcons
+              name={favoriteStatus ? "heart" : "heart-outline"}
+              size={28}
+              color={favoriteStatus ? colors.primary : colors.text}
+            />
+          </Animated.View>
         </TouchableOpacity>
       </View>
 
@@ -408,35 +430,20 @@ const ProductDetails = () => {
             </View>
           )}
 
-          {/* Badge stock */}
+          {/* Badge stock lowered to avoid header overlap */}
           {isOutOfStock && (
-            <View style={[styles.stockBadge, { backgroundColor: colors.danger }]}>
+            <View style={[styles.stockBadge, { backgroundColor: colors.danger, top: 100 }]}>
               <Text style={styles.stockBadgeText}>Rupture de stock</Text>
             </View>
           )}
           {!isOutOfStock && productStock !== null && productStock > 0 && (
-            <View style={[styles.stockBadge, { backgroundColor: colors.success || colors.primary }]}>
+            <View style={[styles.stockBadge, { backgroundColor: colors.success || colors.primary, top: 100 }]}>
               <Text style={styles.stockBadgeText}>
                 {availableStock.toFixed(2)} kg disponible
               </Text>
             </View>
           )}
 
-          {/* Bouton favoris avec animation */}
-          <TouchableOpacity
-            style={[styles.favoriteButton, { backgroundColor: colors.surface }]}
-            onPress={toggleFavorite}
-            activeOpacity={0.3}
-            delayPressIn={0}
-          >
-            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-              <MaterialCommunityIcons
-                name={favoriteStatus ? "heart" : "heart-outline"}
-                size={28}
-                color={favoriteStatus ? colors.primary : colors.text}
-              />
-            </Animated.View>
-          </TouchableOpacity>
         </View>
 
         {/* Section Info Produit */}
@@ -517,7 +524,7 @@ const ProductDetails = () => {
           {/* Section Avis */}
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Avis clients</Text>
-            
+
             {userReview ? (
               <View style={[styles.reviewCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <Text style={[styles.reviewTitle, { color: colors.text }]}>Votre avis</Text>
@@ -704,7 +711,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingTop: 20,
   },
   scrollContent: {
     paddingBottom: 140,
@@ -782,10 +788,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     fontSize: 12,
   },
-  favoriteButton: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
+  favoriteButtonHeader: {
     width: 44,
     height: 44,
     borderRadius: 22,
@@ -837,6 +840,11 @@ const styles = StyleSheet.create({
   ratingText: {
     fontFamily: fonts.regular,
     fontSize: 13,
+    marginLeft: 8,
+  },
+  ratingValue: {
+    fontFamily: fonts.bold,
+    fontSize: 14,
     marginLeft: 8,
   },
   section: {
@@ -921,10 +929,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderTopWidth: 1,
+    backgroundColor: '#fff',
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
+    zIndex: 100,
   },
   cartButton: {
     flex: 1,
@@ -1119,7 +1129,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 15,
   },
-  stockBadge: {
+  stockBadgeSimple: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,

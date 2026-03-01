@@ -1,11 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React from 'react';
 import { Image, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import colors from '../src/constants/colors';
 
 const slides = [
+  // ...
   {
     key: 'one',
     title: 'Bienvenue sur Suku',
@@ -38,7 +41,12 @@ export default function OnboardingScreen() {
     </View>
   );
 
-  const handleDone = () => {
+  const handleDone = async () => {
+    try {
+      await AsyncStorage.setItem('hasSeenOnboarding', 'true');
+    } catch (e) {
+      console.error('Error saving onboarding status:', e);
+    }
     router.replace('/welcome');
   };
 
@@ -78,19 +86,21 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <AppIntroSlider
-      data={slides}
-      renderItem={renderItem}
-      onDone={handleDone}
-      showSkipButton
-      onSkip={handleDone}
-      renderNextButton={renderNextButton}
-      renderDoneButton={renderDoneButton}
-      renderSkipButton={renderSkipButton}
-      dotStyle={styles.dot}
-      activeDotStyle={styles.activeDot}
-      contentContainerStyle={styles.sliderContent}
-    />
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      <AppIntroSlider
+        data={slides}
+        renderItem={renderItem}
+        onDone={handleDone}
+        showSkipButton
+        onSkip={handleDone}
+        renderNextButton={renderNextButton}
+        renderDoneButton={renderDoneButton}
+        renderSkipButton={renderSkipButton}
+        dotStyle={styles.dot}
+        activeDotStyle={styles.activeDot}
+        contentContainerStyle={styles.sliderContent}
+      />
+    </SafeAreaView>
   );
 }
 

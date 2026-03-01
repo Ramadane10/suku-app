@@ -1,14 +1,14 @@
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import InputField from '../src/components/ui/InputField';
 import fonts from '../src/constants/fonts';
-import { useOrder } from '../src/context/OrderContext';
-import { AntDesign, FontAwesome, Ionicons } from '@expo/vector-icons';
-import { useTheme } from '../src/hooks/useTheme';
-import { useAddresses } from '../src/hooks/useAddresses';
 import { useAuth } from '../src/context/AuthContext';
+import { useOrder } from '../src/context/OrderContext';
+import { useAddresses } from '../src/hooks/useAddresses';
+import { useTheme } from '../src/hooks/useTheme';
 
 export const options = { headerShown: false };
 
@@ -56,12 +56,15 @@ const ShippingScreen = () => {
     }
 
     try {
+      let finalAddressId = selectedAddressId;
+
       // Si une adresse existante est sélectionnée, l'utiliser SANS en créer une nouvelle
       if (selectedAddressId && !showNewAddressForm) {
         const selectedAddr = addresses.find(a => a.id === selectedAddressId);
         if (selectedAddr) {
           console.log('Utilisation de l\'adresse existante:', selectedAddr.id);
           saveShipping({
+            id: selectedAddr.id,
             address: selectedAddr.address_line,
             city: selectedAddr.city,
             postalCode: selectedAddr.postal_code,
@@ -70,14 +73,14 @@ const ShippingScreen = () => {
             phone,
           });
           router.push('/payment');
-          return; // IMPORTANT: Sortir ici pour ne pas créer de nouvelle adresse
+          return; // IMPORTANT
         }
       }
 
       // Sinon, vérifier si l'adresse existe déjà avant de la créer (seulement si c'est une nouvelle adresse)
       if (user && (showNewAddressForm || addresses.length === 0)) {
         // Vérifier si une adresse identique existe déjà
-        const existingAddress = addresses.find(addr => 
+        const existingAddress = addresses.find(addr =>
           addr.address_line.toLowerCase().trim() === address.toLowerCase().trim() &&
           addr.city.toLowerCase().trim() === city.toLowerCase().trim() &&
           addr.postal_code === (postalCode || '00000')
@@ -86,22 +89,24 @@ const ShippingScreen = () => {
         if (!existingAddress) {
           console.log('Création d\'une nouvelle adresse');
           // Créer une nouvelle adresse seulement si elle n'existe pas
-          await createAddress({
+          const newAddr = await createAddress({
             address_line: address,
             city: city,
             postal_code: postalCode || '00000',
             country: 'Guinée',
-            is_default: addresses.length === 0, // Première adresse = défaut
+            is_default: addresses.length === 0,
           });
+          if (newAddr) {
+            finalAddressId = newAddr.id;
+          }
         } else {
           console.log('Adresse identique trouvée, pas de création');
+          finalAddressId = existingAddress.id;
         }
-        // Si l'adresse existe déjà, on ne fait rien, on utilise juste les données pour shipping
-      } else if (user && !showNewAddressForm && selectedAddressId) {
-        console.log('Adresse existante sélectionnée, pas de création');
       }
 
       saveShipping({
+        id: finalAddressId,
         address,
         city,
         postalCode: postalCode || '00000',
@@ -140,7 +145,7 @@ const ShippingScreen = () => {
                   key={addr.id}
                   style={[
                     styles.addressCard,
-                    { 
+                    {
                       backgroundColor: selectedAddressId === addr.id ? colors.primary + '20' : colors.surface,
                       borderColor: selectedAddressId === addr.id ? colors.primary : colors.border,
                     }
@@ -148,10 +153,10 @@ const ShippingScreen = () => {
                   onPress={() => handleSelectAddress(addr)}
                 >
                   <View style={styles.addressHeader}>
-                    <Ionicons 
-                      name={selectedAddressId === addr.id ? "radio-button-on" : "radio-button-off"} 
-                      size={20} 
-                      color={selectedAddressId === addr.id ? colors.primary : colors.grey} 
+                    <Ionicons
+                      name={selectedAddressId === addr.id ? "radio-button-on" : "radio-button-off"}
+                      size={20}
+                      color={selectedAddressId === addr.id ? colors.primary : colors.grey}
                     />
                     {addr.is_default && (
                       <View style={[styles.defaultBadge, { backgroundColor: colors.primary }]}>
@@ -188,43 +193,43 @@ const ShippingScreen = () => {
             </Text>
 
             <View style={styles.formGroup}>
-          <InputField
-            placeholder="Nom complet"
-            value={fullName}
-            onChangeText={setFullName}
-            leftIcon={<FontAwesome name="user" size={18} color={colors.grey} />}
-          />
+              <InputField
+                placeholder="Nom complet"
+                value={fullName}
+                onChangeText={setFullName}
+                leftIcon={<FontAwesome name="user" size={18} color={colors.grey} />}
+              />
 
-          <InputField
-            placeholder="Numéro de téléphone"
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-            leftIcon={<FontAwesome name="phone" size={18} color={colors.grey} />}
-          />
+              <InputField
+                placeholder="Numéro de téléphone"
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                leftIcon={<FontAwesome name="phone" size={18} color={colors.grey} />}
+              />
 
-          <InputField
-            placeholder="Sonfonia rail, juste avant la station shell à côté AfricoF"
-            value={address}
-            onChangeText={setAddress}
-            leftIcon={<Ionicons name="location-outline" size={20} color={colors.grey} />}
-          />
+              <InputField
+                placeholder="Sonfonia rail, juste avant la station shell à côté AfricoF"
+                value={address}
+                onChangeText={setAddress}
+                leftIcon={<Ionicons name="location-outline" size={20} color={colors.grey} />}
+              />
 
-          <InputField
-            placeholder="Labé, Conakry"
-            value={city}
-            onChangeText={setCity}
-            leftIcon={<Ionicons name="map-outline" size={20} color={colors.grey} />}
-          />
+              <InputField
+                placeholder="Labé, Conakry"
+                value={city}
+                onChangeText={setCity}
+                leftIcon={<Ionicons name="map-outline" size={20} color={colors.grey} />}
+              />
 
-          <InputField
-            placeholder="Code postal (optionnel)"
-            value={postalCode}
-            onChangeText={setPostalCode}
-            keyboardType="numeric"
-            leftIcon={<Ionicons name="mail-outline" size={20} color={colors.grey} />}
-          />
-        </View>
+              <InputField
+                placeholder="Code postal (optionnel)"
+                value={postalCode}
+                onChangeText={setPostalCode}
+                keyboardType="numeric"
+                leftIcon={<Ionicons name="mail-outline" size={20} color={colors.grey} />}
+              />
+            </View>
           </>
         )}
 

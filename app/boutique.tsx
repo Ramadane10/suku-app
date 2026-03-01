@@ -113,6 +113,7 @@ export default function BoutiqueScreen() {
         onMenuPress={handleMenuPress}
         cartCount={getCartCount()}
         onCartPress={handleCartPress}
+        onNotificationPress={() => router.push('/notifications')}
       />
       <View style={styles.searchContainer}>
         <View

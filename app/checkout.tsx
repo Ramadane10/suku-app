@@ -1,14 +1,15 @@
-import { AntDesign, Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { AntDesign, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Header from '../src/components/ui/Header';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
 import { useCart } from '../src/context/CartContext';
 import { useOrder } from '../src/context/OrderContext';
+import { useNotifications } from '../src/hooks/useNotifications';
 import { useOrders } from '../src/hooks/useOrders';
+import { useTheme } from '../src/hooks/useTheme';
 
 export const options = { headerShown: false };
 
@@ -24,11 +25,14 @@ const CheckoutScreen = () => {
   const { createOrder } = useOrders();
   const router = useRouter();
   const [processing, setProcessing] = useState(false);
+  const { colors: themeColors } = useTheme();
+  const { sendLocalNotification, createNotification } = useNotifications();
+  const insets = useSafeAreaInsets();
 
   // Déterminer si c'est un achat direct ou depuis le panier
   const isDirectPurchase = directPurchase !== null;
   const itemsToOrder = isDirectPurchase ? [directPurchase] : cartItems;
-  
+
   // Calculer le total
   const calculateTotal = () => {
     if (isDirectPurchase) {
@@ -40,31 +44,7 @@ const CheckoutScreen = () => {
   const handlePay = async () => {
     if (!shipping.address || !shipping.city || !shipping.country || !payment) {
       Alert.alert('Erreur', 'Informations incomplètes. Veuillez vérifier votre adresse de livraison et votre mode de paiement.');
-      console.log('Shipping data:', shipping);
-      console.log('Payment:', payment);
       return;
-    }
-
-    // Vérifier les items à commander
-    console.log('=== DEBUG CHECKOUT ===');
-    console.log('isDirectPurchase:', isDirectPurchase);
-    console.log('directPurchase:', JSON.stringify(directPurchase, null, 2));
-    console.log('cartItems:', cartItems);
-    console.log('itemsToOrder:', itemsToOrder);
-    console.log('itemsToOrder.length:', itemsToOrder.length);
-
-    // Vérifier que directPurchase a toutes les propriétés nécessaires
-    if (isDirectPurchase) {
-      if (!directPurchase) {
-        Alert.alert('Erreur', 'Le produit d\'achat direct a été perdu. Veuillez réessayer depuis la page du produit.');
-        router.push('/home');
-        return;
-      }
-      if (!directPurchase.productId || !directPurchase.name || !directPurchase.pricePerKilo || !directPurchase.quantity) {
-        console.error('DirectPurchase invalide:', directPurchase);
-        Alert.alert('Erreur', 'Les informations du produit sont incomplètes. Veuillez réessayer.');
-        return;
-      }
     }
 
     if (itemsToOrder.length === 0) {
@@ -76,7 +56,7 @@ const CheckoutScreen = () => {
 
     try {
       // S'assurer que les items ont le bon format pour createOrder
-      const formattedItems = itemsToOrder.map(item => ({
+      const formattedItems = itemsToOrder.map((item: any) => ({
         productId: item.productId || item.id,
         name: item.name,
         pricePerKilo: item.pricePerKilo || item.unit_price || 0,
@@ -84,13 +64,11 @@ const CheckoutScreen = () => {
         totalPrice: item.totalPrice || item.total_price || '0',
       }));
 
-      console.log('Formatted items for createOrder:', formattedItems);
-      console.log('Total amount:', calculateTotal());
-
       // Créer la commande dans Supabase
       await createOrder({
         cartItems: formattedItems,
         shippingAddress: {
+          id: shipping.id,
           address_line: shipping.address,
           city: shipping.city,
           postal_code: shipping.postalCode || '00000',
@@ -100,12 +78,12 @@ const CheckoutScreen = () => {
         totalAmount: calculateTotal(),
       });
 
-      // Vider le panier (si achat depuis panier) et les données de commande
-      if (!isDirectPurchase) {
-        await clearCart();
-      }
-      clearDirectPurchase();
-      clearOrder();
+      // Envoyer une notification
+      const orderTitle = 'Commande confirmée !';
+      const orderMessage = `Votre commande de ${calculateTotal()}€ a été enregistrée avec succès.`;
+
+      await sendLocalNotification(orderTitle, orderMessage);
+      await createNotification(orderTitle, orderMessage, 'order');
 
       Alert.alert(
         'Paiement réussi',
@@ -113,11 +91,25 @@ const CheckoutScreen = () => {
         [
           {
             text: 'Voir mes commandes',
-            onPress: () => router.push('/orders'),
+            onPress: async () => {
+              if (!isDirectPurchase) {
+                await clearCart();
+              }
+              clearDirectPurchase();
+              clearOrder();
+              router.push('/orders');
+            },
           },
           {
             text: 'Continuer',
-            onPress: () => router.push('/home'),
+            onPress: async () => {
+              if (!isDirectPurchase) {
+                await clearCart();
+              }
+              clearDirectPurchase();
+              clearOrder();
+              router.push('/home');
+            },
           },
         ]
       );
@@ -135,24 +127,16 @@ const CheckoutScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-              <TouchableOpacity
-                onPress={() => router.back()}
-                style={styles.iconButton}
-                activeOpacity={0.3}
-                delayPressIn={0}
-              >
-                <Ionicons name="arrow-back" size={24} color={colors.dark} />
-              </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.iconButton}
+          activeOpacity={0.3}
+          delayPressIn={0}
+        >
+          <Ionicons name="arrow-back" size={24} color={themeColors.dark || '#000'} />
+        </TouchableOpacity>
+      </View>
 
-              {/* <TouchableOpacity
-                style={styles.iconButton}
-                activeOpacity={0.3}
-                delayPressIn={0}
-              >
-                <Feather name="share-2" size={22} color={colors.dark} />
-              </TouchableOpacity> */}
-            </View>
-      {/* <Header title="Récapitulatif" /> */}
       <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 80 }]}>
         <Text style={styles.sectionTitle}>Adresse de livraison</Text>
         <View style={styles.infoBox}>
@@ -160,15 +144,17 @@ const CheckoutScreen = () => {
           <Text style={styles.infoText}>{shipping.postalCode} {shipping.city}</Text>
           <Text style={styles.infoText}>{shipping.country}</Text>
         </View>
+
         <Text style={styles.sectionTitle}>Mode de paiement</Text>
         <View style={styles.infoBoxRow}>
           {paymentMethods.find(m => m.key === payment)?.icon}
           <Text style={styles.infoText}>{paymentMethods.find(m => m.key === payment)?.label}</Text>
         </View>
+
         <Text style={styles.sectionTitle}>Résumé de la commande</Text>
         <View style={styles.infoBox}>
           {itemsToOrder.length > 0 ? (
-            itemsToOrder.map((item, index) => (
+            itemsToOrder.map((item: any, index: number) => (
               <View key={index} style={styles.orderItemRow}>
                 <Text style={styles.orderItemName}>{item.name || 'Produit'}</Text>
                 <Text style={styles.orderItemDetails}>
@@ -177,18 +163,20 @@ const CheckoutScreen = () => {
               </View>
             ))
           ) : (
-            <Text style={[styles.orderItemName, { color: colors.textSecondary }]}>
+            <Text style={[styles.orderItemName, { color: '#888' }]}>
               {isDirectPurchase ? 'Aucun produit sélectionné pour l\'achat direct' : 'Aucun article dans le panier'}
             </Text>
           )}
         </View>
+
         <Text style={styles.sectionTitle}>Total à payer</Text>
         <View style={styles.infoBoxRow}>
-          <Ionicons name="cart-outline" size={22} color={colors.primary} style={{ marginRight: 8 }} />
+          <Ionicons name="cart-outline" size={22} color={themeColors.primary} style={{ marginRight: 8 }} />
           <Text style={styles.totalValue}>{calculateTotal().toFixed(2)}€</Text>
         </View>
-        <TouchableOpacity 
-          style={[styles.orderBtn, processing && styles.orderBtnDisabled]} 
+
+        <TouchableOpacity
+          style={[styles.orderBtn, processing && styles.orderBtnDisabled]}
           onPress={handlePay}
           disabled={processing}
         >
@@ -212,12 +200,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: fonts.bold,
     fontSize: 18,
-    color: colors.dark,
+    color: '#000',
     marginTop: 24,
     marginBottom: 12,
     marginLeft: 16,
   },
-    header: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -238,7 +226,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   infoBox: {
-    backgroundColor: colors.light,
+    backgroundColor: '#F8F8F8',
     borderRadius: 10,
     marginHorizontal: 16,
     marginBottom: 16,
@@ -247,7 +235,7 @@ const styles = StyleSheet.create({
   infoBoxRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.light,
+    backgroundColor: '#F8F8F8',
     borderRadius: 10,
     marginHorizontal: 16,
     marginBottom: 16,
@@ -256,18 +244,18 @@ const styles = StyleSheet.create({
   infoText: {
     fontFamily: fonts.regular,
     fontSize: 16,
-    color: colors.dark,
+    color: '#000',
     marginBottom: 2,
     marginLeft: 8,
   },
   totalValue: {
     fontFamily: fonts.bold,
     fontSize: 20,
-    color: colors.primary,
+    color: '#000', // S'adaptera au colors.primary via le composant Inline si nécessaire
   },
   orderBtn: {
     marginHorizontal: 16,
-    backgroundColor: colors.primary,
+    backgroundColor: '#4CAF50', // Valeur de repli si colors.primary est vide
     borderRadius: 8,
     paddingVertical: 16,
     alignItems: 'center',
@@ -293,18 +281,18 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: colors.light,
+    borderBottomColor: '#eee',
   },
   orderItemName: {
     fontFamily: fonts.medium,
     fontSize: 15,
-    color: colors.dark,
+    color: '#000',
     flex: 1,
   },
   orderItemDetails: {
     fontFamily: fonts.regular,
     fontSize: 14,
-    color: colors.grey,
+    color: '#888',
     marginLeft: 8,
   },
 });

@@ -1,19 +1,16 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
 import { usePathname } from 'expo-router';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../hooks/useTheme';
 import BottomTabBar from './BottomTabBar';
 
 // Liste des routes où la BottomTabBar doit être affichée
 const SHOW_TAB_BAR_ROUTES = [
   '/home',
   '/boutique',
-  '/product-details',
   '/orders',
   '/cart',
-  '/shipping',
-  '/payment',
-  '/checkout',
   '/profile',
   '/profile-edit',
   '/profile-settings',
@@ -24,6 +21,10 @@ const SHOW_TAB_BAR_ROUTES = [
 
 // Routes où la BottomTabBar ne doit PAS être affichée
 const HIDE_TAB_BAR_ROUTES = [
+  '/product-details',
+  '/shipping',
+  '/payment',
+  '/checkout',
   '/login',
   '/register',
   '/forgot-password',
@@ -36,6 +37,7 @@ const HIDE_TAB_BAR_ROUTES = [
 export default function PersistentBottomTabBar() {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
 
   // Vérifier si on doit afficher la barre
   const shouldShow = React.useMemo(() => {
@@ -52,7 +54,13 @@ export default function PersistentBottomTabBar() {
   }
 
   return (
-    <View style={[styles.wrapper, { paddingBottom: insets.bottom }]} pointerEvents="box-none">
+    <View style={[
+      styles.wrapper,
+      {
+        paddingBottom: insets.bottom,
+        backgroundColor: colors.surface
+      }
+    ]}>
       <BottomTabBar />
     </View>
   );
@@ -65,7 +73,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 9999,
-    pointerEvents: 'box-none', // Permet aux touches de passer à travers sauf sur les éléments enfants
+    elevation: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
   },
 });
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 
 export interface Order {
   id: string;
@@ -98,8 +98,14 @@ export function useOrders() {
             console.error('Error fetching payment:', paymentError);
           }
 
+          // Gérer le cas où shipping_address est retourné comme un tableau
+          const shippingAddr = Array.isArray(order.shipping_address)
+            ? order.shipping_address[0]
+            : order.shipping_address;
+
           return {
             ...order,
+            shipping_address: shippingAddr,
             items: items || [],
             payment: payment || undefined,
           };
@@ -118,6 +124,7 @@ export function useOrders() {
   const createOrder = async (params: {
     cartItems: any[];
     shippingAddress: {
+      id?: string;
       address_line: string;
       city: string;
       postal_code: string;
@@ -132,18 +139,43 @@ export function useOrders() {
 
     try {
       // 1. Créer ou récupérer l'adresse de livraison
-      const { data: address, error: addressError } = await supabase
-        .from('addresses')
-        .insert([{
-          user_id: user.id,
-          ...params.shippingAddress,
-          is_default: false,
-        }])
-        .select('id')
-        .single();
+      let addressId = params.shippingAddress.id;
 
-      if (addressError) {
-        throw new Error(`Erreur lors de la création de l'adresse: ${addressError.message}`);
+      if (!addressId) {
+        // Vérifier si une adresse identique existe déjà pour cet utilisateur
+        const { data: existingAddresses, error: checkError } = await supabase
+          .from('addresses')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('address_line', params.shippingAddress.address_line)
+          .eq('city', params.shippingAddress.city)
+          .eq('postal_code', params.shippingAddress.postal_code)
+          .limit(1);
+
+        if (existingAddresses && existingAddresses.length > 0) {
+          addressId = existingAddresses[0].id;
+          console.log('Using existing address found in DB:', addressId);
+        } else {
+          // Créer une nouvelle adresse si non trouvée
+          const { data: newAddress, error: addressError } = await supabase
+            .from('addresses')
+            .insert([{
+              user_id: user.id,
+              address_line: params.shippingAddress.address_line,
+              city: params.shippingAddress.city,
+              postal_code: params.shippingAddress.postal_code,
+              country: params.shippingAddress.country,
+              is_default: false,
+            }])
+            .select('id')
+            .limit(1);
+
+          if (addressError || !newAddress || newAddress.length === 0) {
+            throw new Error(`Erreur lors de la création de l'adresse: ${addressError?.message || 'Inconnue'}`);
+          }
+          addressId = newAddress[0].id;
+          console.log('Created new address in DB:', addressId);
+        }
       }
 
       // 2. Créer la commande
@@ -154,18 +186,20 @@ export function useOrders() {
           status: 'pending',
           payment_status: 'pending',
           total_amount: params.totalAmount,
-          shipping_address_id: address.id,
+          shipping_address_id: addressId,
         }])
         .select('id')
-        .single();
+        .limit(1);
 
-      if (orderError) {
-        throw new Error(`Erreur lors de la création de la commande: ${orderError.message}`);
+      const orderData = (order && order.length > 0) ? order[0] : null;
+
+      if (orderError || !orderData) {
+        throw new Error(`Erreur lors de la création de la commande: ${orderError?.message || 'Inconnue'}`);
       }
 
       // 3. Créer les items de commande
       const orderItems = params.cartItems.map(item => ({
-        order_id: order.id,
+        order_id: orderData.id,
         product_id: item.productId,
         product_name: item.name,
         unit_price: item.pricePerKilo,
@@ -185,7 +219,7 @@ export function useOrders() {
       const { error: paymentError } = await supabase
         .from('payments')
         .insert([{
-          order_id: order.id,
+          order_id: orderData.id,
           method: params.paymentMethod,
           status: 'pending',
           amount: params.totalAmount,
@@ -203,7 +237,7 @@ export function useOrders() {
           status: 'paid',
           payment_status: 'paid',
         })
-        .eq('id', order.id);
+        .eq('id', orderData.id);
 
       if (updateError) {
         console.error('Error updating order status:', updateError);
@@ -213,12 +247,12 @@ export function useOrders() {
       await supabase
         .from('payments')
         .update({ status: 'paid' })
-        .eq('order_id', order.id);
+        .eq('order_id', orderData.id);
 
       // Recharger les commandes
       await fetchOrders();
 
-      return order;
+      return orderData;
     } catch (err: any) {
       console.error('Error creating order:', err);
       throw err;
@@ -241,13 +275,15 @@ export function useOrders() {
         updateData.payment_status = paymentStatus;
       }
 
-      const { data, error: updateError } = await supabase
+      const { data: updateResult, error: updateError } = await supabase
         .from('orders')
         .update(updateData)
         .eq('id', orderId)
         .eq('user_id', user.id)
         .select()
-        .single();
+        .limit(1);
+
+      const data = (updateResult && updateResult.length > 0) ? updateResult[0] : null;
 
       if (updateError) {
         throw new Error(`Erreur lors de la mise à jour du statut: ${updateError.message}`);
@@ -280,7 +316,7 @@ export function useOrders() {
       }
 
       // Mettre à jour le statut de paiement de la commande
-      const { data, error: orderUpdateError } = await supabase
+      const { data: updateResult, error: orderUpdateError } = await supabase
         .from('orders')
         .update({
           payment_status: paymentStatus,
@@ -289,7 +325,9 @@ export function useOrders() {
         .eq('id', orderId)
         .eq('user_id', user.id)
         .select()
-        .single();
+        .limit(1);
+
+      const data = (updateResult && updateResult.length > 0) ? updateResult[0] : null;
 
       if (orderUpdateError) {
         throw new Error(`Erreur lors de la mise à jour de la commande: ${orderUpdateError.message}`);

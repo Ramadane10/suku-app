@@ -1,7 +1,7 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/ui/Header';
 import SideMenu from '../src/components/ui/SideMenu';
@@ -70,9 +70,9 @@ export default function OrdersScreen() {
           title="Commandes"
           showMenu={true}
           onMenuPress={() => setIsMenuVisible(true)}
-          showCart={true}
-          cartCount={getCartCount()}
-          onCartPress={() => router.push('/cart')}
+          showNotifications={true}
+          notificationCount={0}
+          onNotificationPress={() => router.push("/notifications")}
         />
         <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -92,16 +92,20 @@ export default function OrdersScreen() {
         title="Commandes"
         showMenu={true}
         onMenuPress={() => setIsMenuVisible(true)}
-        showCart={true}
-        cartCount={getCartCount()}
-        onCartPress={() => router.push('/cart')}
+        showNotifications={true}
+        notificationCount={0}
+        onNotificationPress={() => router.push("/notifications")}
       />
-      <ScrollView 
-        contentContainerStyle={[styles.content, { paddingBottom: 80 }]}
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: 100 }]}
         refreshControl={
-          <View />
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={refresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
         }
-        onScrollBeginDrag={() => refresh()}
       >
         <View style={[styles.cartCard, { backgroundColor: colors.secondary }]}>
           <View>
@@ -120,7 +124,7 @@ export default function OrdersScreen() {
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
               Aucune commande pour le moment
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.shopButton, { backgroundColor: colors.primary }]}
               onPress={() => router.push('/home')}
             >

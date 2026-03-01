@@ -1,17 +1,15 @@
 import {
-    AntDesign,
-    Feather,
-    Ionicons
+  Ionicons
 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-    Dimensions,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Dimensions,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import fonts from '../../constants/fonts';
 import { useTheme } from '../../hooks/useTheme';
@@ -24,9 +22,7 @@ const SideMenu = ({ isVisible, onClose }) => {
 
   const mainMenuItems = [
     { id: 'home', title: 'Accueil', icon: 'home', route: '/home' },
-    // { id: 'shop', title: 'Boutique', icon: 'grid', route: '/shop' },
     { id: 'bag', title: 'Panier', icon: 'shopping-bag', route: '/cart' },
-    { id: 'search', title: 'Recherche', icon: 'search', route: '/search' },
     { id: 'orders', title: 'Commandes', icon: 'package', route: '/orders' },
     { id: 'wishlist', title: 'Favoris', icon: 'heart', route: '/wishlist' },
     { id: 'profile', title: 'Compte', icon: 'user', route: '/profile' },
@@ -52,8 +48,8 @@ const SideMenu = ({ isVisible, onClose }) => {
         return <Ionicons name="grid-outline" size={24} color={colors.text} />;
       case 'shopping-bag':
         return <Ionicons name="bag-outline" size={24} color={colors.text} />;
-      case 'search':
-        return <Ionicons name="search-outline" size={24} color={colors.text} />;
+      // case 'search':
+      //   return <Ionicons name="search-outline" size={24} color={colors.text} />;
       case 'package':
         return <Ionicons name="cube-outline" size={24} color={colors.text} />;
       case 'heart':

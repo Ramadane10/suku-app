@@ -1,23 +1,16 @@
 import { AntDesign, Feather, FontAwesome } from '@expo/vector-icons';
 import { usePathname, useRouter } from 'expo-router';
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import fonts from '../../constants/fonts';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../hooks/useTheme';
 
-const BottomTabBar = React.memo(() => {
+const BottomTabBar = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const { getCartCount, cartItems } = useCart();
   const { colors } = useTheme();
+  const { getCartCount } = useCart();
 
-  // Mémoriser le compteur de panier - ne se met à jour que si cartItems change
-  const cartCount = useMemo(() => {
-    return getCartCount();
-  }, [cartItems.length, getCartCount]);
-
-  // Mémoriser les tabs avec les icônes
   const tabs = useMemo(() => [
     {
       key: 'home',
@@ -35,62 +28,45 @@ const BottomTabBar = React.memo(() => {
     },
     {
       key: 'orders',
-      label: 'Commande',
+      label: 'Commandes',
       icon: (focused) => <Feather name="package" size={24} color={focused ? colors.primary : colors.grey} />,
       route: '/orders',
-      matchers: ['/orders', '/cart', '/shipping', '/payment', '/checkout'],
-      showBadge: true,
+      matchers: ['/orders'],
     },
     {
       key: 'profile',
       label: 'Profil',
       icon: (focused) => <Feather name="user" size={24} color={focused ? colors.primary : colors.grey} />,
       route: '/profile',
-      matchers: ['/profile', '/profile-edit', '/profile-settings', '/profile-contact', '/wishlist'],
+      matchers: ['/profile', '/profile-edit', '/profile-settings', '/profile-contact'],
     },
   ], [colors.primary, colors.grey]);
 
-  // Mémoriser les handlers de navigation
-  const handleTabPress = useCallback((route, isFocused) => {
-    if (isFocused) return;
-    router.push(route);
-  }, [router]);
-  
-  // Mémoriser le style du container pour éviter les re-renders
-  const containerStyle = useMemo(() => [
-    styles.container, 
-    { backgroundColor: colors.surface, borderColor: colors.border }
-  ], [colors.surface, colors.border]);
-
-  // Mémoriser le calcul de l'état focused pour chaque tab
-  const focusedTabs = useMemo(() => {
-    return tabs.map(tab => ({
-      ...tab,
-      focused: tab.matchers.some((matcher) => pathname.startsWith(matcher))
-    }));
+  const activeTab = useMemo(() => {
+    return tabs.find(tab => tab.matchers.some(matcher => pathname.startsWith(matcher)))?.key || 'home';
   }, [pathname, tabs]);
 
+  const cartCount = getCartCount();
+
   return (
-    <View style={containerStyle}>
-      {focusedTabs.map((tab) => {
-        const focused = tab.focused;
+    <View style={[styles.container, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+      {tabs.map((tab) => {
+        const isFocused = activeTab === tab.key;
         return (
           <TouchableOpacity
             key={tab.key}
-            style={styles.tab}
-            onPress={() => handleTabPress(tab.route, focused)}
-            activeOpacity={0.3}
-            delayPressIn={0}
+            style={styles.tabItem}
+            onPress={() => router.push(tab.route)}
           >
-            <View style={styles.iconWrapper}>
-              {tab.icon(focused)}
+            <View style={styles.iconContainer}>
+              {tab.icon(isFocused)}
               {tab.showBadge && cartCount > 0 && (
-                <View style={[styles.badge, { backgroundColor: colors.danger }]}>
+                <View style={[styles.badge, { backgroundColor: colors.primary }]}>
                   <Text style={styles.badgeText}>{cartCount}</Text>
                 </View>
               )}
             </View>
-            <Text style={[styles.label, { color: focused ? colors.primary : colors.grey }, focused && styles.labelFocused]}>
+            <Text style={[styles.label, { color: isFocused ? colors.primary : colors.grey }]}>
               {tab.label}
             </Text>
           </TouchableOpacity>
@@ -98,63 +74,56 @@ const BottomTabBar = React.memo(() => {
       })}
     </View>
   );
-});
-
-BottomTabBar.displayName = 'BottomTabBar';
+};
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    paddingVertical: 8,
-    paddingBottom: 12,
-    elevation: 10,
+    height: 60,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 0,
+    elevation: 20,
     shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: -2 },
-    zIndex: 9999,
-    backgroundColor: 'transparent', // Sera remplacé par colors.surface
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    paddingHorizontal: 10,
   },
-  tab: {
+  tabItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 8,
   },
-  iconWrapper: {
+  iconContainer: {
     position: 'relative',
-    alignItems: 'center',
+    height: 28,
+    width: 28,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   label: {
-    fontFamily: fonts.regular,
-    fontSize: 12,
-    marginTop: 2,
-  },
-  labelFocused: {
-    fontFamily: fonts.bold,
+    fontSize: 11,
+    marginTop: 4,
+    fontWeight: '600',
   },
   badge: {
     position: 'absolute',
-    top: -6,
-    right: -12,
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
+    top: -4,
+    right: -6,
+    borderRadius: 9,
+    minWidth: 18,
+    height: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 3,
+    paddingHorizontal: 2,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
   badgeText: {
-    color: '#fff',
+    color: 'white',
     fontSize: 10,
-    fontFamily: fonts.bold,
+    fontWeight: 'bold',
   },
 });
 

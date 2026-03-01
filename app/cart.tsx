@@ -1,6 +1,6 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/ui/Header';
@@ -23,7 +23,9 @@ const CartScreen = () => {
 
   // Mémoriser les handlers
   const handleUpdateQuantity = useCallback((id: string, qty: number) => {
-    updateQuantity(id, qty);
+    // S'assurer que la quantité est un multiple de 0.5 et au moins 0.5
+    const normalizedQty = Math.max(0.5, Math.round(qty * 2) / 2);
+    updateQuantity(id, normalizedQty);
   }, [updateQuantity]);
 
   const handleRemove = useCallback((id: string) => {
@@ -64,7 +66,7 @@ const CartScreen = () => {
         </View>
       ) : (
         <>
-          <ScrollView 
+          <ScrollView
             style={styles.itemsList}
             contentContainerStyle={{ paddingBottom: 80 }}
           >
@@ -76,11 +78,11 @@ const CartScreen = () => {
                   <Text style={[styles.itemPrice, { color: colors.textSecondary }]}>{item.price} x {item.quantity}kg</Text>
                   <Text style={[styles.itemTotal, { color: colors.primary }]}>Total : {item.totalPrice}€</Text>
                   <View style={styles.quantityRow}>
-                    <TouchableOpacity onPress={() => handleUpdateQuantity(item.id, item.quantity - 1)} style={[styles.qtyBtn, { backgroundColor: colors.secondary }]}>
+                    <TouchableOpacity onPress={() => handleUpdateQuantity(item.id, item.quantity - 0.5)} style={[styles.qtyBtn, { backgroundColor: colors.secondary }]}>
                       <Text style={[styles.qtyBtnText, { color: colors.text }]}>-</Text>
                     </TouchableOpacity>
                     <Text style={[styles.qtyText, { color: colors.text }]}>{item.quantity} kg</Text>
-                    <TouchableOpacity onPress={() => handleUpdateQuantity(item.id, item.quantity + 1)} style={[styles.qtyBtn, { backgroundColor: colors.secondary }]}>
+                    <TouchableOpacity onPress={() => handleUpdateQuantity(item.id, item.quantity + 0.5)} style={[styles.qtyBtn, { backgroundColor: colors.secondary }]}>
                       <Text style={[styles.qtyBtnText, { color: colors.text }]}>+</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => handleRemove(item.id)} style={styles.removeBtn}>
@@ -229,7 +231,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 16,
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 100, // Augmenté pour éviter la TabBar
   },
   orderBtnText: {
     fontFamily: fonts.bold,

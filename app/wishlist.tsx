@@ -3,28 +3,26 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import fonts from '../src/constants/fonts';
-import { useFavorites } from '../src/context/FavoritesContext';
 import Header from '../src/components/ui/Header';
 import SideMenu from '../src/components/ui/SideMenu';
-import { useTheme } from '../src/hooks/useTheme';
+import fonts from '../src/constants/fonts';
 import { useAuth } from '../src/context/AuthContext';
+import { useCart } from '../src/context/CartContext';
+import { useFavorites } from '../src/context/FavoritesContext';
+import { useTheme } from '../src/hooks/useTheme';
 
 export const options = { headerShown: false };
 
 const WishlistScreen = () => {
   const { favorites, loading, removeFavorite } = useFavorites();
+  const { getCartCount } = useCart();
   const { user } = useAuth();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const router = useRouter();
   const { colors } = useTheme();
 
-   const handleMenuPress = () => {
+  const handleMenuPress = () => {
     setIsMenuVisible(true);
-  };
-
-  const handleCloseMenu = () => {
-    setIsMenuVisible(false);
   };
 
   if (!user) {
@@ -33,40 +31,20 @@ const WishlistScreen = () => {
         <Header
           title="Favoris"
           onMenuPress={handleMenuPress}
-          cartCount={0}
+          cartCount={getCartCount()}
           onCartPress={() => router.push('/cart')}
         />
         <View style={styles.emptyContainer}>
-          <Ionicons name="heart-outline" size={60} color={colors.grey} />
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            Connectez-vous pour voir vos favoris
-          </Text>
+          <Ionicons name="heart-outline" size={80} color={colors.grey} />
+          <Text style={[styles.emptyText, { color: colors.text }]}>Connectez-vous pour voir vos favoris</Text>
           <TouchableOpacity
-            style={[styles.loginButton, { backgroundColor: colors.primary }]}
+            style={[styles.btn, { backgroundColor: colors.primary }]}
             onPress={() => router.push('/login')}
           >
-            <Text style={styles.loginButtonText}>Se connecter</Text>
+            <Text style={styles.btnText}>Se connecter</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (loading) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <Header
-          title="Favoris"
-          onMenuPress={handleMenuPress}
-          cartCount={0}
-          onCartPress={() => router.push('/cart')}
-        />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-            Chargement des favoris...
-          </Text>
-        </View>
+        <SideMenu isVisible={isMenuVisible} onClose={() => setIsMenuVisible(false)} />
       </SafeAreaView>
     );
   }
@@ -76,68 +54,58 @@ const WishlistScreen = () => {
       <Header
         title="Favoris"
         onMenuPress={handleMenuPress}
-        cartCount={0}
+        cartCount={getCartCount()}
         onCartPress={() => router.push('/cart')}
       />
-      {favorites.length === 0 ? (
+
+      {loading ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      ) : favorites.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="heart-outline" size={60} color={colors.grey} />
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            Aucun favori pour le moment.
-          </Text>
+          <Ionicons name="heart-outline" size={80} color={colors.grey} />
+          <Text style={[styles.emptyText, { color: colors.text }]}>Votre liste de favoris est vide</Text>
           <TouchableOpacity
-            style={[styles.shopButton, { backgroundColor: colors.primary }]}
+            style={[styles.btn, { backgroundColor: colors.primary }]}
             onPress={() => router.push('/home')}
           >
-            <Text style={styles.shopButtonText}>Découvrir les produits</Text>
+            <Text style={styles.btnText}>Découvrir nos produits</Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <ScrollView 
-          style={styles.itemsList}
-          contentContainerStyle={{ paddingBottom: 80 }}
-        >
-          {favorites.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={[styles.itemRow, { backgroundColor: colors.surface }]}
-              onPress={() => {
-                router.push({
-                  pathname: '/product-details',
-                  params: {
-                    productId: item.productId,
-                    name: item.name,
-                    price: item.price,
-                    category: item.category || 'FRUITS',
-                  }
-                });
-              }}
-              activeOpacity={0.3}
-              delayPressIn={0}
-            >
-              <Image source={item.image} style={styles.itemImage} />
-              <View style={styles.itemInfo}>
-                <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
-                <Text style={[styles.itemPrice, { color: colors.textSecondary }]}>{item.price}</Text>
-              </View>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.grid}>
+            {favorites.map((item: any) => (
               <TouchableOpacity
-                onPress={(e) => {
-                  e.stopPropagation();
-                  removeFavorite(item.productId);
-                }}
-                style={[styles.favBtn, { backgroundColor: colors.surface }]}
-                activeOpacity={0.7}
+                key={item.id}
+                style={[styles.card, { backgroundColor: colors.surface }]}
+                onPress={() => router.push({
+                  pathname: '/product-details',
+                  params: { productId: item.id }
+                })}
               >
-                <AntDesign name="heart" size={24} color={colors.danger} />
+                <Image source={item.image} style={styles.image} />
+                <TouchableOpacity
+                  style={styles.favoriteButton}
+                  onPress={() => removeFavorite(item.productId)}
+                >
+                  <AntDesign name="heart" size={20} color={colors.danger} />
+                </TouchableOpacity>
+                <View style={styles.info}>
+                  <Text style={[styles.category, { color: colors.primary }]}>{item.category?.name || 'BIO'}</Text>
+                  <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>{item.name}</Text>
+                  <View style={styles.priceRow}>
+                    <Text style={[styles.price, { color: colors.primary }]}>{item.price}</Text>
+                  </View>
+                </View>
               </TouchableOpacity>
-            </TouchableOpacity>
-          ))}
+            ))}
+          </View>
         </ScrollView>
       )}
-      <SideMenu
-        isVisible={isMenuVisible}
-        onClose={handleCloseMenu}
-      />
+
+      <SideMenu isVisible={isMenuVisible} onClose={() => setIsMenuVisible(false)} />
     </SafeAreaView>
   );
 };
@@ -145,91 +113,90 @@ const WishlistScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 20,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 60,
+    padding: 20,
   },
   emptyText: {
-    fontFamily: fonts.regular,
+    fontSize: 18,
+    fontFamily: fonts.medium,
+    marginTop: 20,
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  btn: {
+    paddingHorizontal: 30,
+    paddingVertical: 12,
+    borderRadius: 25,
+  },
+  btnText: {
+    color: 'white',
     fontSize: 16,
-    marginTop: 16,
-  },
-  itemsList: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  itemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 12,
-    marginBottom: 16,
-    padding: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  itemImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  itemInfo: {
-    flex: 1,
-  },
-  itemName: {
     fontFamily: fonts.bold,
-    fontSize: 16,
-    marginBottom: 4,
   },
-  itemPrice: {
-    fontFamily: fonts.regular,
-    fontSize: 14,
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 100, // Espace pour la TabBar
   },
-  favBtn: {
-    marginLeft: 12,
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  card: {
+    width: '48%',
+    borderRadius: 15,
+    marginBottom: 16,
+    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  image: {
+    width: '100%',
+    height: 150,
+    resizeMode: 'cover',
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'white',
     padding: 8,
     borderRadius: 20,
-    justifyContent: 'center',
+    elevation: 4,
+  },
+  info: {
+    padding: 12,
+  },
+  category: {
+    fontSize: 12,
+    fontFamily: fonts.bold,
+    marginBottom: 4,
+  },
+  name: {
+    fontSize: 16,
+    fontFamily: fonts.bold,
+    marginBottom: 8,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  loadingText: {
-    fontFamily: fonts.regular,
+  price: {
     fontSize: 14,
-    marginTop: 12,
-  },
-  loginButton: {
-    marginTop: 24,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  loginButtonText: {
     fontFamily: fonts.bold,
-    fontSize: 16,
-    color: '#fff',
-  },
-  shopButton: {
-    marginTop: 24,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  shopButtonText: {
-    fontFamily: fonts.bold,
-    fontSize: 16,
-    color: '#fff',
   },
 });
 

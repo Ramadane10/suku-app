@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.mramadane.sukuapp"
     },
     "web": {
       "bundler": "metro",
@@ -43,6 +44,12 @@
       "eas": {
         "projectId": "26d0e89e-c0d0-49a5-9622-5caff6ea9e95"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/26d0e89e-c0d0-49a5-9622-5caff6ea9e95"
     }
   }
 }

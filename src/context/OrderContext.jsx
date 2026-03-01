@@ -18,6 +18,7 @@ export const OrderProvider = ({ children }) => {
     country: '',
     fullName: '',
     phone: '',
+    id: '',
   });
   const [payment, setPayment] = useState('');
   // Produit pour achat direct (sans passer par le panier)
@@ -28,21 +29,21 @@ export const OrderProvider = ({ children }) => {
   const setDirectPurchaseProduct = (product) => setDirectPurchase(product);
   const clearDirectPurchase = () => setDirectPurchase(null);
   const clearOrder = () => {
-    setShipping({ address: '', city: '', postalCode: '', country: '', fullName: '', phone: '' });
+    setShipping({ id: '', address: '', city: '', postalCode: '', country: '', fullName: '', phone: '' });
     setPayment('');
     setDirectPurchase(null);
   };
 
   return (
-    <OrderContext.Provider value={{ 
-      shipping, 
-      payment, 
+    <OrderContext.Provider value={{
+      shipping,
+      payment,
       directPurchase,
-      saveShipping, 
-      savePayment, 
+      saveShipping,
+      savePayment,
       setDirectPurchaseProduct,
       clearDirectPurchase,
-      clearOrder 
+      clearOrder
     }}>
       {children}
     </OrderContext.Provider>

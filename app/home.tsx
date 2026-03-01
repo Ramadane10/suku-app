@@ -8,7 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CategoryTabs from "../src/components/ui/CategoryTabs";
 import Header from "../src/components/ui/Header";
 import ProductCard from "../src/components/ui/ProductCard";
@@ -30,22 +30,12 @@ const styles = StyleSheet.create({
   newArrivalsContent: {
     paddingRight: 16,
   },
-  regularProduct: {
-    width: 140,
-    height: 240,
-    marginRight: 16,
-  },
-  gridProduct: {
-    width: "47%",
-    height: 240,
-    marginBottom: 16,
-  },
   column: {
     justifyContent: "space-between",
   },
   listContent: {
     paddingHorizontal: 16,
-    paddingBottom: 90,
+    paddingBottom: 120,
   },
   gridItem: {
     flex: 1,
@@ -62,15 +52,13 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
-    fontFamily: "System", // Ou fonts.regular
+    fontFamily: "System",
     fontSize: 16,
     textAlign: "center",
   },
-  filteredContainer: {
+  productsGrid: {
     paddingHorizontal: 16,
     paddingTop: 10,
-  },
-  gridContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
@@ -81,8 +69,8 @@ const HomeScreen = () => {
   const router = useRouter();
   const { colors } = useTheme();
   const { getCartCount } = useCart();
-  // Utilisation du hook useProducts pour les données dynamiques
   const {
+    products,
     categories: dbCategories,
     loading,
     getNewArrivals,
@@ -94,7 +82,6 @@ const HomeScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("TOUS");
   const [isMenuVisible, setIsMenuVisible] = useState(false);
 
-  // Construction de la liste des catégories pour les tabs (mémorisé)
   const categoryNames = useMemo(
     () => ["TOUS", ...dbCategories.map((c) => c.name)],
     [dbCategories],
@@ -108,254 +95,158 @@ const HomeScreen = () => {
     setIsMenuVisible(false);
   }, []);
 
-  const handleCartPress = useCallback(() => {
-    router.push("/cart");
-  }, [router]);
+  const isAllCategories = selectedCategory === "TOUS";
 
-  // Filtrage dynamique (mémorisé)
+  const newArrivals = useMemo(() => getNewArrivals(), [getNewArrivals]);
+  const featured = useMemo(() => getFeatured(), [getFeatured]);
+  const bestSellers = useMemo(() => getBestSellers(), [getBestSellers]);
   const displayedProducts = useMemo(
     () => getProductsByCategory(selectedCategory),
     [selectedCategory, getProductsByCategory],
   );
 
-  // Si "TOUS" est sélectionné, on affiche les sections par défaut (New, Featured, Best)
-  // Sinon, on affiche la liste filtrée
-  const isAllCategories = selectedCategory === "TOUS";
-
-  // Mémoriser les produits spéciaux
-  const newArrivals = useMemo(() => getNewArrivals(), [getNewArrivals]);
-  const featured = useMemo(() => getFeatured(), [getFeatured]);
-  const bestSellers = useMemo(() => getBestSellers(), [getBestSellers]);
-
-  // Mémoriser le compteur de panier
-  const cartCount = useMemo(() => getCartCount(), [getCartCount]);
-
   const insets = useSafeAreaInsets();
-  const HEADER_HEIGHT = 56;
-  const TABS_HEIGHT = 84;
 
-  if (loading) {
-    return (
-      <SafeAreaView
-        style={[
-          styles.container,
-          {
-            backgroundColor: colors.background,
-            justifyContent: "center",
-            alignItems: "center",
-          },
-        ]}
-      >
-        <ActivityIndicator size="large" color={colors.primary} />
-      </SafeAreaView>
-    );
-  }
+  const handleProductPress = (product: any) => {
+    router.push({
+      pathname: "/product-details",
+      params: {
+        productId: product.id,
+        name: product.name,
+        price: `${product.price_per_kg}€/kg`,
+        category: product.category?.name,
+        image: product.image_url,
+      },
+    });
+  };
+
+  const renderProduct = (product: any, style = {}) => (
+    <ProductCard
+      key={product.id}
+      id={product.id}
+      productId={product.id}
+      name={product.name}
+      price={`${product.price_per_kg}€/kg`}
+      image={
+        product.image_url
+          ? { uri: product.image_url }
+          : require("../assets/images/onboarding1.png")
+      }
+      category={product.category?.name || "BIO"}
+      stockQuantity={product.stock_quantity}
+      priceFirst={true}
+      onPress={() => handleProductPress(product)}
+      style={style}
+    />
+  );
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-    >
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Header
-        title="Shopertino"
+        title="Accueil"
         onMenuPress={handleMenuPress}
-        cartCount={cartCount}
-        onCartPress={handleCartPress}
-        // fixed header not needed when placed outside scroll like other screens
+        notificationCount={0}
+        onNotificationPress={() => router.push("/notifications")}
+        fixed={true}
+        cartCount={getCartCount()}
       />
-      {/* Filtre de catégories visible sous le header */}
-      <View style={{ backgroundColor: colors.surface, paddingVertical: 8, borderBottomColor: colors.border, borderBottomWidth: 1 }}>
-        <CategoryTabs
-          categories={categoryNames}
-          selected={selectedCategory}
-          onSelect={setSelectedCategory}
-        />
-      </View>
-      {isAllCategories ? (
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 80 }}
-        >
-          {/* Section New Arrivals */}
-          {newArrivals.length > 0 && (
-            <>
-              <SectionTitle>Nouveautés</SectionTitle>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.newArrivalsContainer}
-                contentContainerStyle={styles.newArrivalsContent}
-              >
-                {newArrivals.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    id={product.id}
-                    productId={product.id}
-                    name={product.name}
-                    price={`${product.price_per_kg}€/kg`}
-                    image={
-                      product.image_url
-                        ? { uri: product.image_url }
-                        : require("../assets/images/onboarding1.png")
-                    }
-                    category={product.category?.name || "FRUIT"}
-                    stockQuantity={product.stock_quantity}
-                    style={styles.regularProduct}
-                    centerPrice={true}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/product-details",
-                        params: {
-                          productId: product.id,
-                          name: product.name,
-                          price: `${product.price_per_kg}€/kg`,
-                          category: product.category?.name,
-                          image: product.image_url,
-                        },
-                      })
-                    }
-                  />
-                ))}
-              </ScrollView>
-            </>
-          )}
 
-          {/* Section Featured */}
-          {featured.length > 0 && (
-            <>
-              <SectionTitle>En Vedette</SectionTitle>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={{ marginLeft: 16 }}
-              >
-                {featured.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    id={product.id}
-                    productId={product.id}
-                    name={product.name}
-                    price={`${product.price_per_kg}€/kg`}
-                    image={
-                      product.image_url
-                        ? { uri: product.image_url }
-                        : require("../assets/images/onboarding1.png")
-                    }
-                    category={product.category?.name || "LÉGUME"}
-                    stockQuantity={product.stock_quantity}
-                    priceFirst={true}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/product-details",
-                        params: {
-                          productId: product.id,
-                          name: product.name,
-                          price: `${product.price_per_kg}€/kg`,
-                          category: product.category?.name,
-                          image: product.image_url,
-                        },
-                      })
-                    }
-                  />
-                ))}
-              </ScrollView>
-            </>
-          )}
+      <View style={{ height: 60 + insets.top }} />
 
-          {/* Section Best Sellers */}
-          {bestSellers.length > 0 && (
-            <>
-              <SectionTitle>Meilleures Ventes</SectionTitle>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={{ marginLeft: 16 }}
-              >
-                {bestSellers.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    id={product.id}
-                    productId={product.id}
-                    name={product.name}
-                    price={`${product.price_per_kg}€/kg`}
-                    image={
-                      product.image_url
-                        ? { uri: product.image_url }
-                        : require("../assets/images/onboarding1.png")
-                    }
-                    category={product.category?.name || "BIO"}
-                    stockQuantity={product.stock_quantity}
-                    priceFirst={true}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/product-details",
-                        params: {
-                          productId: product.id,
-                          name: product.name,
-                          price: `${product.price_per_kg}€/kg`,
-                          category: product.category?.name,
-                          image: product.image_url,
-                        },
-                      })
-                    }
-                  />
-                ))}
-              </ScrollView>
-            </>
-          )}
-        </ScrollView>
-      ) : (
-        <View style={{ flex: 1 }}>
-          <FlatList
-            data={displayedProducts}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            columnWrapperStyle={styles.column}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <View style={styles.gridItem}>
-                <ProductCard
-                  id={item.id}
-                  productId={item.id}
-                  name={item.name}
-                  price={`${item.price_per_kg}€/kg`}
-                  image={
-                    item.image_url
-                      ? { uri: item.image_url }
-                      : require("../assets/images/onboarding1.png")
-                  }
-                  category={item.category?.name || "FRUITS"}
-                  stockQuantity={item.stock_quantity}
-                  style={styles.card}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/product-details",
-                      params: {
-                        productId: item.id,
-                        name: item.name,
-                        price: `${item.price_per_kg}€/kg`,
-                        category: item.category?.name,
-                        image: item.image_url,
-                      },
-                    })
-                  }
-                />
-              </View>
-            )}
-            ListEmptyComponent={
-              <View style={styles.emptyState}>
-                <Text
-                  style={[styles.emptyText, { color: colors.textSecondary }]}
-                >
-                  Aucun produit disponible dans cette catégorie
-                </Text>
-              </View>
-            }
-          />
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
+      ) : (
+        <>
+          <View
+            style={{
+              paddingVertical: 4,
+              borderBottomColor: colors.border,
+              borderBottomWidth: 1,
+              backgroundColor: colors.surface,
+              zIndex: 999,
+            }}
+          >
+            <CategoryTabs
+              categories={categoryNames}
+              selected={selectedCategory}
+              onSelect={setSelectedCategory}
+            />
+          </View>
+          {isAllCategories ? (
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 120 }}
+            >
+              {newArrivals.length > 0 && (
+                <>
+                  <SectionTitle>Nouveautés</SectionTitle>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.newArrivalsContainer}
+                    contentContainerStyle={styles.newArrivalsContent}
+                  >
+                    {newArrivals.map((p) => renderProduct(p, { width: 140, marginRight: 16 }))}
+                  </ScrollView>
+                </>
+              )}
+
+              {featured.length > 0 && (
+                <>
+                  <SectionTitle>En Vedette</SectionTitle>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={{ marginLeft: 16 }}
+                    contentContainerStyle={{ paddingRight: 16 }}
+                  >
+                    {featured.map((p) => renderProduct(p, { width: 140, marginRight: 16 }))}
+                  </ScrollView>
+                </>
+              )}
+
+              {bestSellers.length > 0 && (
+                <>
+                  <SectionTitle>Meilleures Ventes</SectionTitle>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={{ marginLeft: 16 }}
+                    contentContainerStyle={{ paddingRight: 16 }}
+                  >
+                    {bestSellers.map((p) => renderProduct(p, { width: 140, marginRight: 16 }))}
+                  </ScrollView>
+                </>
+              )}
+            </ScrollView>
+          ) : (
+            <FlatList
+              data={displayedProducts}
+              keyExtractor={(item) => item.id}
+              numColumns={2}
+              columnWrapperStyle={styles.column}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <View style={styles.gridItem}>
+                  {renderProduct(item, styles.card)}
+                </View>
+              )}
+              ListEmptyComponent={
+                <View style={styles.emptyState}>
+                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                    Aucun produit disponible dans cette catégorie
+                  </Text>
+                </View>
+              }
+            />
+          )}
+        </>
       )}
       <SideMenu isVisible={isMenuVisible} onClose={handleCloseMenu} />
-    </SafeAreaView>
+    </View>
   );
 };
 

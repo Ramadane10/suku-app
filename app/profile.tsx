@@ -11,6 +11,7 @@ import { useTheme } from '../src/hooks/useTheme';
 export const options = { headerShown: false };
 
 import { useAuth } from '../src/context/AuthContext';
+import { useCart } from '../src/context/CartContext';
 import { useAddresses } from '../src/hooks/useAddresses';
 import { useProfile } from '../src/hooks/useProfile';
 
@@ -20,10 +21,11 @@ const ProfileScreen = () => {
   const { signOut, user } = useAuth();
   const { addresses } = useAddresses();
   const { profile, loading: profileLoading } = useProfile();
+  const { getCartCount } = useCart();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
 
   const isLoggedIn = !!user;
-  
+
   // Utiliser le profil depuis Supabase ou les métadonnées utilisateur en fallback
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email || 'User';
   const displayEmail = profile?.email || user?.email || '';
@@ -85,8 +87,9 @@ const ProfileScreen = () => {
       <Header
         title="Profil"
         onMenuPress={handleMenuPress}
-        cartCount={2}
+        cartCount={getCartCount()}
         onCartPress={() => router.push('/cart')}
+        onNotificationPress={() => router.push('/notifications')}
       />
       <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 80 }]}>
         {isLoggedIn ? (
@@ -129,11 +132,11 @@ const ProfileScreen = () => {
               )}
               <Ionicons name="chevron-forward" size={16} color={colors.grey} />
             </TouchableOpacity>
-            {/* <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/orders')}>
-              <Feather name="package" size={22} color={colors.primary} style={styles.menuIcon} />
-              <Text style={styles.menuText}>Historique des commandes</Text>
+            <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.border }]} onPress={() => router.push('/orders')}>
+              <Ionicons name="cube-outline" size={22} color={colors.primary} style={styles.menuIcon} />
+              <Text style={[styles.menuText, { color: colors.text }]}>Historique des commandes</Text>
               <Ionicons name="chevron-forward" size={16} color={colors.grey} />
-            </TouchableOpacity> */}
+            </TouchableOpacity>
             <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.border }]} onPress={() => router.push('/profile-settings')}>
               <Ionicons name="settings-outline" size={22} color={colors.primary} style={styles.menuIcon} />
               <Text style={[styles.menuText, { color: colors.text }]}>Paramètres</Text>

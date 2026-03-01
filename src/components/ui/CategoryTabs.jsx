@@ -1,103 +1,67 @@
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import fonts from '../../constants/fonts';
+import { useTheme } from '../../hooks/useTheme';
 
-// Images pour chaque catégorie
-const categoryImages = {
-  'TOUS': require('../../../assets/images/onboarding1.png'),
-  'CLOTHING': require('../../../assets/images/onboarding1.png'),
-  'ACCESSORIES': require('../../../assets/images/onboarding2.png'),
-  'SHOES': require('../../../assets/images/onboarding3.png'),
-  // Catégories réelles de l'app
-  'FRUITS': require('../../../assets/images/onboarding1.png'),
-  'LEGUMES': require('../../../assets/images/onboarding2.png'),
-  'BIO': require('../../../assets/images/onboarding3.png'),
-  'EPICES': require('../../../assets/images/onboarding2.png'),
+const CategoryTabs = ({ categories, selected, onSelect }) => {
+  const { colors } = useTheme();
+
+  return (
+    <View style={{ backgroundColor: colors.surface }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.container} contentContainerStyle={styles.contentContainer}>
+        {categories.map((cat) => (
+          <TouchableOpacity
+            key={cat}
+            style={[
+              styles.tab,
+              { backgroundColor: colors.light, borderColor: 'transparent' },
+              selected === cat && {
+                backgroundColor: colors.primary,
+                shadowColor: colors.primary,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 6,
+                elevation: 4
+              }
+            ]}
+            onPress={() => onSelect(cat)}
+            activeOpacity={0.7}
+          >
+            <Text style={[
+              styles.tabText,
+              { color: selected === cat ? '#FFFFFF' : colors.textSecondary }
+            ]}>
+              {cat}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
+  );
 };
-
-// Normaliser les libellés pour faire correspondre les clés des images
-const normalizeCat = (s) =>
-  (s || '')
-    .toString()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toUpperCase();
-
-const CategoryTabs = ({ categories, selected, onSelect }) => (
-  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.container}>
-    {categories.map((cat) => (
-      <TouchableOpacity
-        key={cat}
-        style={[
-          styles.tab, 
-          selected === cat && styles.selectedTab
-        ]}
-        onPress={() => onSelect(cat)}
-      >
-        <Image
-          source={categoryImages[normalizeCat(cat)] || require('../../../assets/images/onboarding1.png')}
-          style={styles.backgroundImage}
-          resizeMode="cover"
-        />
-        <View style={[
-          styles.overlay,
-          selected === cat && styles.selectedOverlay
-        ]}>
-          <Text style={[styles.tabText, styles.boldText, selected === cat && styles.selectedTabText]}>
-            {cat}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    ))}
-  </ScrollView>
-);
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    marginVertical: 8,
-    marginLeft: 16,
+    backgroundColor: 'transparent',
+  },
+  contentContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   tab: {
-    width: 120,
-    height: 60,
+    paddingHorizontal: 20,
+    height: 40,
+    borderRadius: 20,
     marginRight: 10,
-    borderRadius: 12,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  selectedTab: {
-    borderWidth: 2,
-    borderColor: '#FF6B00',
-  },
-  backgroundImage: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    borderRadius: 12,
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
-  },
-  selectedOverlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderWidth: 1,
   },
   tabText: {
     fontFamily: fonts.bold,
-    fontSize: 14,
-    color: '#ffffff',
-    textAlign: 'center',
-  },
-  selectedTabText: {
-    color: '#ffffff',
-    fontFamily: fonts.bold,
-  },
-  boldText: {
-    fontFamily: fonts.bold,
+    fontSize: 13,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });
 

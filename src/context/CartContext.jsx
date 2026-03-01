@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -19,22 +19,24 @@ export const CartProvider = ({ children }) => {
   const { user } = useAuth();
 
   // Charger le panier depuis Supabase
-  const loadCart = useCallback(async () => {
+  const loadCart = useCallback(async (showLoader = true) => {
     if (!user) return;
 
     try {
-      setLoading(true);
-      
+      if (showLoader) setLoading(true);
+
       // Récupérer ou créer le panier actif
-      let { data: cart, error: cartError } = await supabase
+      let { data: carts, error: cartError } = await supabase
         .from('carts')
         .select('id')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single();
+        .limit(1);
 
-      if (cartError && cartError.code !== 'PGRST116') {
-        // PGRST116 = no rows returned, on crée un nouveau panier
+      let cart = (carts && carts.length > 0) ? carts[0] : null;
+
+      if (!cart && !cartError) {
+        // Aucun panier actif trouvé, on en crée un
         const { data: newCart, error: newCartError } = await supabase
           .from('carts')
           .insert([{ user_id: user.id, status: 'active' }])
@@ -47,77 +49,67 @@ export const CartProvider = ({ children }) => {
           return;
         }
         cart = newCart;
-      }
-
-      if (!cart) {
-        // Créer un nouveau panier si aucun n'existe
-        const { data: newCart, error: newCartError } = await supabase
-          .from('carts')
-          .insert([{ user_id: user.id, status: 'active' }])
-          .select('id')
-          .single();
-
-        if (newCartError) {
-          console.error('Error creating cart:', newCartError);
-          setLoading(false);
-          return;
-        }
-        cart = newCart;
-      }
-
-      setCartId(cart.id);
-
-      // Charger les items du panier avec les infos produits
-      const { data: items, error: itemsError } = await supabase
-        .from('cart_items')
-        .select(`
-          id,
-          quantity_kg,
-          unit_price,
-          total_price,
-          product:products(id, name, image_url, price_per_kg, category:categories(name))
-        `)
-        .eq('cart_id', cart.id);
-
-      if (itemsError) {
-        console.error('Error loading cart items:', itemsError);
+      } else if (cartError) {
+        console.error('Error fetching cart:', cartError);
         setLoading(false);
         return;
       }
 
-      // Transformer les données pour correspondre au format attendu
-      const formattedItems = (items || []).map(item => {
-        const pricePerKilo = parseFloat(item.unit_price);
-        let imageSource;
-        if (item.product?.image_url) {
-          imageSource = { uri: item.product.image_url };
-        } else {
-          // Image par défaut
-          try {
-            imageSource = require('../../assets/images/onboarding1.png');
-          } catch {
-            imageSource = { uri: 'https://via.placeholder.com/150' };
-          }
-        }
-        
-        return {
-          id: item.id,
-          productId: item.product?.id,
-          name: item.product?.name || 'Produit',
-          price: `${pricePerKilo}€/kg`,
-          pricePerKilo: pricePerKilo,
-          image: imageSource,
-          category: item.product?.category?.name || 'FRUITS',
-          quantity: parseFloat(item.quantity_kg),
-          totalPrice: parseFloat(item.total_price).toFixed(2),
-        };
-      });
+      if (cart) {
+        setCartId(cart.id);
 
-      setCartItems(formattedItems);
+        // Charger les items du panier avec les infos produits
+        const { data: items, error: itemsError } = await supabase
+          .from('cart_items')
+          .select(`
+            id,
+            quantity_kg,
+            unit_price,
+            total_price,
+            product:products(id, name, image_url, price_per_kg, category:categories(name))
+          `)
+          .eq('cart_id', cart.id);
+
+        if (itemsError) {
+          console.error('Error loading cart items:', itemsError);
+          setLoading(false);
+          return;
+        }
+
+        // Transformer les données pour correspondre au format attendu
+        const formattedItems = (items || []).map(item => {
+          const pricePerKilo = parseFloat(item.unit_price);
+          let imageSource;
+          if (item.product?.image_url) {
+            imageSource = { uri: item.product.image_url };
+          } else {
+            // Image par défaut
+            try {
+              imageSource = require('../../assets/images/onboarding1.png');
+            } catch {
+              imageSource = { uri: 'https://via.placeholder.com/150' };
+            }
+          }
+
+          return {
+            id: item.id,
+            productId: item.product?.id,
+            name: item.product?.name || 'Produit',
+            price: `${pricePerKilo}€/kg`,
+            pricePerKilo: pricePerKilo,
+            image: imageSource,
+            category: item.product?.category?.name || 'FRUITS',
+            quantity: parseFloat(item.quantity_kg),
+            totalPrice: parseFloat(item.total_price).toFixed(2),
+          };
+        });
+
+        setCartItems(formattedItems);
+      }
     } catch (error) {
       console.error('Error loading cart:', error);
     } finally {
-      setLoading(false);
+      if (showLoader) setLoading(false);
     }
   }, [user]);
 
@@ -137,6 +129,20 @@ export const CartProvider = ({ children }) => {
 
     if (cartId) return cartId;
 
+    // Vérifier d'abord s'il existe déjà un panier actif
+    const { data: existingCarts, error: fetchError } = await supabase
+      .from('carts')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .limit(1);
+
+    if (existingCarts && existingCarts.length > 0) {
+      setCartId(existingCarts[0].id);
+      return existingCarts[0].id;
+    }
+
+    // Sinon en créer un nouveau
     const { data: cart, error } = await supabase
       .from('carts')
       .insert([{ user_id: user.id, status: 'active' }])
@@ -145,7 +151,7 @@ export const CartProvider = ({ children }) => {
 
     if (error) {
       console.error('Error creating cart:', error);
-      return null;
+      throw new Error("Impossible de créer le panier. Veuillez vérifier votre connexion.");
     }
 
     setCartId(cart.id);
@@ -155,90 +161,84 @@ export const CartProvider = ({ children }) => {
   // Ajouter un produit au panier
   const addToCart = useCallback(async (product, weight = 1) => {
     if (!user) {
-      console.warn('User must be logged in to add to cart');
-      return;
+      throw new Error("Vous devez être connecté pour ajouter des produits au panier");
     }
 
+    const previousItems = [...cartItems];
     try {
       const currentCartId = await getOrCreateCart();
-      if (!currentCartId) return;
+      if (!currentCartId) {
+        throw new Error("Impossible d'accéder à votre panier");
+      }
 
       // Extraire le productId depuis le produit
       const productId = product.id || product.productId;
       if (!productId) {
-        console.error('Product ID is required');
-        return;
+        throw new Error("Identifiant produit manquant");
       }
 
       // Vérifier le stock disponible
-      const { data: productData, error: productError } = await supabase
+      const { data: productsData, error: productError } = await supabase
         .from('products')
         .select('stock_quantity, price_per_kg')
         .eq('id', productId)
         .single();
 
-      if (productError || !productData) {
+      if (productError || !productsData) {
         console.error('Error fetching product:', productError);
-        throw new Error('Produit introuvable');
+        throw new Error("Produit introuvable en magasin");
       }
 
-      const stockQuantity = parseFloat(productData.stock_quantity || 0);
+      const stockQuantity = parseFloat(productsData.stock_quantity || 0);
       const quantityKg = parseFloat(weight);
 
       // Vérifier si le produit est en stock
       if (stockQuantity <= 0) {
-        throw new Error('Ce produit est actuellement en rupture de stock');
+        throw new Error("Ce produit est actuellement en rupture de stock");
       }
 
       // Vérifier si la quantité demandée est disponible
-      const { data: existingCartItem } = await supabase
+      const { data: existingCartItems } = await supabase
         .from('cart_items')
-        .select('quantity_kg')
+        .select('id, quantity_kg')
         .eq('cart_id', currentCartId)
         .eq('product_id', productId)
-        .single();
+        .limit(1);
 
+      const existingCartItem = (existingCartItems && existingCartItems.length > 0) ? existingCartItems[0] : null;
       const currentCartQuantity = existingCartItem ? parseFloat(existingCartItem.quantity_kg || 0) : 0;
       const totalRequested = currentCartQuantity + quantityKg;
 
       if (totalRequested > stockQuantity) {
         const available = stockQuantity - currentCartQuantity;
         if (available <= 0) {
-          throw new Error('Stock insuffisant. Ce produit est déjà dans votre panier en quantité maximale.');
+          throw new Error("Stock insuffisant. Ce produit est déjà dans votre panier en quantité maximale.");
         }
-        throw new Error(`Stock insuffisant. Il reste ${available.toFixed(2)} kg disponible.`);
+        throw new Error(`Stock insuffisant. Il ne reste que ${available.toFixed(2)} kg disponible.`);
       }
 
-      const pricePerKilo = product.pricePerKilo || parseFloat(product.price?.replace('€/kg', '') || '0') || productData.price_per_kg;
+      const pricePerKilo = product.pricePerKilo || parseFloat(product.price?.replace('€/kg', '') || '0') || productsData.price_per_kg;
       const totalPrice = pricePerKilo * quantityKg;
 
-      // Vérifier si le produit existe déjà dans le panier
-      const { data: existingItem, error: checkError } = await supabase
-        .from('cart_items')
-        .select('id, quantity_kg, total_price')
-        .eq('cart_id', currentCartId)
-        .eq('product_id', productId)
-        .single();
-
-      if (existingItem && !checkError) {
-        // Mettre à jour la quantité
-        const newQuantity = parseFloat(existingItem.quantity_kg) + quantityKg;
-        const newTotalPrice = pricePerKilo * newQuantity;
+      // MISE À JOUR OPTIMISTE
+      if (existingCartItem) {
+        setCartItems(prev => prev.map(item =>
+          item.id === existingCartItem.id
+            ? { ...item, quantity: item.quantity + quantityKg, totalPrice: (parseFloat(item.totalPrice) + totalPrice).toFixed(2) }
+            : item
+        ));
 
         const { error: updateError } = await supabase
           .from('cart_items')
           .update({
-            quantity_kg: newQuantity,
-            total_price: newTotalPrice,
+            quantity_kg: currentCartQuantity + quantityKg,
+            total_price: (currentCartQuantity + quantityKg) * pricePerKilo,
           })
-          .eq('id', existingItem.id);
+          .eq('id', existingCartItem.id);
 
-        if (updateError) {
-          console.error('Error updating cart item:', updateError);
-          return;
-        }
+        if (updateError) throw updateError;
       } else {
-        // Créer un nouvel item
+        // Pour un nouvel item, on attend SQL pour avoir l'ID, mais on peut rafraîchir en fond
         const { error: insertError } = await supabase
           .from('cart_items')
           .insert([{
@@ -249,131 +249,109 @@ export const CartProvider = ({ children }) => {
             total_price: totalPrice,
           }]);
 
-        if (insertError) {
-          console.error('Error adding to cart:', insertError);
-          return;
-        }
+        if (insertError) throw insertError;
       }
 
-      // Mettre à jour l'état local immédiatement pour une meilleure UX
-      setCartItems(prevItems => {
-        const existingIndex = prevItems.findIndex(item => item.productId === productId);
-        if (existingIndex >= 0) {
-          const updated = [...prevItems];
-          const existing = updated[existingIndex];
-          updated[existingIndex] = {
-            ...existing,
-            quantity: parseFloat(existing.quantity) + quantityKg,
-            totalPrice: (parseFloat(existing.pricePerKilo) * (parseFloat(existing.quantity) + quantityKg)).toFixed(2),
-          };
-          return updated;
-        } else {
-          return [...prevItems, {
-            id: `temp-${Date.now()}`,
-            productId,
-            name: product.name,
-            price: `${pricePerKilo}€/kg`,
-            pricePerKilo,
-            image: product.image,
-            category: product.category,
-            quantity: quantityKg,
-            totalPrice: totalPrice.toFixed(2),
-          }];
-        }
-      });
-
-      // Recharger le panier en arrière-plan pour synchroniser
-      loadCart();
+      // Recharger le panier pour synchroniser proprement (en arrière-plan)
+      await loadCart(false);
     } catch (error) {
       console.error('Error adding to cart:', error);
-      // En cas d'erreur, recharger pour avoir l'état correct
-      loadCart();
+      setCartItems(previousItems); // Rollback
+      throw error;
     }
-  }, [user, loadCart]);
+  }, [user, cartItems, loadCart, getOrCreateCart]);
 
   // Supprimer un produit du panier
   const removeFromCart = useCallback(async (cartItemId) => {
     if (!user || !cartItemId) return;
 
-    // Mettre à jour l'état local immédiatement
-    setCartItems(prevItems => prevItems.filter(item => item.id !== cartItemId));
-
+    const previousItems = [...cartItems];
     try {
+      // MISE À JOUR OPTIMISTE
+      setCartItems(prev => prev.filter(item => item.id !== cartItemId));
+
       const { error } = await supabase
         .from('cart_items')
         .delete()
         .eq('id', cartItemId);
 
-      if (error) {
-        console.error('Error removing from cart:', error);
-        // En cas d'erreur, recharger pour avoir l'état correct
-        loadCart();
-        return;
-      }
+      if (error) throw error;
+
+      // Sync en arrière-plan
+      await loadCart(false);
     } catch (error) {
       console.error('Error removing from cart:', error);
-      loadCart();
+      setCartItems(previousItems); // Rollback
+      throw new Error("Échec de la suppression de l'article");
     }
-  }, [user, loadCart]);
+  }, [user, cartItems, loadCart]);
 
   // Modifier la quantité d'un produit
   const updateQuantity = useCallback(async (cartItemId, newQuantity) => {
     if (!user || !cartItemId) return;
 
     if (newQuantity <= 0) {
-      removeFromCart(cartItemId);
+      await removeFromCart(cartItemId);
       return;
     }
 
-    // Mettre à jour l'état local immédiatement
-    setCartItems(prevItems => {
-      return prevItems.map(item => {
-        if (item.id === cartItemId) {
-          const newTotalPrice = item.pricePerKilo * parseFloat(newQuantity);
-          return {
-            ...item,
-            quantity: parseFloat(newQuantity),
-            totalPrice: newTotalPrice.toFixed(2),
-          };
-        }
-        return item;
-      });
-    });
+    const previousItems = [...cartItems];
+    const itemToUpdate = cartItems.find(item => item.id === cartItemId);
+    const pricePerKilo = itemToUpdate?.pricePerKilo || 0;
+    const newTotalPrice = (pricePerKilo * newQuantity).toFixed(2);
 
     try {
-      // Récupérer l'item pour obtenir le prix unitaire
-      const { data: item, error: fetchError } = await supabase
-        .from('cart_items')
-        .select('unit_price')
-        .eq('id', cartItemId)
-        .single();
-
-      if (fetchError || !item) {
-        console.error('Error fetching cart item:', fetchError);
-        loadCart();
-        return;
-      }
-
-      const newTotalPrice = parseFloat(item.unit_price) * parseFloat(newQuantity);
+      // MISE À JOUR OPTIMISTE
+      setCartItems(prev => prev.map(item =>
+        item.id === cartItemId ? { ...item, quantity: newQuantity, totalPrice: newTotalPrice } : item
+      ));
 
       const { error } = await supabase
         .from('cart_items')
         .update({
           quantity_kg: parseFloat(newQuantity),
-          total_price: newTotalPrice,
+          total_price: parseFloat(newTotalPrice),
         })
         .eq('id', cartItemId);
 
-      if (error) {
-        console.error('Error updating quantity:', error);
-        loadCart();
-        return;
-      }
+      if (error) throw error;
+
+      // Sync en arrière-plan
+      await loadCart(false);
     } catch (error) {
       console.error('Error updating quantity:', error);
-      loadCart();
+      setCartItems(previousItems); // Rollback
+      throw new Error("Échec de la mise à jour de la quantité");
     }
-  }, [user, removeFromCart, loadCart]);
+  }, [user, cartItems, removeFromCart, loadCart]);
+
+  // Vider le panier
+  const clearCart = useCallback(async () => {
+    if (!user || !cartId) {
+      setCartItems([]);
+      return;
+    }
+
+    const previousItems = [...cartItems];
+    try {
+      // MISE À JOUR OPTIMISTE
+      setCartItems([]);
+
+      const { error } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('cart_id', cartId);
+
+      if (error) throw error;
+
+      // Sync en arrière-plan
+      await loadCart(false);
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+      setCartItems(previousItems); // Rollback
+      throw new Error("Échec du vidage du panier");
+    }
+  }, [user, cartId, cartItems, loadCart]);
 
   // Calculer le total du panier (mémorisé)
   const getCartTotal = useCallback(() => {
@@ -384,36 +362,8 @@ export const CartProvider = ({ children }) => {
 
   // Obtenir le nombre total d'articles (mémorisé)
   const getCartCount = useCallback(() => {
-    return cartItems.reduce((count, item) => count + (item.quantity || 0), 0);
+    return cartItems.length;
   }, [cartItems]);
-
-  // Vider le panier
-  const clearCart = useCallback(async () => {
-    if (!user || !cartId) {
-      setCartItems([]);
-      return;
-    }
-
-    // Mettre à jour l'état local immédiatement
-    setCartItems([]);
-
-    try {
-      const { error } = await supabase
-        .from('cart_items')
-        .delete()
-        .eq('cart_id', cartId);
-
-      if (error) {
-        console.error('Error clearing cart:', error);
-        // En cas d'erreur, recharger pour avoir l'état correct
-        loadCart();
-        return;
-      }
-    } catch (error) {
-      console.error('Error clearing cart:', error);
-      loadCart();
-    }
-  }, [user, cartId, loadCart]);
 
   const value = useMemo(() => ({
     cartItems,
@@ -425,7 +375,7 @@ export const CartProvider = ({ children }) => {
     getCartCount,
     clearCart,
     refreshCart: loadCart,
-  }), [cartItems, loading, getCartTotal, getCartCount]);
+  }), [cartItems, loading, getCartTotal, getCartCount, loadCart, addToCart, removeFromCart, updateQuantity, clearCart]);
 
   return (
     <CartContext.Provider value={value}>
