@@ -1,4 +1,4 @@
-import { AntDesign, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -16,7 +16,8 @@ export const options = { headerShown: false };
 const paymentMethods = [
   { key: 'orange', label: 'Orange Money', icon: <MaterialCommunityIcons name="cellphone" size={22} color={colors.primary} /> },
   { key: 'mobile', label: 'Mobile Money', icon: <MaterialCommunityIcons name="cellphone" size={22} color={colors.success} /> },
-  { key: 'card', label: 'Carte bancaire', icon: <AntDesign name="creditcard" size={22} color={colors.dark} /> },
+  { key: 'card', label: 'Carte bancaire', icon: <FontAwesome name="credit-card" size={22} color={colors.dark} /> },
+  { key: 'visa', label: 'Carte Visa', icon: <FontAwesome name="cc-visa" size={24} color={colors.info} /> },
 ];
 
 const CheckoutScreen = () => {
@@ -125,68 +126,110 @@ const CheckoutScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <View style={[styles.header, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
         <TouchableOpacity
           onPress={() => router.back()}
-          style={styles.iconButton}
+          style={[styles.iconButton, { backgroundColor: themeColors.light }]}
           activeOpacity={0.3}
           delayPressIn={0}
         >
-          <Ionicons name="arrow-back" size={24} color={themeColors.dark || '#000'} />
+          <Ionicons name="arrow-back" size={24} color={themeColors.text} />
         </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: themeColors.text }]}>Finalisation de la commande</Text>
+        <View style={{ width: 44 }} />
       </View>
 
-      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 80 }]}>
-        <Text style={styles.sectionTitle}>Adresse de livraison</Text>
-        <View style={styles.infoBox}>
-          <Text style={styles.infoText}>{shipping.address}</Text>
-          <Text style={styles.infoText}>{shipping.postalCode} {shipping.city}</Text>
-          <Text style={styles.infoText}>{shipping.country}</Text>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]}>
+        {/* Section Adresse de livraison */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Adresse de livraison</Text>
+          <TouchableOpacity onPress={() => router.push('/shipping')}>
+            <Text style={[styles.editLink, { color: themeColors.primary }]}>Modifier</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={[styles.infoBox, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+          <View style={styles.infoRow}>
+            <Ionicons name="location-outline" size={20} color={themeColors.primary} style={styles.infoIcon} />
+            <View style={styles.infoTextContainer}>
+              <Text style={[styles.infoTextBold, { color: themeColors.text }]}>
+                {shipping.address || 'Aucune adresse renseignée'}
+              </Text>
+              <Text style={[styles.infoTextSub, { color: themeColors.textSecondary }]}>
+                {shipping.postalCode} {shipping.city} {shipping.city ? ',' : ''} {shipping.country}
+              </Text>
+            </View>
+          </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Mode de paiement</Text>
-        <View style={styles.infoBoxRow}>
-          {paymentMethods.find(m => m.key === payment)?.icon}
-          <Text style={styles.infoText}>{paymentMethods.find(m => m.key === payment)?.label}</Text>
+        {/* Section Mode de paiement */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Mode de paiement</Text>
+          <TouchableOpacity onPress={() => router.push('/payment')}>
+            <Text style={[styles.editLink, { color: themeColors.primary }]}>Modifier</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={[styles.infoBox, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+          <View style={styles.infoRow}>
+            <View style={styles.infoIcon}>
+              {paymentMethods.find(m => m.key === payment)?.icon || <Ionicons name="card-outline" size={20} color={themeColors.primary} />}
+            </View>
+            <Text style={[styles.infoTextBold, { color: themeColors.text }]}>
+              {paymentMethods.find(m => m.key === payment)?.label || 'Sélectionner un moyen de paiement'}
+            </Text>
+          </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Résumé de la commande</Text>
-        <View style={styles.infoBox}>
+        {/* Section Résumé de la commande */}
+        <Text style={[styles.sectionTitle, { color: themeColors.text, marginHorizontal: 16 }]}>Résumé de la commande</Text>
+        <View style={[styles.infoBox, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
           {itemsToOrder.length > 0 ? (
             itemsToOrder.map((item: any, index: number) => (
-              <View key={index} style={styles.orderItemRow}>
-                <Text style={styles.orderItemName}>{item.name || 'Produit'}</Text>
-                <Text style={styles.orderItemDetails}>
-                  {(item.quantity || item.quantity_kg || 0)} kg × {(item.pricePerKilo || item.unit_price || 0)}€/kg = {(item.totalPrice || item.total_price || 0)}€
+              <View key={index} style={[styles.orderItemRow, { borderBottomColor: themeColors.border }]}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.orderItemName, { color: themeColors.text }]}>{item.name || 'Produit'}</Text>
+                  <Text style={[styles.orderItemDetails, { color: themeColors.textSecondary }]}>
+                    {(item.quantity || item.quantity_kg || 0)} kg × {(item.pricePerKilo || item.unit_price || 0)}€/kg
+                  </Text>
+                </View>
+                <Text style={[styles.orderItemPrice, { color: themeColors.primary }]}>
+                  {(item.totalPrice || item.total_price || 0)}€
                 </Text>
               </View>
             ))
           ) : (
-            <Text style={[styles.orderItemName, { color: '#888' }]}>
+            <Text style={[styles.orderItemName, { color: themeColors.textSecondary }]}>
               {isDirectPurchase ? 'Aucun produit sélectionné pour l\'achat direct' : 'Aucun article dans le panier'}
             </Text>
           )}
-        </View>
 
-        <Text style={styles.sectionTitle}>Total à payer</Text>
-        <View style={styles.infoBoxRow}>
-          <Ionicons name="cart-outline" size={22} color={themeColors.primary} style={{ marginRight: 8 }} />
-          <Text style={styles.totalValue}>{calculateTotal().toFixed(2)}€</Text>
+          <View style={styles.summaryRow}>
+            <Text style={[styles.summaryLabel, { color: themeColors.textSecondary }]}>Sous-total</Text>
+            <Text style={[styles.summaryValue, { color: themeColors.text }]}>{calculateTotal().toFixed(2)}€</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={[styles.summaryLabel, { color: themeColors.textSecondary }]}>Livraison</Text>
+            <Text style={[styles.summaryValue, { color: themeColors.success || '#4CAF50' }]}>Offerte</Text>
+          </View>
+          <View style={[styles.summaryRowTotal, { borderTopColor: themeColors.border }]}>
+            <Text style={[styles.totalLabel, { color: themeColors.text }]}>Total à payer</Text>
+            <Text style={[styles.totalValue, { color: themeColors.primary }]}>{calculateTotal().toFixed(2)}€</Text>
+          </View>
         </View>
 
         <TouchableOpacity
-          style={[styles.orderBtn, processing && styles.orderBtnDisabled]}
+          style={[styles.orderBtn, { backgroundColor: themeColors.primary }, processing && styles.orderBtnDisabled]}
           onPress={handlePay}
           disabled={processing}
+          activeOpacity={0.8}
         >
           {processing ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator color="#fff" size="small" />
-              <Text style={styles.orderBtnText}>Traitement...</Text>
+              <Text style={styles.orderBtnText}>Traitement en cours...</Text>
             </View>
           ) : (
-            <Text style={styles.orderBtnText}>Payer maintenant</Text>
+            <Text style={styles.orderBtnText}>Payer {calculateTotal().toFixed(2)}€</Text>
           )}
         </TouchableOpacity>
       </ScrollView>
@@ -195,70 +238,125 @@ const CheckoutScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   scrollContent: { paddingBottom: 100 },
-  sectionTitle: {
-    fontFamily: fonts.bold,
-    fontSize: 18,
-    color: '#000',
-    marginTop: 24,
-    marginBottom: 12,
-    marginLeft: 16,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  headerTitle: {
+    fontFamily: fonts.bold,
+    fontSize: 18,
   },
   iconButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  sectionTitle: {
+    fontFamily: fonts.bold,
+    fontSize: 16,
+  },
+  editLink: {
+    fontFamily: fonts.medium,
+    fontSize: 14,
   },
   infoBox: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 10,
+    borderRadius: 12,
+    borderWidth: 1,
     marginHorizontal: 16,
-    marginBottom: 16,
+    marginBottom: 8,
     padding: 14,
   },
-  infoBoxRow: {
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8F8F8',
-    borderRadius: 10,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    padding: 14,
   },
-  infoText: {
+  infoIcon: {
+    marginRight: 12,
+  },
+  infoTextContainer: {
+    flex: 1,
+  },
+  infoTextBold: {
+    fontFamily: fonts.bold,
+    fontSize: 15,
+  },
+  infoTextSub: {
     fontFamily: fonts.regular,
+    fontSize: 13,
+    marginTop: 2,
+  },
+  orderItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+  },
+  orderItemName: {
+    fontFamily: fonts.bold,
+    fontSize: 15,
+  },
+  orderItemDetails: {
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    marginTop: 2,
+  },
+  orderItemPrice: {
+    fontFamily: fonts.bold,
+    fontSize: 15,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  summaryLabel: {
+    fontFamily: fonts.regular,
+    fontSize: 14,
+  },
+  summaryValue: {
+    fontFamily: fonts.medium,
+    fontSize: 14,
+  },
+  summaryRowTotal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+  },
+  totalLabel: {
+    fontFamily: fonts.bold,
     fontSize: 16,
-    color: '#000',
-    marginBottom: 2,
-    marginLeft: 8,
   },
   totalValue: {
     fontFamily: fonts.bold,
     fontSize: 20,
-    color: '#000', // S'adaptera au colors.primary via le composant Inline si nécessaire
   },
   orderBtn: {
     marginHorizontal: 16,
-    backgroundColor: '#4CAF50', // Valeur de repli si colors.primary est vide
-    borderRadius: 8,
+    borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
+    marginTop: 20,
     marginBottom: 32,
   },
   orderBtnText: {
@@ -273,27 +371,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-  orderItemRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  orderItemName: {
-    fontFamily: fonts.medium,
-    fontSize: 15,
-    color: '#000',
-    flex: 1,
-  },
-  orderItemDetails: {
-    fontFamily: fonts.regular,
-    fontSize: 14,
-    color: '#888',
-    marginLeft: 8,
   },
 });
 

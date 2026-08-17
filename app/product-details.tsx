@@ -1,4 +1,5 @@
 import { AntDesign, Feather, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -6,7 +7,6 @@ import {
   Animated,
   Dimensions,
   Easing,
-  Image,
   Modal,
   ScrollView,
   StyleSheet,
@@ -408,7 +408,8 @@ const ProductDetails = () => {
                 key={index}
                 source={img}
                 style={styles.productImage}
-                resizeMode="contain"
+                contentFit="contain"
+                transition={200}
               />
             ))}
           </ScrollView>

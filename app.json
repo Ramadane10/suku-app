@@ -1,38 +1,48 @@
 {
   "expo": {
-    "name": "suku-app",
-    "slug": "suku-app",
+    "name": "Nwanma",
+    "slug": "nwanma",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "sukuapp",
+    "icon": "./assets/images/Nwanma-icon-app.png",
+    "scheme": "nwanma",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/Nwanma-chargement-app.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#1B4332"
+    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/Nwanma-icon-app.png",
+        "backgroundColor": "#1B4332"
+      },
+      "splash": {
+        "image": "./assets/images/Nwanma-chargement-app.png",
+        "resizeMode": "cover",
+        "backgroundColor": "#1B4332"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.mramadane.sukuapp"
+      "package": "com.mramadane.nwanma"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/Nwanma-transparent.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "image": "./assets/images/Nwanma-chargement-app.png",
+          "resizeMode": "cover",
+          "backgroundColor": "#1B4332",
+          "enableFullScreenImage_legacy": true
         }
       ]
     ],

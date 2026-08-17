@@ -1,9 +1,8 @@
-import { FontAwesome, Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import InputField from '../src/components/ui/InputField';
 import fonts from '../src/constants/fonts';
 import { useAuth } from '../src/context/AuthContext';
 import { useOrder } from '../src/context/OrderContext';
@@ -136,7 +135,7 @@ const ShippingScreen = () => {
       </View>
 
       <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 80 }]}>
-        {user && addresses.length > 0 && (
+        {user && addresses.length > 0 ? (
           <>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Adresses sauvegardées</Text>
             <View style={styles.addressesList}>
@@ -146,91 +145,68 @@ const ShippingScreen = () => {
                   style={[
                     styles.addressCard,
                     {
-                      backgroundColor: selectedAddressId === addr.id ? colors.primary + '20' : colors.surface,
+                      backgroundColor: selectedAddressId === addr.id ? colors.primary + '15' : colors.surface,
                       borderColor: selectedAddressId === addr.id ? colors.primary : colors.border,
                     }
                   ]}
                   onPress={() => handleSelectAddress(addr)}
+                  activeOpacity={0.7}
                 >
                   <View style={styles.addressHeader}>
-                    <Ionicons
-                      name={selectedAddressId === addr.id ? "radio-button-on" : "radio-button-off"}
-                      size={20}
-                      color={selectedAddressId === addr.id ? colors.primary : colors.grey}
-                    />
-                    {addr.is_default && (
-                      <View style={[styles.defaultBadge, { backgroundColor: colors.primary }]}>
-                        <Text style={styles.defaultBadgeText}>Par défaut</Text>
-                      </View>
-                    )}
+                    <View style={styles.radioRow}>
+                      <Ionicons
+                        name={selectedAddressId === addr.id ? "radio-button-on" : "radio-button-off"}
+                        size={20}
+                        color={selectedAddressId === addr.id ? colors.primary : colors.grey}
+                      />
+                      {addr.is_default && (
+                        <View style={[styles.defaultBadge, { backgroundColor: colors.primary }]}>
+                          <Text style={styles.defaultBadgeText}>Par défaut</Text>
+                        </View>
+                      )}
+                    </View>
+                    <TouchableOpacity
+                      style={[styles.editIconBtn, { backgroundColor: colors.primary + '15' }]}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        router.push({ pathname: '/address-form', params: { id: addr.id } });
+                      }}
+                    >
+                      <Ionicons name="create-outline" size={18} color={colors.primary} />
+                    </TouchableOpacity>
                   </View>
-                  <Text style={[styles.addressText, { color: colors.text }]}>{addr.address_line}</Text>
-                  <Text style={[styles.addressText, { color: colors.textSecondary }]}>
+                  <Text style={[styles.addressTextBold, { color: colors.text }]}>{addr.address_line}</Text>
+                  <Text style={[styles.addressTextSub, { color: colors.textSecondary }]}>
                     {addr.postal_code} {addr.city}, {addr.country}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
+
             <TouchableOpacity
               style={[styles.newAddressBtn, { borderColor: colors.primary }]}
-              onPress={() => {
-                setShowNewAddressForm(!showNewAddressForm);
-                setSelectedAddressId(null);
-              }}
+              onPress={() => router.push('/address-form')}
             >
-              <Ionicons name={showNewAddressForm ? "close" : "add"} size={20} color={colors.primary} />
+              <Ionicons name="add" size={20} color={colors.primary} />
               <Text style={[styles.newAddressText, { color: colors.primary }]}>
-                {showNewAddressForm ? 'Annuler' : 'Nouvelle adresse'}
+                Nouvelle adresse
               </Text>
             </TouchableOpacity>
           </>
-        )}
-
-        {(showNewAddressForm || !user || addresses.length === 0) && (
-          <>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              {user && addresses.length > 0 ? 'Nouvelle adresse' : 'Informations de livraison'}
-            </Text>
-
-            <View style={styles.formGroup}>
-              <InputField
-                placeholder="Nom complet"
-                value={fullName}
-                onChangeText={setFullName}
-                leftIcon={<FontAwesome name="user" size={18} color={colors.grey} />}
-              />
-
-              <InputField
-                placeholder="Numéro de téléphone"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                leftIcon={<FontAwesome name="phone" size={18} color={colors.grey} />}
-              />
-
-              <InputField
-                placeholder="Sonfonia rail, juste avant la station shell à côté AfricoF"
-                value={address}
-                onChangeText={setAddress}
-                leftIcon={<Ionicons name="location-outline" size={20} color={colors.grey} />}
-              />
-
-              <InputField
-                placeholder="Labé, Conakry"
-                value={city}
-                onChangeText={setCity}
-                leftIcon={<Ionicons name="map-outline" size={20} color={colors.grey} />}
-              />
-
-              <InputField
-                placeholder="Code postal (optionnel)"
-                value={postalCode}
-                onChangeText={setPostalCode}
-                keyboardType="numeric"
-                leftIcon={<Ionicons name="mail-outline" size={20} color={colors.grey} />}
-              />
-            </View>
-          </>
+        ) : (
+          <View style={styles.emptyAddressContainer}>
+            <Ionicons name="location-outline" size={48} color={colors.grey} style={{ alignSelf: 'center', marginBottom: 12 }} />
+            <Text style={[styles.emptyAddressText, { color: colors.text }]}>Aucune adresse enregistrée</Text>
+            <TouchableOpacity
+              style={[styles.newAddressBtn, { borderColor: colors.primary, marginTop: 16 }]}
+              onPress={() => router.push('/address-form')}
+            >
+              <Ionicons name="add" size={20} color={colors.primary} />
+              <Text style={[styles.newAddressText, { color: colors.primary }]}>
+                Ajouter une adresse de livraison
+              </Text>
+            </TouchableOpacity>
+          </View>
         )}
 
         <TouchableOpacity style={[styles.continueBtn, { backgroundColor: colors.primary, shadowColor: colors.primary }]} onPress={handleContinue}>
@@ -314,7 +290,19 @@ const styles = StyleSheet.create({
   addressHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 8,
+  },
+  radioRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  editIconBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   defaultBadge: {
     paddingHorizontal: 8,
@@ -327,9 +315,14 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#fff',
   },
-  addressText: {
+  addressTextBold: {
+    fontFamily: fonts.bold,
+    fontSize: 15,
+    marginBottom: 4,
+  },
+  addressTextSub: {
     fontFamily: fonts.regular,
-    fontSize: 14,
+    fontSize: 13,
     marginBottom: 4,
   },
   newAddressBtn: {
@@ -346,6 +339,16 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     fontSize: 16,
     marginLeft: 8,
+  },
+  emptyAddressContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  emptyAddressText: {
+    fontFamily: fonts.medium,
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
 

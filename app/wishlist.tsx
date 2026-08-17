@@ -1,7 +1,8 @@
 import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/ui/Header';
 import SideMenu from '../src/components/ui/SideMenu';
@@ -85,7 +86,7 @@ const WishlistScreen = () => {
                   params: { productId: item.id }
                 })}
               >
-                <Image source={item.image} style={styles.image} />
+                <Image source={item.image} style={styles.image} contentFit="cover" transition={200} />
                 <TouchableOpacity
                   style={styles.favoriteButton}
                   onPress={() => removeFavorite(item.productId)}
@@ -165,7 +166,6 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: 150,
-    resizeMode: 'cover',
   },
   favoriteButton: {
     position: 'absolute',

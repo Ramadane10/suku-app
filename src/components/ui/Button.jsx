@@ -3,10 +3,21 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import colors from '../../constants/colors';
 import fonts from '../../constants/fonts';
 
+/**
+ * @param {Object} props
+ * @param {string} props.title
+ * @param {function} [props.onPress]
+ * @param {string} [props.backgroundColor]
+ * @param {string} [props.textColor]
+ * @param {React.ReactNode} [props.leftIcon]
+ * @param {any} [props.style]
+ * @param {boolean} [props.isLoading]
+ * @param {boolean} [props.disabled]
+ */
 const Button = ({
   title,
   onPress,
-  backgroundColor = colors.dark,
+  backgroundColor = colors.primary,
   textColor = colors.light,
   leftIcon = null,
   style,

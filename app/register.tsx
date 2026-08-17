@@ -1,7 +1,8 @@
-import { FontAwesome } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, Platform, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BackButton from '../src/components/ui/BackButton';
 import Button from '../src/components/ui/Button';
@@ -18,17 +19,27 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
   const handleSignUp = async () => {
     if (!email || !password || !confirmPassword || !fullName) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires.');
+      if (Platform.OS === 'web') {
+        window.alert('Erreur\nVeuillez remplir tous les champs obligatoires.');
+      } else {
+        alert('Veuillez remplir tous les champs obligatoires.');
+      }
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Erreur', 'Les mots de passe ne correspondent pas.');
+      if (Platform.OS === 'web') {
+        window.alert('Erreur\nLes mots de passe ne correspondent pas.');
+      } else {
+        alert('Les mots de passe ne correspondent pas.');
+      }
       return;
     }
 
@@ -43,23 +54,9 @@ export default function RegisterScreen() {
         let title = 'Inscription échouée';
         let message = error.message;
 
-        // Traduction et gestion des erreurs courantes
         if (message.includes('User already registered') || message.includes('unique constraint')) {
           title = 'Compte existant';
           message = 'Cette adresse email est déjà associée à un compte.';
-
-          if (Platform.OS === 'web') {
-            if (window.confirm(title + '\n' + message + '\n\nVoulez-vous vous connecter ?')) {
-              router.push('/login');
-            }
-            return;
-          } else {
-            Alert.alert(title, message, [
-              { text: 'Annuler', style: 'cancel' },
-              { text: 'Se connecter', onPress: () => router.push('/login') }
-            ]);
-            return;
-          }
         } else if (message.includes('Password should be at least')) {
           message = 'Le mot de passe doit contenir au moins 6 caractères.';
         }
@@ -67,17 +64,12 @@ export default function RegisterScreen() {
         if (Platform.OS === 'web') {
           window.alert(title + '\n' + message);
         } else {
-          Alert.alert(title, message);
+          alert(title + ': ' + message);
         }
       } else {
         router.replace('/signup-success');
       }
     } catch (err) {
-      if (Platform.OS === 'web') {
-        window.alert('Erreur\nUne erreur inattendue est survenue.');
-      } else {
-        Alert.alert('Erreur', 'Une erreur inattendue est survenue.');
-      }
       console.error(err);
     } finally {
       setLoading(false);
@@ -88,101 +80,129 @@ export default function RegisterScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={colors.background === '#000000' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
-      <View style={styles.header}>
-        <BackButton onPress={() => router.back()} color={colors.text} />
-        <Text style={[styles.title, { color: colors.text }]}>Créer un compte</Text>
+      <View style={styles.topNav}>
+        <BackButton onPress={() => (step === 2 ? setStep(1) : router.back())} color={colors.text} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {step === 1 ? (
-          <View style={[styles.section, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Infos personnelles</Text>
-            <InputField
-              placeholder="Nom complet"
-              value={fullName}
-              onChangeText={setFullName}
-              autoCapitalize="words"
-              leftIcon={<FontAwesome name="user" size={18} color={colors.grey} />}
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Logo Brand Header */}
+          <View style={styles.logoHeader}>
+            <Image
+              source={require('../assets/images/Nwanma-transparent.png')}
+              style={styles.logoImage}
+              contentFit="contain"
+              transition={200}
             />
+            <Text style={[styles.title, { color: colors.text }]}>Créer un compte</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              Rejoignez Nwanma et profitez de la meilleure expérience.
+            </Text>
 
-            <InputField
-              placeholder="Numéro de téléphone"
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              keyboardType="phone-pad"
-              leftIcon={<FontAwesome name="phone" size={18} color={colors.grey} />}
-            />
-
-            <Button
-              title="Suivant"
-              onPress={() => setStep(2)}
-              backgroundColor={colors.primary}
-              textColor="#fff"
-              leftIcon={<FontAwesome name="arrow-right" size={18} color="#fff" />}
-              style={styles.nextButton}
-              disabled={!fullName || !phoneNumber}
-            />
-
-            <View style={styles.loginRow}>
-              <Text style={[styles.loginText, { color: colors.textSecondary }]}>Déjà un compte ?</Text>
-              <Text
-                style={[styles.loginLink, { color: colors.primary }]}
-                onPress={() => router.push('/login')}
-              >
-                Se connecter
-              </Text>
+            {/* Step Indicators */}
+            <View style={styles.stepIndicatorContainer}>
+              <View style={[styles.stepDot, { backgroundColor: colors.primary }]} />
+              <View style={[styles.stepLine, { backgroundColor: step === 2 ? colors.primary : colors.border }]} />
+              <View style={[styles.stepDot, { backgroundColor: step === 2 ? colors.primary : colors.border }]} />
             </View>
           </View>
-        ) : (
-          <View style={[styles.section, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Compte</Text>
-            <InputField
-              placeholder="Adresse email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              leftIcon={<FontAwesome name="envelope" size={18} color={colors.grey} />}
-            />
 
-            <InputField
-              placeholder="Mot de passe"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              leftIcon={<FontAwesome name="lock" size={20} color={colors.grey} />}
-            />
+          {/* Step 1: Personal Infos */}
+          {step === 1 ? (
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Text style={[styles.stepTitle, { color: colors.primary }]}>Étape 1 : Informations personnelles</Text>
 
-            <InputField
-              placeholder="Confirmer mot de passe"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              leftIcon={<FontAwesome name="lock" size={20} color={colors.grey} />}
-            />
+              <Text style={[styles.label, { color: colors.text }]}>Nom complet</Text>
+              <InputField
+                placeholder="Ex: Ramadane Barry"
+                value={fullName}
+                onChangeText={setFullName}
+                autoCapitalize="words"
+                leftIcon={<Ionicons name="person-outline" size={20} color={colors.primary} />}
+              />
 
-            <Button
-              title="Créer le compte"
-              onPress={handleSignUp}
-              backgroundColor={colors.primary}
-              textColor="#fff"
-              leftIcon={<FontAwesome name="user-plus" size={18} color="#fff" />}
-              style={styles.signUpButton}
-              isLoading={loading}
-              disabled={!email || !password || !confirmPassword}
-            />
+              <Text style={[styles.label, { color: colors.text }]}>Numéro de téléphone</Text>
+              <InputField
+                placeholder="Ex: +224 626 92 79 51"
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
+                keyboardType="phone-pad"
+                leftIcon={<Ionicons name="call-outline" size={20} color={colors.primary} />}
+              />
 
-            <View style={styles.loginRow}>
-              <Text style={[styles.loginText, { color: colors.textSecondary }]}>Déjà un compte ?</Text>
-              <Text
-                style={[styles.loginLink, { color: colors.primary }]}
-                onPress={() => router.push('/login')}
-              >
-                Se connecter
-              </Text>
+              <Button
+                title="Continuer"
+                onPress={() => setStep(2)}
+                backgroundColor={colors.primary}
+                textColor="#fff"
+                style={styles.actionBtn}
+                disabled={!fullName || !phoneNumber}
+              />
             </View>
+          ) : (
+            /* Step 2: Account Infos */
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Text style={[styles.stepTitle, { color: colors.primary }]}>Étape 2 : Identifiants de connexion</Text>
+
+              <Text style={[styles.label, { color: colors.text }]}>Adresse email</Text>
+              <InputField
+                placeholder="votre@email.com"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                leftIcon={<Ionicons name="mail-outline" size={20} color={colors.primary} />}
+              />
+
+              <Text style={[styles.label, { color: colors.text }]}>Mot de passe</Text>
+              <InputField
+                placeholder="••••••••"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                leftIcon={<Ionicons name="lock-closed-outline" size={20} color={colors.primary} />}
+                rightIcon={
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                    <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.grey} />
+                  </TouchableOpacity>
+                }
+              />
+
+              <Text style={[styles.label, { color: colors.text }]}>Confirmer mot de passe</Text>
+              <InputField
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+                leftIcon={<Ionicons name="lock-closed-outline" size={20} color={colors.primary} />}
+                rightIcon={
+                  <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                    <Ionicons name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.grey} />
+                  </TouchableOpacity>
+                }
+              />
+
+              <Button
+                title="Créer mon compte"
+                onPress={handleSignUp}
+                backgroundColor={colors.primary}
+                textColor="#fff"
+                style={styles.actionBtn}
+                isLoading={loading}
+                disabled={!email || !password || !confirmPassword}
+              />
+            </View>
+          )}
+
+          {/* Login Link */}
+          <View style={styles.loginRow}>
+            <Text style={[styles.loginText, { color: colors.textSecondary }]}>Déjà un compte ?</Text>
+            <TouchableOpacity onPress={() => router.push('/login')}>
+              <Text style={[styles.loginLink, { color: colors.primary }]}>Se connecter</Text>
+            </TouchableOpacity>
           </View>
-        )}
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -191,44 +211,80 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
+  topNav: {
     paddingHorizontal: 20,
-    paddingTop: 20,
-    marginBottom: 40,
+    paddingTop: 12,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  logoHeader: {
+    alignItems: 'center',
+    marginVertical: 12,
+  },
+  logoImage: {
+    width: 200,
+    height: 100,
+    marginBottom: 8,
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontFamily: fonts.bold,
-    marginTop: 16,
-    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 4,
   },
-  content: {
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-  },
-  section: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontFamily: fonts.bold,
+  subtitle: {
     fontSize: 14,
+    fontFamily: fonts.regular,
+    textAlign: 'center',
     marginBottom: 12,
   },
-  nextButton: {
-    marginTop: 12,
-    width: '100%',
+  stepIndicatorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  stepDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  stepLine: {
+    width: 40,
+    height: 2,
+    marginHorizontal: 6,
+  },
+  card: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 20,
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  stepTitle: {
+    fontFamily: fonts.bold,
+    fontSize: 15,
+    marginBottom: 10,
+  },
+  label: {
+    fontFamily: fonts.bold,
+    fontSize: 14,
+    marginBottom: 6,
+    marginTop: 8,
+  },
+  actionBtn: {
+    marginTop: 20,
   },
   loginRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 24,
     gap: 6,
   },
   loginText: {
@@ -238,9 +294,5 @@ const styles = StyleSheet.create({
   loginLink: {
     fontFamily: fonts.bold,
     fontSize: 14,
-  },
-  signUpButton: {
-    marginTop: 20,
-    width: '100%',
   },
 });

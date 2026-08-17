@@ -1,4 +1,5 @@
 import { FontAwesome } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -22,11 +23,16 @@ export default function WelcomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.logoContainer}>
-        <Text style={styles.logo}>S</Text>
+        <Image
+          source={require('../assets/images/Nwanma-transparent.png')}
+          style={styles.logoImage}
+          contentFit="contain"
+          transition={200}
+        />
       </View>
 
       <View style={styles.contentContainer}>
-        <Text style={styles.title}>Bienvenue a Suku</Text>
+        <Text style={styles.title}>Bienvenue</Text>
         <Text style={styles.subtitle}>
           Achetez et recevez les dernières nouveautés et promotions grâce à notre application mobile.
         </Text>
@@ -72,7 +78,12 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginTop: 60,
+    marginTop: 40,
+  },
+  logoImage: {
+    width: 300,
+    height: 220,
+    marginBottom: 10,
   },
   logo: {
     fontSize: 80,
@@ -106,7 +117,7 @@ const styles = StyleSheet.create({
     marginBottom: 50,
   },
   loginButton: {
-    backgroundColor: colors.dark,
+    backgroundColor: colors.primary,
     height: 56,
     borderRadius: 12,
     justifyContent: 'center',
@@ -126,7 +137,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.dark,
+    borderColor: colors.primary,
   },
   signupButtonText: {
     color: colors.dark,

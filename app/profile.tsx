@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Alert, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/ui/Header';
 import SideMenu from '../src/components/ui/SideMenu';
@@ -19,10 +20,17 @@ const ProfileScreen = () => {
   const router = useRouter();
   const { colors } = useTheme();
   const { signOut, user } = useAuth();
-  const { addresses } = useAddresses();
+  const { addresses, fetchAddresses } = useAddresses();
   const { profile, loading: profileLoading } = useProfile();
   const { getCartCount } = useCart();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+
+  // Re-fetch addresses every time profile screen gains focus so the count badge stays accurate
+  useFocusEffect(
+    useCallback(() => {
+      fetchAddresses();
+    }, [fetchAddresses])
+  );
 
   const isLoggedIn = !!user;
 

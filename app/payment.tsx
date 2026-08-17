@@ -1,4 +1,4 @@
-import { AntDesign, Feather, Ionicons, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
 import { useOrder } from '../src/context/OrderContext';
+import { useTheme } from '../src/hooks/useTheme';
 
 export const options = { headerShown: false };
 
@@ -34,6 +35,7 @@ const paymentMethods = [
 
 const PaymentScreen = () => {
   const { payment, savePayment } = useOrder();
+  const { colors: themeColors } = useTheme();
   const [selected, setSelected] = useState(payment || 'orange');
   const router = useRouter();
 
@@ -47,28 +49,24 @@ const PaymentScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <View style={[styles.header, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
         <TouchableOpacity
           onPress={() => router.back()}
-          style={styles.iconButton}
+          style={[styles.iconButton, { backgroundColor: themeColors.light }]}
           activeOpacity={0.3}
           delayPressIn={0}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.dark} />
+          <Ionicons name="arrow-back" size={24} color={themeColors.text} />
         </TouchableOpacity>
-
-        {/* <TouchableOpacity
-          style={styles.iconButton}
-          activeOpacity={0.3}
-          delayPressIn={0}
-        >
-          <Feather name="share-2" size={22} color={colors.dark} />
-        </TouchableOpacity> */}
+        <Text style={[styles.headerTitle, { color: themeColors.text }]}>Mode de paiement</Text>
+        <View style={{ width: 44 }} />
       </View>
 
       <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 80 }]}>
-        <Text style={styles.sectionTitle}>Mode de paiement</Text>
+        <Text style={[styles.sectionSubtitle, { color: themeColors.textSecondary }]}>
+          Choisissez votre moyen de paiement
+        </Text>
 
         <View style={styles.paymentGrid}>
           {paymentMethods.map((method) => (
@@ -76,7 +74,8 @@ const PaymentScreen = () => {
               key={method.key}
               style={[
                 styles.paymentCard,
-                selected === method.key && styles.paymentCardSelected
+                { backgroundColor: themeColors.surface, borderColor: themeColors.border },
+                selected === method.key && { borderColor: colors.primary, backgroundColor: colors.secondary + '30' },
               ]}
               onPress={() => setSelected(method.key)}
               activeOpacity={0.3}
@@ -86,7 +85,7 @@ const PaymentScreen = () => {
                 <View style={styles.iconContainer}>
                   {method.icon}
                 </View>
-                <Text style={styles.paymentLabel}>{method.label}</Text>
+                <Text style={[styles.paymentLabel, { color: themeColors.text }]}>{method.label}</Text>
                 {selected === method.key && (
                   <View style={styles.checkIcon}>
                     <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
@@ -108,18 +107,16 @@ const PaymentScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff'
   },
   scrollContent: {
     paddingBottom: 100,
     paddingHorizontal: 16,
+    paddingTop: 20,
   },
-  sectionTitle: {
-    fontFamily: fonts.bold,
-    fontSize: 18,
-    color: colors.dark,
-    marginTop: 24,
-    marginBottom: 16,
+  sectionSubtitle: {
+    fontFamily: fonts.regular,
+    fontSize: 15,
+    marginBottom: 20,
   },
   header: {
     flexDirection: 'row',
@@ -127,19 +124,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  headerTitle: {
+    fontFamily: fonts.bold,
+    fontSize: 20,
   },
   iconButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   paymentGrid: {
     flexDirection: 'row',
@@ -149,9 +145,7 @@ const styles = StyleSheet.create({
   },
   paymentCard: {
     width: '48%',
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: colors.light,
+    borderWidth: 2,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -160,10 +154,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-  },
-  paymentCardSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.secondary,
   },
   cardContent: {
     alignItems: 'center',

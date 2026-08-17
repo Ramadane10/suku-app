@@ -1,6 +1,5 @@
-import { FontAwesome } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import React from 'react';
+import { StyleSheet, TextInput, View } from 'react-native';
 import fonts from '../../constants/fonts';
 import { useTheme } from '../../hooks/useTheme';
 
@@ -13,6 +12,7 @@ import { useTheme } from '../../hooks/useTheme';
  * @param {import('react-native').KeyboardTypeOptions} [props.keyboardType]
  * @param {'none' | 'sentences' | 'words' | 'characters'} [props.autoCapitalize]
  * @param {React.ReactNode} [props.leftIcon]
+ * @param {React.ReactNode} [props.rightIcon]  — custom right icon (overrides built-in eye toggle)
  * @param {import('react-native').ViewStyle} [props.style]
  */
 const InputField = ({
@@ -23,10 +23,10 @@ const InputField = ({
   keyboardType = 'default',
   autoCapitalize = 'none',
   leftIcon = null,
+  rightIcon = null,
   style,
 }) => {
   const { colors } = useTheme();
-  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -40,29 +40,20 @@ const InputField = ({
             backgroundColor: colors.surface,
           },
           leftIcon ? styles.inputWithIcon : null,
-          secureTextEntry && !showPassword ? styles.inputWithRightIcon : null,
+          (rightIcon || secureTextEntry) ? styles.inputWithRightIcon : null,
           style,
         ]}
         placeholder={placeholder}
         value={value}
         onChangeText={onChangeText}
-        secureTextEntry={secureTextEntry && !showPassword}
+        secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
         placeholderTextColor={colors.textSecondary}
       />
-      {secureTextEntry && (
-        <TouchableOpacity
-          style={styles.eyeIconContainer}
-          onPress={() => setShowPassword(!showPassword)}
-        >
-          <FontAwesome
-            name={showPassword ? 'eye' : 'eye-slash'}
-            size={18}
-            color={colors.grey}
-          />
-        </TouchableOpacity>
-      )}
+      {rightIcon ? (
+        <View style={styles.rightIconContainer}>{rightIcon}</View>
+      ) : null}
     </View>
   );
 };
@@ -80,7 +71,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 1,
   },
-  eyeIconContainer: {
+  rightIconContainer: {
     position: 'absolute',
     right: 16,
     top: 0,

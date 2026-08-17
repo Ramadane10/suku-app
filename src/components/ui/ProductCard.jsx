@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useCallback } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import fonts from '../../constants/fonts';
 import { useCart } from '../../context/CartContext';
 import { useFavorites } from '../../context/FavoritesContext';
@@ -35,7 +36,7 @@ const ProductCard = ({
       onPress();
       return;
     }
-    
+
     router.push({
       pathname: '/product-details',
       params: {
@@ -50,7 +51,7 @@ const ProductCard = ({
 
   const handleToggleFavorite = useCallback((e) => {
     e.stopPropagation();
-    
+
     if (!actualProductId) {
       console.warn('Product ID is required to toggle favorite');
       return;
@@ -59,20 +60,20 @@ const ProductCard = ({
     if (isFavorite(actualProductId)) {
       removeFavorite(actualProductId);
     } else {
-      addFavorite({ 
+      addFavorite({
         id: actualProductId,
         productId: actualProductId,
-        name, 
-        price, 
-        image, 
-        category: props.category || 'FRUITS' 
+        name,
+        price,
+        image,
+        category: props.category || 'FRUITS'
       });
     }
   }, [actualProductId, name, price, image, props.category, isFavorite, addFavorite, removeFavorite]);
 
   const handleAddToCart = useCallback(async (e) => {
     e.stopPropagation();
-    
+
     if (!actualProductId) {
       console.warn('Product ID is required to add to cart');
       return;
@@ -114,7 +115,8 @@ const ProductCard = ({
             styles.image,
             tallImage && styles.tallImage
           ]}
-          resizeMode="cover"
+          contentFit="cover"
+          transition={200}
         />
         <TouchableOpacity
           style={[styles.favBtn, { backgroundColor: colors.surface }]}
@@ -135,13 +137,13 @@ const ProductCard = ({
           delayPressIn={0}
           disabled={isOutOfStock}
         >
-          <Ionicons 
-            name="cart-outline" 
-            size={18} 
-            color={isOutOfStock ? colors.grey : colors.primary} 
+          <Ionicons
+            name="cart-outline"
+            size={18}
+            color={isOutOfStock ? colors.grey : colors.primary}
           />
         </TouchableOpacity>
-        
+
         {/* Badge stock */}
         {isOutOfStock && (
           <View style={[styles.stockBadge, { backgroundColor: colors.danger }]}>

@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React from 'react';
-import { Image, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import colors from '../src/constants/colors';
@@ -11,7 +12,7 @@ const slides = [
   // ...
   {
     key: 'one',
-    title: 'Bienvenue sur Suku',
+    title: 'Bienvenue sur Nwanma',
     text: 'Achetez facilement vos produits préférés.',
     image: require('../assets/images/onboarding1.png'),
   },
@@ -35,7 +36,7 @@ export default function OnboardingScreen() {
 
   const renderItem = ({ item }: { item: { key: string; title: string; text: string; image: any } }) => (
     <View style={styles.slide}>
-      <Image source={item.image} style={[styles.image, { width: width * 0.8, height: imageHeight }]} />
+      <Image source={item.image} style={[styles.image, { width: width * 0.8, height: imageHeight }]} contentFit="contain" transition={300} />
       <Text style={styles.title}>{item.title}</Text>
       <Text style={styles.text}>{item.text}</Text>
     </View>

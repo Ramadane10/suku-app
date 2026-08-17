@@ -1,7 +1,8 @@
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BackButton from '../src/components/ui/BackButton';
 import Button from '../src/components/ui/Button';
@@ -17,11 +18,16 @@ export default function LoginScreen() {
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs.');
+      if (Platform.OS === 'web') {
+        window.alert('Erreur\nVeuillez remplir tous les champs.');
+      } else {
+        alert('Veuillez remplir tous les champs.');
+      }
       return;
     }
 
@@ -40,94 +46,107 @@ export default function LoginScreen() {
         if (Platform.OS === 'web') {
           window.alert(title + '\n' + message);
         } else {
-          Alert.alert(title, message);
+          alert(title + ': ' + message);
         }
       } else {
         router.replace('/home');
       }
     } catch (err) {
-      if (Platform.OS === 'web') {
-        window.alert('Erreur\nUne erreur inattendue est survenue.');
-      } else {
-        Alert.alert('Erreur', 'Une erreur inattendue est survenue.');
-      }
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFacebookLogin = () => {
-    // Logique de connexion Google à implémenter
+  const handleGoogleLogin = () => {
     console.log('Google login');
-  };
-
-  const handleForgotPassword = () => {
-    router.push('/forgot-password');
-  };
-
-  const handleGoToRegister = () => {
-    router.push('/register');
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={colors.background === '#000000' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
-      <View style={styles.header}>
+      <View style={styles.topNav}>
         <BackButton onPress={() => router.back()} color={colors.text} />
-        <Text style={[styles.title, { color: colors.text }]}>Connexion</Text>
       </View>
 
-      <View style={styles.content}>
-        <InputField style={{}}
-          placeholder="Email ou téléphone"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          leftIcon={<FontAwesome name="envelope" size={18} color={colors.grey} />}
-        />
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Logo Brand Header */}
+          <View style={styles.logoHeader}>
+            <Image
+              source={require('../assets/images/Nwanma-transparent.png')}
+              style={styles.logoImage}
+              contentFit="contain"
+              transition={200}
+            />
+            <Text style={[styles.title, { color: colors.text }]}>Connexion</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              Ravis de vous revoir ! Connectez-vous à votre compte.
+            </Text>
+          </View>
 
-        <InputField style={{}}
-          placeholder="Mot de passe"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          leftIcon={<FontAwesome name="lock" size={20} color={colors.grey} />}
-        />
+          {/* Form Card */}
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.label, { color: colors.text }]}>Adresse email</Text>
+            <InputField
+              placeholder="votre@email.com"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              leftIcon={<Ionicons name="mail-outline" size={20} color={colors.primary} />}
+            />
 
-        <TouchableOpacity style={styles.forgotButton} onPress={handleForgotPassword}>
-          <Text style={[styles.forgotText, { color: colors.primary }]}>Mot de passe oublié ?</Text>
-        </TouchableOpacity>
+            <Text style={[styles.label, { color: colors.text }]}>Mot de passe</Text>
+            <InputField
+              placeholder="••••••••"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              leftIcon={<Ionicons name="lock-closed-outline" size={20} color={colors.primary} />}
+              rightIcon={
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.grey} />
+                </TouchableOpacity>
+              }
+            />
 
-        <Button
-          title="Se connecter"
-          onPress={handleLogin}
-          backgroundColor={colors.primary}
-          textColor="#fff"
-          leftIcon={<FontAwesome name="sign-in" size={18} color="#fff" />}
-          style={styles.loginButton}
-          isLoading={loading}
-          disabled={!email || !password}
-        />
+            <TouchableOpacity style={styles.forgotButton} onPress={() => router.push('/forgot-password')}>
+              <Text style={[styles.forgotText, { color: colors.primary }]}>Mot de passe oublié ?</Text>
+            </TouchableOpacity>
 
-        <Divider text="OU" />
+            <Button
+              title="Se connecter"
+              onPress={handleLogin}
+              backgroundColor={colors.primary}
+              textColor="#fff"
+              style={styles.loginButton}
+              isLoading={loading}
+              disabled={!email || !password}
+            />
 
-        <Button style={{}}
-          title="Connexion Google"
-          onPress={handleFacebookLogin}
-          backgroundColor="#4285F4"
-          textColor="#fff"
-          leftIcon={<FontAwesome name="google" size={18} color="#fff" />}
-        />
+            <Divider text="OU CONTINUER AVEC" />
 
-        <View style={styles.registerRow}>
-          <Text style={[styles.registerText, { color: colors.textSecondary }]}>Pas encore de compte ?</Text>
-          <TouchableOpacity onPress={handleGoToRegister}>
-            <Text style={[styles.registerLink, { color: colors.primary }]}>Créer un compte</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+            <Button
+              title="Connexion avec Google"
+              onPress={handleGoogleLogin}
+              backgroundColor={colors.surface}
+              textColor={colors.text}
+              leftIcon={<FontAwesome name="google" size={18} color="#EA4335" />}
+              style={[styles.googleButton, { borderColor: colors.border }]}
+            />
+          </View>
+
+          {/* Register Link */}
+          <View style={styles.registerRow}>
+            <Text style={[styles.registerText, { color: colors.textSecondary }]}>Vous n'avez pas de compte ?</Text>
+            <TouchableOpacity onPress={() => router.push('/register')}>
+              <Text style={[styles.registerLink, { color: colors.primary }]}>S'inscrire</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -136,37 +155,72 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
+  topNav: {
     paddingHorizontal: 20,
-    paddingTop: 20,
-    marginBottom: 40,
+    paddingTop: 12,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  logoHeader: {
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  logoImage: {
+    width: 200,
+    height: 100,
+    marginBottom: 8,
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontFamily: fonts.bold,
-    marginTop: 16,
+    textAlign: 'center',
+    marginBottom: 6,
   },
-  content: {
-    flex: 1,
+  subtitle: {
+    fontSize: 14,
+    fontFamily: fonts.regular,
+    textAlign: 'center',
     paddingHorizontal: 20,
   },
-  loginButton: {
-    marginTop: 16,
+  card: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 20,
+    marginTop: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  label: {
+    fontFamily: fonts.bold,
+    fontSize: 14,
+    marginBottom: 6,
+    marginTop: 10,
   },
   forgotButton: {
     alignSelf: 'flex-end',
-    marginTop: 4,
-    marginBottom: 8,
+    marginVertical: 8,
   },
   forgotText: {
-    fontFamily: fonts.medium,
-    fontSize: 14,
+    fontFamily: fonts.bold,
+    fontSize: 13,
+  },
+  loginButton: {
+    marginTop: 12,
+  },
+  googleButton: {
+    borderWidth: 1,
+    marginTop: 6,
   },
   registerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 24,
     gap: 6,
   },
   registerText: {

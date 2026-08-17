@@ -1,7 +1,8 @@
-import { FontAwesome } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, Platform, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BackButton from '../src/components/ui/BackButton';
 import Button from '../src/components/ui/Button';
@@ -17,13 +18,14 @@ export default function ForgotPasswordScreen() {
 
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
+    const [sent, setSent] = useState(false);
 
     const handleResetPassword = async () => {
         if (!email) {
             if (Platform.OS === 'web') {
                 window.alert('Veuillez entrer votre adresse email.');
             } else {
-                Alert.alert('Erreur', 'Veuillez entrer votre adresse email.');
+                alert('Veuillez entrer votre adresse email.');
             }
             return;
         }
@@ -44,28 +46,13 @@ export default function ForgotPasswordScreen() {
                 if (Platform.OS === 'web') {
                     window.alert(title + '\n' + message);
                 } else {
-                    Alert.alert(title, message);
+                    alert(title + ': ' + message);
                 }
             } else {
-                const title = 'Email envoyé';
-                const message = 'Vérifiez votre boîte mail pour réinitialiser votre mot de passe.';
-
-                if (Platform.OS === 'web') {
-                    window.alert(title + '\n' + message);
-                    router.back();
-                } else {
-                    Alert.alert(title, message, [
-                        { text: 'OK', onPress: () => router.back() }
-                    ]);
-                }
+                setSent(true);
             }
         } catch (err) {
             console.error(err);
-            if (Platform.OS === 'web') {
-                window.alert('Une erreur inattendue est survenue.');
-            } else {
-                Alert.alert('Erreur', 'Une erreur inattendue est survenue.');
-            }
         } finally {
             setLoading(false);
         }
@@ -73,45 +60,86 @@ export default function ForgotPasswordScreen() {
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={styles.header}>
+            <StatusBar barStyle={colors.background === '#000000' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+
+            <View style={styles.topNav}>
                 <BackButton onPress={() => router.back()} color={colors.text} />
-                <Text style={[styles.title, { color: colors.text }]}>Réinitialiser mot de passe</Text>
             </View>
 
-            <View style={styles.content}>
-                <Text style={[styles.description, { color: colors.textSecondary }]}>
-                    Entrez l'email associé à votre compte et nous vous enverrons les instructions pour réinitialiser votre mot de passe.
-                </Text>
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-                <InputField
-                    placeholder="Adresse email"
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    leftIcon={<FontAwesome name="envelope" size={18} color={colors.grey} />}
-                />
+                    {/* Logo Header */}
+                    <View style={styles.logoHeader}>
+                        <Image
+                            source={require('../assets/images/Nwanma-transparent.png')}
+                            style={styles.logoImage}
+                            contentFit="contain"
+                            transition={200}
+                        />
+                    </View>
 
-                <Button
-                    title="Réinitialiser"
-                    onPress={handleResetPassword}
-                    backgroundColor={colors.primary}
-                    textColor="#fff"
-                    style={styles.button}
-                    isLoading={loading}
-                    disabled={!email}
-                />
+                    {sent ? (
+                        /* ---- Success State ---- */
+                        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <View style={[styles.successIconWrap, { backgroundColor: colors.primary + '20' }]}>
+                                <Ionicons name="mail-open-outline" size={48} color={colors.primary} />
+                            </View>
+                            <Text style={[styles.cardTitle, { color: colors.text }]}>Email envoyé !</Text>
+                            <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>
+                                Un lien de réinitialisation a été envoyé à{'\n'}
+                                <Text style={[styles.emailHighlight, { color: colors.primary }]}>{email}</Text>
+                                {'\n\n'}Vérifiez votre boîte de réception (et vos spams).
+                            </Text>
+                            <Button
+                                title="Retour à la connexion"
+                                onPress={() => router.replace('/login')}
+                                backgroundColor={colors.primary}
+                                textColor="#fff"
+                                style={styles.actionBtn}
+                            />
+                        </View>
+                    ) : (
+                        /* ---- Input State ---- */
+                        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <View style={[styles.iconWrap, { backgroundColor: colors.primary + '15' }]}>
+                                <Ionicons name="lock-open-outline" size={40} color={colors.primary} />
+                            </View>
+                            <Text style={[styles.cardTitle, { color: colors.text }]}>Mot de passe oublié ?</Text>
+                            <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>
+                                Entrez votre email ci-dessous. Nous vous enverrons un lien pour réinitialiser votre mot de passe.
+                            </Text>
 
-                <View style={styles.footer}>
-                    <Text style={[styles.footerText, { color: colors.textSecondary }]}>Je me souviens de mon mot de passe. </Text>
-                    <Text
-                        style={[styles.footerLink, { color: colors.primary }]}
-                        onPress={() => router.back()}
-                    >
-                        Se connecter
-                    </Text>
-                </View>
-            </View>
+                            <Text style={[styles.label, { color: colors.text }]}>Adresse email</Text>
+                            <InputField
+                                placeholder="votre@email.com"
+                                value={email}
+                                onChangeText={setEmail}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                leftIcon={<Ionicons name="mail-outline" size={20} color={colors.primary} />}
+                            />
+
+                            <Button
+                                title="Envoyer le lien"
+                                onPress={handleResetPassword}
+                                backgroundColor={colors.primary}
+                                textColor="#fff"
+                                style={styles.actionBtn}
+                                isLoading={loading}
+                                disabled={!email}
+                            />
+                        </View>
+                    )}
+
+                    {/* Back link */}
+                    <TouchableOpacity style={styles.backLink} onPress={() => router.back()}>
+                        <Ionicons name="arrow-back-outline" size={16} color={colors.primary} />
+                        <Text style={[styles.backLinkText, { color: colors.primary }]}>Retour à la connexion</Text>
+                    </TouchableOpacity>
+
+                </ScrollView>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
@@ -120,39 +148,85 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    header: {
+    topNav: {
         paddingHorizontal: 20,
-        paddingTop: 20,
-        marginBottom: 20,
+        paddingTop: 12,
     },
-    title: {
-        fontSize: 28,
-        fontFamily: fonts.bold,
-        marginTop: 16,
-    },
-    content: {
+    scrollContent: {
         paddingHorizontal: 20,
+        paddingBottom: 40,
     },
-    description: {
-        fontSize: 16,
-        fontFamily: fonts.regular,
-        marginBottom: 32,
-        lineHeight: 24,
+    logoHeader: {
+        alignItems: 'center',
+        marginVertical: 12,
     },
-    button: {
-        marginTop: 16,
+    logoImage: {
+        width: 200,
+        height: 100,
     },
-    footer: {
-        flexDirection: 'row',
+    card: {
+        borderRadius: 16,
+        borderWidth: 1,
+        padding: 24,
+        marginTop: 4,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        elevation: 3,
+    },
+    iconWrap: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 24,
+        marginBottom: 16,
     },
-    footerText: {
+    successIconWrap: {
+        width: 90,
+        height: 90,
+        borderRadius: 45,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    cardTitle: {
+        fontFamily: fonts.bold,
+        fontSize: 22,
+        textAlign: 'center',
+        marginBottom: 8,
+    },
+    cardDesc: {
         fontFamily: fonts.regular,
         fontSize: 14,
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: 20,
     },
-    footerLink: {
+    emailHighlight: {
+        fontFamily: fonts.bold,
+    },
+    label: {
+        fontFamily: fonts.bold,
+        fontSize: 14,
+        marginBottom: 6,
+        alignSelf: 'flex-start',
+        width: '100%',
+    },
+    actionBtn: {
+        marginTop: 8,
+        width: '100%',
+    },
+    backLink: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 24,
+        gap: 6,
+    },
+    backLinkText: {
         fontFamily: fonts.bold,
         fontSize: 14,
     },

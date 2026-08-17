@@ -1,7 +1,8 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/ui/Header';
 import SideMenu from '../src/components/ui/SideMenu';
@@ -72,7 +73,7 @@ const CartScreen = () => {
           >
             {cartItems.map((item: any) => (
               <View key={item.id} style={[styles.itemRow, { backgroundColor: colors.surface }]}>
-                <Image source={item.image} style={styles.itemImage} />
+                <Image source={item.image} style={styles.itemImage} contentFit="cover" transition={200} />
                 <View style={styles.itemInfo}>
                   <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
                   <Text style={[styles.itemPrice, { color: colors.textSecondary }]}>{item.price} x {item.quantity}kg</Text>
@@ -113,7 +114,7 @@ const CartScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 20,
+    paddingTop: 10,
   },
   emptyContainer: {
     flex: 1,

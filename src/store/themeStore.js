@@ -2,40 +2,47 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 
 // Palettes de couleurs pour les thèmes
+// Palettes de couleurs pour la charte graphique Nwanma
 const lightColors = {
-  primary: '#FF6B00',
-  secondary: '#FFE7D6',
-  background: '#F5F5F5',
+  primary: '#2E7F34',        // Vert Feuille / Forest Green
+  secondary: '#88BD2A',      // Vert Lime / Lime Green
+  accent: '#F59E16',         // Orange Doré / Warm Accent
+  darkGreen: '#1B4332',      // Vert Sombre / Deep Pine
+  background: '#F7F9F6',     // Fond clair très doux
   surface: '#FFFFFF',
   dark: '#1C1C1E',
-  light: '#F5F5F5',
+  light: '#F7F9F6',
   grey: '#8E8E93',
-  success: '#28C76F',
+  success: '#2E7F34',
   danger: '#EA5455',
-  warning: '#FF9F43',
+  warning: '#F59E16',
   transparent: 'transparent',
   text: '#1C1C1E',
-  textSecondary: '#8E8E93',
-  border: '#E0E0E0',
+  textSecondary: '#555555',
+  border: '#E0E6DF',
   card: '#FFFFFF',
+  chipBg: '#EAF5EB',
 };
 
 const darkColors = {
-  primary: '#FF6B00',
-  secondary: '#4A2C1A',
-  background: '#000000',
-  surface: '#1C1C1E',
+  primary: '#2E7F34',        // Vert principal
+  secondary: '#88BD2A',      // Vert Lime
+  accent: '#F59E16',         // Orange Doré
+  darkGreen: '#1B4332',      // Vert Sombre
+  background: '#0F1E16',     // Fond vert très sombre élégant
+  surface: '#1B4332',        // Surface vert sombre
   dark: '#FFFFFF',
-  light: '#2C2C2E',
-  grey: '#8E8E93',
-  success: '#28C76F',
-  danger: '#EA5455',
-  warning: '#FF9F43',
+  light: '#1F3A2C',
+  grey: '#9CA3AF',
+  success: '#88BD2A',
+  danger: '#FF6B6B',
+  warning: '#F59E16',
   transparent: 'transparent',
   text: '#FFFFFF',
-  textSecondary: '#8E8E93',
-  border: '#3A3A3C',
-  card: '#1C1C1E',
+  textSecondary: '#A3B8AD',
+  border: '#2A5944',
+  card: '#1B4332',
+  chipBg: '#1F3A2C',
 };
 
 const useThemeStore = create((set) => ({

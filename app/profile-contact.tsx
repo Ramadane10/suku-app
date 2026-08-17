@@ -15,7 +15,7 @@ const ProfileContact = () => {
     Linking.openURL('tel:+2246269279451');
   };
   const handleEmail = () => {
-    Linking.openURL('mailto:contact@suku-app.com');
+    Linking.openURL('mailto:contact@nwanma.com');
   };
 
   return (
@@ -38,7 +38,7 @@ const ProfileContact = () => {
         <View style={[styles.infoRow, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
           <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>E-mail</Text>
           <TouchableOpacity onPress={handleEmail}>
-            <Text style={[styles.infoValueLink, { color: colors.primary }]}>contact@suku-app.com</Text>
+            <Text style={[styles.infoValueLink, { color: colors.primary }]}>contact@nwanma.com</Text>
           </TouchableOpacity>
         </View>
         <Text style={[styles.infoNote, { color: colors.textSecondary }]}>Notre service client est ouvert du lundi au vendredi, 10h - 17h.</Text>

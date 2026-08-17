@@ -1,19 +1,33 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import fonts from '../src/constants/fonts';
-import { useTheme } from '../src/hooks/useTheme';
-import { useAddresses } from '../src/hooks/useAddresses';
 import { useAuth } from '../src/context/AuthContext';
+import { useAddresses } from '../src/hooks/useAddresses';
+import { useTheme } from '../src/hooks/useTheme';
 
 export default function AddressesScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const { user } = useAuth();
-  const { addresses, loading, deleteAddress, setDefaultAddress } = useAddresses();
+  const { addresses, loading, fetchAddresses, deleteAddress, setDefaultAddress } = useAddresses();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Refresh the list every time this screen comes into focus (e.g. navigating back from address-form)
+  useFocusEffect(
+    useCallback(() => {
+      fetchAddresses();
+    }, [fetchAddresses])
+  );
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchAddresses();
+    setRefreshing(false);
+  }, [fetchAddresses]);
 
   const handleDelete = (addressId: string) => {
     Alert.alert(
@@ -81,13 +95,23 @@ export default function AddressesScreen() {
         <Text style={[styles.headerTitle, { color: colors.text }]}>Mes adresses</Text>
         <TouchableOpacity
           style={[styles.addButton, { backgroundColor: colors.primary }]}
-          onPress={() => router.push('/shipping')}
+          onPress={() => router.push('/address-form')}
         >
           <Ionicons name="add" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 80 }]}>
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 80 }]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing || loading}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
+      >
         {loading ? (
           <View style={styles.loadingContainer}>
             <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Chargement...</Text>
@@ -98,7 +122,7 @@ export default function AddressesScreen() {
             <Text style={[styles.emptyText, { color: colors.text }]}>Aucune adresse enregistrée</Text>
             <TouchableOpacity
               style={[styles.addAddressBtn, { backgroundColor: colors.primary }]}
-              onPress={() => router.push('/shipping')}
+              onPress={() => router.push('/address-form')}
             >
               <Ionicons name="add" size={20} color="#fff" />
               <Text style={styles.addAddressBtnText}>Ajouter une adresse</Text>
@@ -129,6 +153,13 @@ export default function AddressesScreen() {
                   </Text>
                 </View>
                 <View style={styles.addressActions}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, { backgroundColor: colors.info + '20' }]}
+                    onPress={() => router.push({ pathname: '/address-form', params: { id: address.id } })}
+                  >
+                    <Ionicons name="create-outline" size={18} color={colors.info || colors.primary} />
+                  </TouchableOpacity>
+
                   {!address.is_default && (
                     <TouchableOpacity
                       style={[styles.actionButton, { backgroundColor: colors.primary + '20' }]}
