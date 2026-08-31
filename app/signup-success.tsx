@@ -9,11 +9,11 @@ import { useTheme } from '../src/hooks/useTheme';
 
 export default function SignupSuccessScreen() {
     const router = useRouter();
-    const { colors } = useTheme();
+    const { isDark, colors } = useTheme();
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-            <StatusBar barStyle={colors.background === '#000000' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+            <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
             <View style={styles.content}>
                 <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>

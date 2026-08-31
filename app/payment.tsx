@@ -1,10 +1,11 @@
-import { Ionicons, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
+import { useCustomAlert } from '../src/context/AlertContext';
 import { useOrder } from '../src/context/OrderContext';
 import { useTheme } from '../src/hooks/useTheme';
 
@@ -14,34 +15,39 @@ const paymentMethods = [
   {
     key: 'orange',
     label: 'Orange Money',
-    icon: <MaterialCommunityIcons name="cellphone" size={24} color={colors.primary} />
+    subtitle: 'Paiement mobile rapide via votre compte Orange',
+    iconName: 'cellphone-text' as const,
+    iconColor: '#FF6600',
+    iconBg: '#FFF3EB',
   },
   {
     key: 'mobile',
     label: 'Mobile Money',
-    icon: <MaterialCommunityIcons name="cellphone" size={24} color={colors.success} />
+    subtitle: 'MTN Mobile Money, Moov Money ou Wave',
+    iconName: 'wallet-outline' as const,
+    iconColor: '#00875A',
+    iconBg: '#E6F4EA',
   },
   {
-    key: 'card',
-    label: 'Carte bancaire',
-    icon: <FontAwesome name="credit-card" size={22} color={colors.dark} />
-  },
-  {
-    key: 'visa',
-    label: 'Carte Visa',
-    icon: <FontAwesome name="cc-visa" size={24} color={colors.info} />
+    key: 'cash',
+    label: 'Payer à la livraison',
+    subtitle: 'Règlement en espèces ou Mobile Money à la réception',
+    iconName: 'hand-coin-outline' as const,
+    iconColor: colors.primary,
+    iconBg: '#E8F5E9',
   },
 ];
 
 const PaymentScreen = () => {
   const { payment, savePayment } = useOrder();
   const { colors: themeColors } = useTheme();
-  const [selected, setSelected] = useState(payment || 'orange');
+  const { showError } = useCustomAlert();
+  const [selected, setSelected] = useState(payment || 'cash');
   const router = useRouter();
 
   const handleContinue = () => {
     if (!selected) {
-      Alert.alert('Erreur', 'Merci de choisir un mode de paiement.');
+      showError('Erreur', 'Merci de choisir un mode de paiement.');
       return;
     }
     savePayment(selected);
@@ -63,41 +69,53 @@ const PaymentScreen = () => {
         <View style={{ width: 44 }} />
       </View>
 
-      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 80 }]}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 80 }]} showsVerticalScrollIndicator={false}>
         <Text style={[styles.sectionSubtitle, { color: themeColors.textSecondary }]}>
-          Choisissez votre moyen de paiement
+          Choisissez le moyen de paiement qui vous convient
         </Text>
 
-        <View style={styles.paymentGrid}>
-          {paymentMethods.map((method) => (
-            <TouchableOpacity
-              key={method.key}
-              style={[
-                styles.paymentCard,
-                { backgroundColor: themeColors.surface, borderColor: themeColors.border },
-                selected === method.key && { borderColor: colors.primary, backgroundColor: colors.secondary + '30' },
-              ]}
-              onPress={() => setSelected(method.key)}
-              activeOpacity={0.3}
-              delayPressIn={0}
-            >
-              <View style={styles.cardContent}>
-                <View style={styles.iconContainer}>
-                  {method.icon}
+        <View style={styles.paymentList}>
+          {paymentMethods.map((method) => {
+            const isSelected = selected === method.key;
+            return (
+              <TouchableOpacity
+                key={method.key}
+                style={[
+                  styles.paymentCard,
+                  {
+                    backgroundColor: themeColors.surface,
+                    borderColor: isSelected ? colors.primary : themeColors.border,
+                  },
+                  isSelected && styles.selectedCard,
+                ]}
+                onPress={() => setSelected(method.key)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.iconBadge, { backgroundColor: method.iconBg }]}>
+                  <MaterialCommunityIcons name={method.iconName} size={26} color={method.iconColor} />
                 </View>
-                <Text style={[styles.paymentLabel, { color: themeColors.text }]}>{method.label}</Text>
-                {selected === method.key && (
-                  <View style={styles.checkIcon}>
-                    <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
+
+                <View style={styles.cardTextContainer}>
+                  <Text style={[styles.paymentLabel, { color: themeColors.text }]}>{method.label}</Text>
+                  <Text style={[styles.paymentSubtitle, { color: themeColors.textSecondary }]}>
+                    {method.subtitle}
+                  </Text>
+                </View>
+
+                <View style={styles.radioContainer}>
+                  <Ionicons
+                    name={isSelected ? 'radio-button-on' : 'radio-button-off'}
+                    size={22}
+                    color={isSelected ? colors.primary : themeColors.grey || '#9E9E9E'}
+                  />
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
-        <TouchableOpacity style={styles.continueBtn} onPress={handleContinue}>
-          <Text style={styles.continueBtnText}>Continuer</Text>
+        <TouchableOpacity style={[styles.continueBtn, { backgroundColor: colors.primary }]} onPress={handleContinue}>
+          <Text style={styles.continueBtnText}>Valider et continuer</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -110,7 +128,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 100,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 20,
   },
   sectionSubtitle: {
@@ -137,48 +155,59 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  paymentGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 24,
+  paymentList: {
+    gap: 14,
+    marginBottom: 32,
   },
   paymentCard: {
-    width: '48%',
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 2,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
-    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
     elevation: 2,
   },
-  cardContent: {
-    alignItems: 'center',
+  selectedCard: {
+    borderWidth: 2,
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  iconContainer: {
-    marginBottom: 12,
+  iconBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  cardTextContainer: {
+    flex: 1,
+    marginRight: 10,
   },
   paymentLabel: {
-    fontFamily: fonts.medium,
-    fontSize: 15,
-    color: colors.dark,
-    textAlign: 'center',
+    fontFamily: fonts.bold,
+    fontSize: 16,
+    marginBottom: 2,
   },
-  checkIcon: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
+  paymentSubtitle: {
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  radioContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   continueBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: 8,
+    borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     marginBottom: 32,
-    marginTop: 8,
   },
   continueBtnText: {
     fontFamily: fonts.bold,

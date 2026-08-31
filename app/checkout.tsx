@@ -1,10 +1,11 @@
-import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
+import { useCustomAlert } from '../src/context/AlertContext';
 import { useCart } from '../src/context/CartContext';
 import { useOrder } from '../src/context/OrderContext';
 import { useNotifications } from '../src/hooks/useNotifications';
@@ -14,16 +15,16 @@ import { useTheme } from '../src/hooks/useTheme';
 export const options = { headerShown: false };
 
 const paymentMethods = [
-  { key: 'orange', label: 'Orange Money', icon: <MaterialCommunityIcons name="cellphone" size={22} color={colors.primary} /> },
-  { key: 'mobile', label: 'Mobile Money', icon: <MaterialCommunityIcons name="cellphone" size={22} color={colors.success} /> },
-  { key: 'card', label: 'Carte bancaire', icon: <FontAwesome name="credit-card" size={22} color={colors.dark} /> },
-  { key: 'visa', label: 'Carte Visa', icon: <FontAwesome name="cc-visa" size={24} color={colors.info} /> },
+  { key: 'orange', label: 'Orange Money', icon: <MaterialCommunityIcons name="cellphone-text" size={22} color="#FF6600" /> },
+  { key: 'mobile', label: 'Mobile Money', icon: <MaterialCommunityIcons name="wallet-outline" size={22} color="#00875A" /> },
+  { key: 'cash', label: 'Payer à la livraison', icon: <MaterialCommunityIcons name="hand-coin-outline" size={22} color={colors.primary} /> },
 ];
 
 const CheckoutScreen = () => {
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { shipping, payment, directPurchase, clearOrder, clearDirectPurchase } = useOrder();
   const { createOrder } = useOrders();
+  const { showConfirm, showSuccess, showError } = useCustomAlert();
   const router = useRouter();
   const [processing, setProcessing] = useState(false);
   const { colors: themeColors } = useTheme();
@@ -44,12 +45,12 @@ const CheckoutScreen = () => {
 
   const handlePay = async () => {
     if (!shipping.address || !shipping.city || !shipping.country || !payment) {
-      Alert.alert('Erreur', 'Informations incomplètes. Veuillez vérifier votre adresse de livraison et votre mode de paiement.');
+      showError('Erreur', 'Informations incomplètes. Veuillez vérifier votre adresse de livraison et votre mode de paiement.');
       return;
     }
 
     if (itemsToOrder.length === 0) {
-      Alert.alert('Erreur', isDirectPurchase ? 'Aucun produit à commander pour l\'achat direct.' : 'Votre panier est vide.');
+      showError('Erreur', isDirectPurchase ? 'Aucun produit à commander pour l\'achat direct.' : 'Votre panier est vide.');
       return;
     }
 
@@ -86,37 +87,23 @@ const CheckoutScreen = () => {
       await sendLocalNotification(orderTitle, orderMessage);
       await createNotification(orderTitle, orderMessage, 'order');
 
-      Alert.alert(
-        'Paiement réussi',
+      showConfirm(
+        'Paiement réussi 🎉',
         `Merci pour votre achat via ${paymentMethods.find(m => m.key === payment)?.label} ! Votre commande a été enregistrée.`,
-        [
-          {
-            text: 'Voir mes commandes',
-            onPress: async () => {
-              if (!isDirectPurchase) {
-                await clearCart();
-              }
-              clearDirectPurchase();
-              clearOrder();
-              router.push('/orders');
-            },
-          },
-          {
-            text: 'Continuer',
-            onPress: async () => {
-              if (!isDirectPurchase) {
-                await clearCart();
-              }
-              clearDirectPurchase();
-              clearOrder();
-              router.push('/home');
-            },
-          },
-        ]
+        async () => {
+          if (!isDirectPurchase) {
+            await clearCart();
+          }
+          clearDirectPurchase();
+          clearOrder();
+          router.push('/orders');
+        },
+        'Voir mes commandes',
+        'Accueil'
       );
     } catch (error: any) {
       console.error('Error processing payment:', error);
-      Alert.alert(
+      showError(
         'Erreur',
         error.message || 'Une erreur est survenue lors du traitement de votre commande. Veuillez réessayer.'
       );

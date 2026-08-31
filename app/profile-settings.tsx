@@ -4,9 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import fonts from '../src/constants/fonts';
+import { useAuth } from '../src/context/AuthContext';
 import { useTheme } from '../src/hooks/useTheme';
 import { useUserSettings } from '../src/hooks/useUserSettings';
-import { useAuth } from '../src/context/AuthContext';
 
 export const options = { headerShown: false };
 
@@ -126,8 +126,9 @@ const ProfileSettings = () => {
           <Switch
             value={theme === 'dark'}
             onValueChange={toggleTheme}
-            trackColor={{ false: colors.light, true: colors.primary }}
-            thumbColor={theme === 'dark' ? '#fff' : colors.light}
+            trackColor={{ false: theme === 'dark' ? '#3A3A3C' : '#D1D1D6', true: colors.primary }}
+            thumbColor="#FFFFFF"
+            ios_backgroundColor={theme === 'dark' ? '#3A3A3C' : '#D1D1D6'}
           />
         </View>
 
@@ -137,8 +138,9 @@ const ProfileSettings = () => {
           <Switch
             value={faceId}
             onValueChange={handleToggleFaceId}
-            trackColor={{ false: colors.light, true: colors.primary }}
-            thumbColor={faceId ? '#fff' : colors.light}
+            trackColor={{ false: theme === 'dark' ? '#3A3A3C' : '#D1D1D6', true: colors.primary }}
+            thumbColor="#FFFFFF"
+            ios_backgroundColor={theme === 'dark' ? '#3A3A3C' : '#D1D1D6'}
             disabled={loading}
           />
         </View>
@@ -149,8 +151,9 @@ const ProfileSettings = () => {
           <Switch
             value={orderUpdates}
             onValueChange={handleToggleOrderUpdates}
-            trackColor={{ false: colors.light, true: colors.primary }}
-            thumbColor={orderUpdates ? '#fff' : colors.light}
+            trackColor={{ false: theme === 'dark' ? '#3A3A3C' : '#D1D1D6', true: colors.primary }}
+            thumbColor="#FFFFFF"
+            ios_backgroundColor={theme === 'dark' ? '#3A3A3C' : '#D1D1D6'}
             disabled={loading}
           />
         </View>
@@ -159,8 +162,9 @@ const ProfileSettings = () => {
           <Switch
             value={newArrivals}
             onValueChange={handleToggleNewArrivals}
-            trackColor={{ false: colors.light, true: colors.primary }}
-            thumbColor={newArrivals ? '#fff' : colors.light}
+            trackColor={{ false: theme === 'dark' ? '#3A3A3C' : '#D1D1D6', true: colors.primary }}
+            thumbColor="#FFFFFF"
+            ios_backgroundColor={theme === 'dark' ? '#3A3A3C' : '#D1D1D6'}
             disabled={loading}
           />
         </View>
@@ -169,8 +173,9 @@ const ProfileSettings = () => {
           <Switch
             value={promotions}
             onValueChange={handleTogglePromotions}
-            trackColor={{ false: colors.light, true: colors.primary }}
-            thumbColor={promotions ? '#fff' : colors.light}
+            trackColor={{ false: theme === 'dark' ? '#3A3A3C' : '#D1D1D6', true: colors.primary }}
+            thumbColor="#FFFFFF"
+            ios_backgroundColor={theme === 'dark' ? '#3A3A3C' : '#D1D1D6'}
             disabled={loading}
           />
         </View>
@@ -179,8 +184,9 @@ const ProfileSettings = () => {
           <Switch
             value={salesAlerts}
             onValueChange={handleToggleSalesAlerts}
-            trackColor={{ false: colors.light, true: colors.primary }}
-            thumbColor={salesAlerts ? '#fff' : colors.light}
+            trackColor={{ false: theme === 'dark' ? '#3A3A3C' : '#D1D1D6', true: colors.primary }}
+            thumbColor="#FFFFFF"
+            ios_backgroundColor={theme === 'dark' ? '#3A3A3C' : '#D1D1D6'}
             disabled={loading}
           />
         </View>
@@ -189,7 +195,7 @@ const ProfileSettings = () => {
         <TouchableOpacity style={[styles.supportBtn, { backgroundColor: colors.surface, borderColor: colors.primary }]}>
           <Text style={[styles.supportText, { color: colors.primary }]}>Support</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.logoutBtn, { backgroundColor: colors.surface, borderColor: colors.text }]}
           onPress={handleLogout}
         >

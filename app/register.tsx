@@ -12,7 +12,7 @@ import { useAuth } from '../src/context/AuthContext';
 import { useTheme } from '../src/hooks/useTheme';
 
 export default function RegisterScreen() {
-  const { colors } = useTheme();
+  const { isDark, colors } = useTheme();
   const { signUp } = useAuth();
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -78,7 +78,7 @@ export default function RegisterScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle={colors.background === '#000000' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       <View style={styles.topNav}>
         <BackButton onPress={() => (step === 2 ? setStep(1) : router.back())} color={colors.text} />
@@ -89,7 +89,9 @@ export default function RegisterScreen() {
           {/* Logo Brand Header */}
           <View style={styles.logoHeader}>
             <Image
-              source={require('../assets/images/Nwanma-transparent.png')}
+              source={isDark
+                ? require('../assets/images/Nwanma-transparent-dark.png')
+                : require('../assets/images/Nwanma-transparent.png')}
               style={styles.logoImage}
               contentFit="contain"
               transition={200}

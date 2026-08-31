@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import fonts from '../src/constants/fonts';
+import { useCustomAlert } from '../src/context/AlertContext';
 import { useAuth } from '../src/context/AuthContext';
 import { useAddresses } from '../src/hooks/useAddresses';
 import { useTheme } from '../src/hooks/useTheme';
@@ -12,6 +13,7 @@ export default function AddressesScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const { user } = useAuth();
+  const { showConfirm, showSuccess, showError } = useCustomAlert();
   const { addresses, loading, fetchAddresses, deleteAddress, setDefaultAddress } = useAddresses();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -30,35 +32,31 @@ export default function AddressesScreen() {
   }, [fetchAddresses]);
 
   const handleDelete = (addressId: string) => {
-    Alert.alert(
+    showConfirm(
       'Supprimer l\'adresse',
       'Êtes-vous sûr de vouloir supprimer cette adresse ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Supprimer',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setDeletingId(addressId);
-              await deleteAddress(addressId);
-            } catch (error: any) {
-              Alert.alert('Erreur', error.message || 'Impossible de supprimer l\'adresse.');
-            } finally {
-              setDeletingId(null);
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          setDeletingId(addressId);
+          await deleteAddress(addressId);
+          showSuccess('Succès', 'Adresse supprimée.');
+        } catch (error: any) {
+          showError('Erreur', error.message || 'Impossible de supprimer l\'adresse.');
+        } finally {
+          setDeletingId(null);
+        }
+      },
+      'Supprimer',
+      'Annuler'
     );
   };
 
   const handleSetDefault = async (addressId: string) => {
     try {
       await setDefaultAddress(addressId);
-      Alert.alert('Succès', 'Adresse par défaut mise à jour.');
+      showSuccess('Succès', 'Adresse par défaut mise à jour.');
     } catch (error: any) {
-      Alert.alert('Erreur', error.message || 'Impossible de définir l\'adresse par défaut.');
+      showError('Erreur', error.message || 'Impossible de définir l\'adresse par défaut.');
     }
   };
 

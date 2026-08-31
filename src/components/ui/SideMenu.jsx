@@ -14,11 +14,16 @@ import {
 import fonts from '../../constants/fonts';
 import { useTheme } from '../../hooks/useTheme';
 
+import { useCustomAlert } from '../../context/AlertContext';
+import { useAuth } from '../../context/AuthContext';
+
 const { width } = Dimensions.get('window');
 
 const SideMenu = ({ isVisible, onClose }) => {
   const router = useRouter();
   const { colors } = useTheme();
+  const { signOut } = useAuth();
+  const { showConfirm } = useCustomAlert();
 
   const mainMenuItems = [
     { id: 'home', title: 'Accueil', icon: 'home', route: '/home' },
@@ -31,13 +36,25 @@ const SideMenu = ({ isVisible, onClose }) => {
   const logoutItem = { id: 'logout', title: 'Déconnexion', icon: 'log-out', route: '/logout' };
 
   const handleMenuItemPress = (item) => {
+    onClose();
     if (item.id === 'logout') {
-      // Gérer la déconnexion
-      console.log('Déconnexion');
+      showConfirm(
+        'Déconnexion',
+        'Êtes-vous sûr de vouloir vous déconnecter ?',
+        async () => {
+          try {
+            await signOut();
+            router.replace('/welcome');
+          } catch (error) {
+            console.error('Logout error:', error);
+          }
+        },
+        'Déconnexion',
+        'Annuler'
+      );
     } else {
       router.push(item.route);
     }
-    onClose();
   };
 
   const getIconComponent = (iconName) => {

@@ -1,6 +1,7 @@
 import * as NavigationBar from 'expo-navigation-bar';
+import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
-import { Platform, StatusBar } from 'react-native';
+import { Platform } from 'react-native';
 import useThemeStore from '../store/themeStore';
 
 export const ThemeProvider = ({ children }) => {
@@ -11,23 +12,27 @@ export const ThemeProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    // Mettre à jour la StatusBar selon le thème
-    StatusBar.setBarStyle(theme === 'dark' ? 'light-content' : 'dark-content');
-    StatusBar.setBackgroundColor(colors.background);
-
-    // Mettre à jour la barre de navigation Android
+    // Mettre à jour la barre de navigation Android (boutons de retour/home)
     if (Platform.OS === 'android') {
       try {
-        // En mode edge-to-edge (SDK 51+), setBackgroundColorAsync n'est plus supporté
-        // On se contente de régler le style des boutons
         NavigationBar.setButtonStyleAsync(theme === 'dark' ? 'light' : 'dark');
       } catch (e) {
         console.warn('NavigationBar customization skipped:', e);
       }
     }
-  }, [theme, colors.background, colors.surface]);
+  }, [theme]);
 
-  return <>{children}</>;
+  return (
+    <>
+      <StatusBar
+        style={theme === 'dark' ? 'light' : 'dark'}
+        backgroundColor={colors.background}
+        translucent={Platform.OS === 'android'}
+        animated
+      />
+      {children}
+    </>
+  );
 };
 
 export default ThemeProvider;

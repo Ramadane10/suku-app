@@ -1,12 +1,10 @@
-import { FontAwesome, Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BackButton from '../src/components/ui/BackButton';
 import Button from '../src/components/ui/Button';
-import Divider from '../src/components/ui/Divider';
 import InputField from '../src/components/ui/InputField';
 import fonts from '../src/constants/fonts';
 import { useAuth } from '../src/context/AuthContext';
@@ -14,7 +12,7 @@ import { useTheme } from '../src/hooks/useTheme';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { isDark, colors } = useTheme();
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -64,18 +62,20 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle={colors.background === '#000000' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
-      <View style={styles.topNav}>
+      {/* <View style={styles.topNav}>
         <BackButton onPress={() => router.back()} color={colors.text} />
-      </View>
+      </View> */}
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Logo Brand Header */}
           <View style={styles.logoHeader}>
             <Image
-              source={require('../assets/images/Nwanma-transparent.png')}
+              source={isDark
+                ? require('../assets/images/Nwanma-transparent-dark.png')
+                : require('../assets/images/Nwanma-transparent.png')}
               style={styles.logoImage}
               contentFit="contain"
               transition={200}
@@ -125,7 +125,7 @@ export default function LoginScreen() {
               isLoading={loading}
               disabled={!email || !password}
             />
-
+            {/* 
             <Divider text="OU CONTINUER AVEC" />
 
             <Button
@@ -135,7 +135,7 @@ export default function LoginScreen() {
               textColor={colors.text}
               leftIcon={<FontAwesome name="google" size={18} color="#EA4335" />}
               style={[styles.googleButton, { borderColor: colors.border }]}
-            />
+            /> */}
           </View>
 
           {/* Register Link */}

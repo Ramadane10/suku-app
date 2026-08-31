@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BackButton from '../src/components/ui/BackButton';
 import Button from '../src/components/ui/Button';
 import InputField from '../src/components/ui/InputField';
 import fonts from '../src/constants/fonts';
@@ -13,7 +12,7 @@ import { useTheme } from '../src/hooks/useTheme';
 
 export default function ForgotPasswordScreen() {
     const router = useRouter();
-    const { colors } = useTheme();
+    const { isDark, colors } = useTheme();
     const { sendPasswordResetEmail } = useAuth();
 
     const [email, setEmail] = useState('');
@@ -60,11 +59,11 @@ export default function ForgotPasswordScreen() {
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-            <StatusBar barStyle={colors.background === '#000000' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+            <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
-            <View style={styles.topNav}>
+            {/* <View style={styles.topNav}>
                 <BackButton onPress={() => router.back()} color={colors.text} />
-            </View>
+            </View> */}
 
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -72,7 +71,9 @@ export default function ForgotPasswordScreen() {
                     {/* Logo Header */}
                     <View style={styles.logoHeader}>
                         <Image
-                            source={require('../assets/images/Nwanma-transparent.png')}
+                            source={isDark
+                                ? require('../assets/images/Nwanma-transparent-dark.png')
+                                : require('../assets/images/Nwanma-transparent.png')}
                             style={styles.logoImage}
                             contentFit="contain"
                             transition={200}
@@ -110,15 +111,17 @@ export default function ForgotPasswordScreen() {
                                 Entrez votre email ci-dessous. Nous vous enverrons un lien pour réinitialiser votre mot de passe.
                             </Text>
 
-                            <Text style={[styles.label, { color: colors.text }]}>Adresse email</Text>
-                            <InputField
-                                placeholder="votre@email.com"
-                                value={email}
-                                onChangeText={setEmail}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                leftIcon={<Ionicons name="mail-outline" size={20} color={colors.primary} />}
-                            />
+                            <View style={styles.inputWrap}>
+                                <Text style={[styles.label, { color: colors.text }]}>Adresse email</Text>
+                                <InputField
+                                    placeholder="votre@email.com"
+                                    value={email}
+                                    onChangeText={setEmail}
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
+                                    leftIcon={<Ionicons name="mail-outline" size={20} color={colors.primary} />}
+                                />
+                            </View>
 
                             <Button
                                 title="Envoyer le lien"
@@ -165,6 +168,7 @@ const styles = StyleSheet.create({
         height: 100,
     },
     card: {
+        width: '100%',
         borderRadius: 16,
         borderWidth: 1,
         padding: 24,
@@ -213,6 +217,9 @@ const styles = StyleSheet.create({
         fontSize: 14,
         marginBottom: 6,
         alignSelf: 'flex-start',
+        width: '100%',
+    },
+    inputWrap: {
         width: '100%',
     },
     actionBtn: {

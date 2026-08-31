@@ -107,7 +107,7 @@ export default function OrdersScreen() {
           />
         }
       >
-        <View style={[styles.cartCard, { backgroundColor: colors.secondary }]}>
+        <View style={[styles.cartCard, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}>
           <View>
             <Text style={[styles.cartTitle, { color: colors.text }]}>Panier en cours</Text>
             <Text style={[styles.cartSubtitle, { color: colors.textSecondary }]}>Vérifiez vos articles avant paiement</Text>

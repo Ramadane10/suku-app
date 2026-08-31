@@ -2,11 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/ui/Header';
 import SideMenu from '../src/components/ui/SideMenu';
 import fonts from '../src/constants/fonts';
+import { useCustomAlert } from '../src/context/AlertContext';
 import { useTheme } from '../src/hooks/useTheme';
 
 export const options = { headerShown: false };
@@ -20,6 +21,7 @@ const ProfileScreen = () => {
   const router = useRouter();
   const { colors } = useTheme();
   const { signOut, user } = useAuth();
+  const { showConfirm, showSuccess } = useCustomAlert();
   const { addresses, fetchAddresses } = useAddresses();
   const { profile, loading: profileLoading } = useProfile();
   const { getCartCount } = useCart();
@@ -48,45 +50,29 @@ const ProfileScreen = () => {
   };
 
   const handleLogout = () => {
-    if (Platform.OS === 'web') {
-      if (window.confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-        signOut().then(() => router.replace('/login'));
-      }
-    } else {
-      Alert.alert(
-        'Déconnexion',
-        'Êtes-vous sûr de vouloir vous déconnecter ?',
-        [
-          { text: 'Annuler', style: 'cancel' },
-          {
-            text: 'Déconnexion',
-            style: 'destructive',
-            onPress: async () => {
-              await signOut();
-              router.replace('/login');
-            },
-          },
-        ]
-      );
-    }
+    showConfirm(
+      'Déconnexion',
+      'Êtes-vous sûr de vouloir vous déconnecter ?',
+      async () => {
+        await signOut();
+        router.replace('/login');
+      },
+      'Déconnexion',
+      'Annuler'
+    );
   };
 
   const handleDeleteAccount = () => {
-    Alert.alert(
+    showConfirm(
       'Supprimer le compte',
       'Cette action est irréversible. Toutes vos données seront définitivement supprimées.',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Supprimer',
-          style: 'destructive',
-          onPress: () => {
-            // TODO: Implémenter la suppression du compte (Supabase)
-            Alert.alert('Compte supprimé', 'Votre compte a été supprimé avec succès.');
-            router.replace('/welcome');
-          },
-        },
-      ]
+      () => {
+        // TODO: Implémenter la suppression du compte (Supabase)
+        showSuccess('Compte supprimé', 'Votre compte a été supprimé avec succès.');
+        router.replace('/welcome');
+      },
+      'Supprimer',
+      'Annuler'
     );
   };
 

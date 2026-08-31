@@ -143,7 +143,7 @@ const HomeScreen = () => {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Header
-        title="Accueil"
+        title="Nwanma"
         onMenuPress={handleMenuPress}
         notificationCount={0}
         onNotificationPress={() => router.push("/notifications")}

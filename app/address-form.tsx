@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -16,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../src/components/ui/Button';
 import InputField from '../src/components/ui/InputField';
 import fonts from '../src/constants/fonts';
+import { useCustomAlert } from '../src/context/AlertContext';
 import { useAuth } from '../src/context/AuthContext';
 import { useAddresses } from '../src/hooks/useAddresses';
 import { useTheme } from '../src/hooks/useTheme';
@@ -27,12 +27,13 @@ export default function AddressFormScreen() {
 
     const { colors } = useTheme();
     const { user } = useAuth();
+    const { showSuccess, showError } = useCustomAlert();
     const { addresses, createAddress, updateAddress } = useAddresses();
 
     const [addressLine, setAddressLine] = useState('');
     const [city, setCity] = useState('');
     const [postalCode, setPostalCode] = useState('');
-    const [country, setCountry] = useState('France');
+    const [country, setCountry] = useState('Guinée');
     const [isDefault, setIsDefault] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
@@ -46,7 +47,7 @@ export default function AddressFormScreen() {
                 setAddressLine(existing.address_line || '');
                 setCity(existing.city || '');
                 setPostalCode(existing.postal_code || '');
-                setCountry(existing.country || 'France');
+                setCountry(existing.country || 'Guinée');
                 setIsDefault(existing.is_default || false);
             }
         }
@@ -54,12 +55,12 @@ export default function AddressFormScreen() {
 
     const handleSubmit = async () => {
         if (!addressLine.trim() || !city.trim()) {
-            Alert.alert('Erreur', 'Veuillez renseigner au moins l\'adresse et la ville.');
+            showError('Erreur', 'Veuillez renseigner au moins l\'adresse et la ville.');
             return;
         }
 
         if (!user) {
-            Alert.alert('Connexion requise', 'Veuillez vous connecter pour enregistrer une adresse.');
+            showError('Connexion requise', 'Veuillez vous connecter pour enregistrer une adresse.');
             router.push('/login');
             return;
         }
@@ -71,23 +72,23 @@ export default function AddressFormScreen() {
                     address_line: addressLine.trim(),
                     city: city.trim(),
                     postal_code: postalCode.trim() || '00000',
-                    country: country.trim() || 'France',
+                    country: country.trim() || 'Guinée',
                     is_default: isDefault,
                 });
-                Alert.alert('Succès', 'Adresse mise à jour avec succès !');
+                showSuccess('Succès', 'Adresse mise à jour avec succès !');
             } else {
                 await createAddress({
                     address_line: addressLine.trim(),
                     city: city.trim(),
                     postal_code: postalCode.trim() || '00000',
-                    country: country.trim() || 'France',
+                    country: country.trim() || 'Guinée',
                     is_default: isDefault,
                 });
-                Alert.alert('Succès', 'Nouvelle adresse ajoutée avec succès !');
+                showSuccess('Succès', 'Nouvelle adresse ajoutée avec succès !');
             }
             router.back();
         } catch (error: any) {
-            Alert.alert('Erreur', error.message || 'Impossible d\'enregistrer l\'adresse.');
+            showError('Erreur', error.message || 'Impossible d\'enregistrer l\'adresse.');
         } finally {
             setSubmitting(false);
         }

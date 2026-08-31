@@ -3,7 +3,6 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Alert,
   Animated,
   Dimensions,
   Easing,
@@ -17,6 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import fonts from '../src/constants/fonts';
+import { useCustomAlert } from '../src/context/AlertContext';
 import { useAuth } from '../src/context/AuthContext';
 import { useCart } from '../src/context/CartContext';
 import { useFavorites } from '../src/context/FavoritesContext';
@@ -36,6 +36,7 @@ const ProductDetails = () => {
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const { user } = useAuth();
   const { setDirectPurchaseProduct } = useOrder();
+  const { showSuccess, showError, showInfo } = useCustomAlert();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
 
@@ -177,7 +178,7 @@ const ProductDetails = () => {
 
   const toggleFavorite = async () => {
     if (!user) {
-      Alert.alert('Connexion requise', 'Veuillez vous connecter pour ajouter des favoris.');
+      showError('Connexion requise', 'Veuillez vous connecter pour ajouter des favoris.');
       router.push('/login');
       return;
     }
@@ -242,14 +243,14 @@ const ProductDetails = () => {
 
   const handleAddToCart = async () => {
     if (!user) {
-      Alert.alert('Connexion requise', 'Veuillez vous connecter pour ajouter des produits au panier.');
+      showError('Connexion requise', 'Veuillez vous connecter pour ajouter des produits au panier.');
       router.push('/login');
       return;
     }
 
     if (!productId) {
       console.error('Product ID is missing:', { productId, productName, productPrice });
-      Alert.alert(
+      showError(
         'Erreur',
         'Impossible d\'ajouter ce produit au panier. Le produit n\'a pas d\'identifiant valide.'
       );
@@ -267,11 +268,11 @@ const ProductDetails = () => {
         category: productCategory,
       }, selectedWeight);
 
-      Alert.alert('Succès', 'Produit ajouté au panier');
+      showSuccess('Succès', 'Produit ajouté au panier');
       router.push('/home');
     } catch (error: any) {
       console.error('Error adding to cart:', error);
-      Alert.alert(
+      showError(
         'Erreur',
         error?.message || 'Impossible d\'ajouter le produit au panier. Veuillez réessayer.'
       );
@@ -280,13 +281,13 @@ const ProductDetails = () => {
 
   const handleReviewSubmit = async (rating?: number, comment?: string) => {
     if (!user) {
-      Alert.alert('Connexion requise', 'Veuillez vous connecter pour laisser un avis.');
+      showError('Connexion requise', 'Veuillez vous connecter pour laisser un avis.');
       router.push('/login');
       return;
     }
 
     if (!productId) {
-      Alert.alert('Erreur', 'Impossible de laisser un avis. Le produit n\'a pas d\'identifiant valide.');
+      showError('Erreur', 'Impossible de laisser un avis. Le produit n\'a pas d\'identifiant valide.');
       return;
     }
 
@@ -294,19 +295,19 @@ const ProductDetails = () => {
     const finalComment = comment || reviewComment;
 
     if (finalRating < 1 || finalRating > 5) {
-      Alert.alert('Erreur', 'Veuillez sélectionner une note entre 1 et 5 étoiles.');
+      showError('Erreur', 'Veuillez sélectionner une note entre 1 et 5 étoiles.');
       return;
     }
 
     setSubmittingReview(true);
     try {
       await createOrUpdateReview(productId, finalRating, finalComment);
-      Alert.alert('Succès', 'Votre avis a été enregistré avec succès.');
+      showSuccess('Succès', 'Votre avis a été enregistré avec succès.');
       setShowReviewForm(false);
       setReviewRating(0);
       setReviewComment('');
     } catch (error: any) {
-      Alert.alert('Erreur', error.message || 'Impossible d\'enregistrer votre avis.');
+      showError('Erreur', error.message || 'Impossible d\'enregistrer votre avis.');
     } finally {
       setSubmittingReview(false);
     }
@@ -314,23 +315,23 @@ const ProductDetails = () => {
 
   const handleBuyNow = async () => {
     if (!user) {
-      Alert.alert('Connexion requise', 'Veuillez vous connecter pour effectuer un achat.');
+      showError('Connexion requise', 'Veuillez vous connecter pour effectuer un achat.');
       router.push('/login');
       return;
     }
 
     if (!productId) {
-      Alert.alert('Erreur', 'Impossible d\'acheter ce produit. Le produit n\'a pas d\'identifiant valide.');
+      showError('Erreur', 'Impossible d\'acheter ce produit. Le produit n\'a pas d\'identifiant valide.');
       return;
     }
 
     if (isOutOfStock) {
-      Alert.alert('Rupture de stock', 'Ce produit est actuellement en rupture de stock.');
+      showError('Rupture de stock', 'Ce produit est actuellement en rupture de stock.');
       return;
     }
 
     if (selectedWeight > availableStock) {
-      Alert.alert('Stock insuffisant', `Il ne reste que ${availableStock.toFixed(2)} kg disponible pour ce produit.`);
+      showError('Stock insuffisant', `Il ne reste que ${availableStock.toFixed(2)} kg disponible pour ce produit.`);
       return;
     }
 
@@ -352,7 +353,7 @@ const ProductDetails = () => {
       router.push('/shipping');
     } catch (error: any) {
       console.error('Error setting up direct purchase:', error);
-      Alert.alert('Erreur', 'Impossible de procéder à l\'achat. Veuillez réessayer.');
+      showError('Erreur', 'Impossible de procéder à l\'achat. Veuillez réessayer.');
     }
   }
 
@@ -565,7 +566,7 @@ const ProductDetails = () => {
               <TouchableOpacity
                 style={[styles.addReviewBtn, { backgroundColor: colors.primary }]}
                 onPress={() => {
-                  Alert.alert('Connexion requise', 'Veuillez vous connecter pour laisser un avis.');
+                  showError('Connexion requise', 'Veuillez vous connecter pour laisser un avis.');
                   router.push('/login');
                 }}
               >

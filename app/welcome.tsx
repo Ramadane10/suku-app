@@ -2,18 +2,20 @@ import { FontAwesome } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import colors from '../src/constants/colors';
 import fonts from '../src/constants/fonts';
+import { useTheme } from '../src/hooks/useTheme';
 
 export default function WelcomeScreen() {
+  const { isDark, colors: themeColors } = useTheme();
+
   const handleLogin = () => {
     router.push('/login');
   };
 
   const handleSignUp = () => {
-    router.push('/register'); // Vous devrez créer cette page plus tard
+    router.push('/register');
   };
 
   const handleSkip = () => {
@@ -21,10 +23,14 @@ export default function WelcomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={themeColors.background} />
+
       <View style={styles.logoContainer}>
         <Image
-          source={require('../assets/images/Nwanma-transparent.png')}
+          source={isDark
+            ? require('../assets/images/Nwanma-transparent-dark.png')
+            : require('../assets/images/Nwanma-transparent.png')}
           style={styles.logoImage}
           contentFit="contain"
           transition={200}
@@ -32,15 +38,15 @@ export default function WelcomeScreen() {
       </View>
 
       <View style={styles.contentContainer}>
-        <Text style={styles.title}>Bienvenue</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.title, { color: themeColors.text }]}>Bienvenue</Text>
+        <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
           Achetez et recevez les dernières nouveautés et promotions grâce à notre application mobile.
         </Text>
       </View>
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          style={styles.loginButton}
+          style={[styles.loginButton, { backgroundColor: themeColors.primary }]}
           onPress={handleLogin}
         >
           <View style={styles.buttonContent}>
@@ -50,12 +56,12 @@ export default function WelcomeScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.signupButton}
+          style={[styles.signupButton, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
           onPress={handleSignUp}
         >
           <View style={styles.buttonContent}>
-            <FontAwesome name="user-plus" size={18} color={colors.dark} style={styles.buttonIcon} />
-            <Text style={styles.signupButtonText}>Sign Up</Text>
+            <FontAwesome name="user-plus" size={18} color={themeColors.text} style={styles.buttonIcon} />
+            <Text style={[styles.signupButtonText, { color: themeColors.text }]}>Sign Up</Text>
           </View>
         </TouchableOpacity>
 
@@ -63,7 +69,7 @@ export default function WelcomeScreen() {
           style={styles.skipButton}
           onPress={handleSkip}
         >
-          <Text style={styles.skipButtonText}>Continuer sans connexion</Text>
+          <Text style={[styles.skipButtonText, { color: themeColors.primary }]}>Continuer sans connexion</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -73,7 +79,6 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
     paddingHorizontal: 24,
   },
   logoContainer: {
@@ -85,12 +90,6 @@ const styles = StyleSheet.create({
     height: 220,
     marginBottom: 10,
   },
-  logo: {
-    fontSize: 80,
-    fontWeight: 'bold',
-    color: colors.primary,
-    fontFamily: fonts.bold,
-  },
   contentContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -99,14 +98,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: colors.dark,
     textAlign: 'center',
     marginBottom: 16,
     fontFamily: fonts.bold,
   },
   subtitle: {
     fontSize: 16,
-    color: colors.grey,
     textAlign: 'center',
     marginBottom: 40,
     lineHeight: 24,
@@ -117,7 +114,6 @@ const styles = StyleSheet.create({
     marginBottom: 50,
   },
   loginButton: {
-    backgroundColor: colors.primary,
     height: 56,
     borderRadius: 12,
     justifyContent: 'center',
@@ -131,16 +127,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
   },
   signupButton: {
-    backgroundColor: 'white',
     height: 56,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.primary,
   },
   signupButtonText: {
-    color: colors.dark,
     fontSize: 16,
     fontWeight: 'bold',
     fontFamily: fonts.bold,
@@ -160,6 +153,5 @@ const styles = StyleSheet.create({
   skipButtonText: {
     fontFamily: fonts.medium,
     fontSize: 14,
-    color: colors.primary,
   },
 });

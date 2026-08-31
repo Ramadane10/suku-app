@@ -25,24 +25,24 @@ const lightColors = {
 };
 
 const darkColors = {
-  primary: '#2E7F34',        // Vert principal
-  secondary: '#88BD2A',      // Vert Lime
-  accent: '#F59E16',         // Orange Doré
-  darkGreen: '#1B4332',      // Vert Sombre
-  background: '#0F1E16',     // Fond vert très sombre élégant
-  surface: '#1B4332',        // Surface vert sombre
+  primary: '#F59E16',        // Orange Doré Nwanma (Couleur principale en Mode Sombre)
+  secondary: '#FF7D00',      // Orange Vif (Accent)
+  accent: '#88BD2A',         // Vert Lime (Bio)
+  darkGreen: '#1B4332',      // Vert Sombre Nwanma
+  background: '#121212',     // Fond Noir Profond OLED
+  surface: '#1E1E1E',        // Surface & Cartes Anthracite
   dark: '#FFFFFF',
-  light: '#1F3A2C',
-  grey: '#9CA3AF',
-  success: '#88BD2A',
-  danger: '#FF6B6B',
-  warning: '#F59E16',
+  light: '#262626',          // Éléments légers sombres
+  grey: '#9E9E9E',           // Texte secondaire / icônes inactives
+  success: '#2E7F34',        // Vert Nwanma
+  danger: '#FF5252',         // Rouge Erreur
+  warning: '#F59E16',        // Orange Avertissement
   transparent: 'transparent',
-  text: '#FFFFFF',
-  textSecondary: '#A3B8AD',
-  border: '#2A5944',
-  card: '#1B4332',
-  chipBg: '#1F3A2C',
+  text: '#FFFFFF',           // Texte blanc pur
+  textSecondary: '#AAAAAA',  // Texte secondaire gris doux
+  border: '#2C2C2C',         // Bordures fines anthracite
+  card: '#1E1E1E',           // Fond carte
+  chipBg: '#2B2319',         // Fond badge teinté d'orange chaud
 };
 
 const useThemeStore = create((set) => ({
