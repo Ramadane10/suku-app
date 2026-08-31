@@ -14,7 +14,8 @@
       "backgroundColor": "#FFFFFF"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mramadane.nwanma"
     },
     "android": {
       "adaptiveIcon": {
