@@ -32,7 +32,6 @@ export default function AddressFormScreen() {
 
     const [addressLine, setAddressLine] = useState('');
     const [city, setCity] = useState('');
-    const [postalCode, setPostalCode] = useState('');
     const [country, setCountry] = useState('Guinée');
     const [isDefault, setIsDefault] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -46,7 +45,6 @@ export default function AddressFormScreen() {
             if (existing) {
                 setAddressLine(existing.address_line || '');
                 setCity(existing.city || '');
-                setPostalCode(existing.postal_code || '');
                 setCountry(existing.country || 'Guinée');
                 setIsDefault(existing.is_default || false);
             }
@@ -71,7 +69,7 @@ export default function AddressFormScreen() {
                 await updateAddress(addressId, {
                     address_line: addressLine.trim(),
                     city: city.trim(),
-                    postal_code: postalCode.trim() || '00000',
+                    postal_code: '00000',
                     country: country.trim() || 'Guinée',
                     is_default: isDefault,
                 });
@@ -80,7 +78,7 @@ export default function AddressFormScreen() {
                 await createAddress({
                     address_line: addressLine.trim(),
                     city: city.trim(),
-                    postal_code: postalCode.trim() || '00000',
+                    postal_code: '00000',
                     country: country.trim() || 'Guinée',
                     is_default: isDefault,
                 });
@@ -130,15 +128,6 @@ export default function AddressFormScreen() {
                         value={city}
                         onChangeText={setCity}
                         leftIcon={<Ionicons name="business-outline" size={20} color={colors.primary} />}
-                    />
-
-                    <Text style={[styles.label, { color: colors.text }]}>Code Postal</Text>
-                    <InputField
-                        placeholder="Ex: 75001"
-                        value={postalCode}
-                        onChangeText={setPostalCode}
-                        keyboardType="number-pad"
-                        leftIcon={<Ionicons name="mail-outline" size={20} color={colors.primary} />}
                     />
 
                     <Text style={[styles.label, { color: colors.text }]}>Pays</Text>

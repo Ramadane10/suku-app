@@ -8,23 +8,16 @@
     "scheme": "nwanma",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/images/Nwanma-chargement-app.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
-    },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.mramadane.nwanma"
+      "bundleIdentifier": "com.mramadane.nwanma",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/Nwanma-icon-app.png",
-        "backgroundColor": "#FFFFFF"
-      },
-      "splash": {
-        "image": "./assets/images/Nwanma-chargement-app.png",
-        "resizeMode": "contain",
         "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
@@ -41,9 +34,9 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/Nwanma-chargement-app.png",
+          "imageWidth": 300,
           "resizeMode": "contain",
-          "backgroundColor": "#FFFFFF",
-          "enableFullScreenImage_legacy": true
+          "backgroundColor": "#FFFFFF"
         }
       ]
     ],

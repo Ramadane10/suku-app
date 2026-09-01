@@ -2,7 +2,7 @@ import { AntDesign, Feather, FontAwesome, Ionicons, MaterialCommunityIcons } fro
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { View } from 'react-native';
 import ThemeProvider from '../src/components/ThemeProvider';
 import PersistentBottomTabBar from '../src/components/ui/PersistentBottomTabBar';
@@ -34,10 +34,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
-      const timer = setTimeout(() => {
-        SplashScreen.hideAsync();
-      }, 3000);
-      return () => clearTimeout(timer);
+      SplashScreen.hideAsync();
     }
   }, [loaded]);
 

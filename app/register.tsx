@@ -4,7 +4,6 @@ import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BackButton from '../src/components/ui/BackButton';
 import Button from '../src/components/ui/Button';
 import InputField from '../src/components/ui/InputField';
 import fonts from '../src/constants/fonts';
@@ -80,10 +79,6 @@ export default function RegisterScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
-      <View style={styles.topNav}>
-        <BackButton onPress={() => (step === 2 ? setStep(1) : router.back())} color={colors.text} />
-      </View>
-
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Logo Brand Header */}
@@ -144,6 +139,10 @@ export default function RegisterScreen() {
           ) : (
             /* Step 2: Account Infos */
             <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <TouchableOpacity style={styles.stepBackBtn} onPress={() => setStep(1)}>
+                <Ionicons name="arrow-back-outline" size={18} color={colors.primary} />
+                <Text style={[styles.stepBackText, { color: colors.primary }]}>Retour</Text>
+              </TouchableOpacity>
               <Text style={[styles.stepTitle, { color: colors.primary }]}>Étape 2 : Identifiants de connexion</Text>
 
               <Text style={[styles.label, { color: colors.text }]}>Adresse email</Text>
@@ -219,6 +218,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
+    paddingTop: 32,
     paddingBottom: 40,
   },
   logoHeader: {
@@ -256,6 +256,16 @@ const styles = StyleSheet.create({
     width: 40,
     height: 2,
     marginHorizontal: 6,
+  },
+  stepBackBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+  },
+  stepBackText: {
+    fontFamily: fonts.bold,
+    fontSize: 14,
   },
   card: {
     borderRadius: 16,

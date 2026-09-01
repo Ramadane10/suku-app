@@ -1,6 +1,7 @@
 import { Session, User } from '@supabase/supabase-js';
 import * as Linking from 'expo-linking';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { supabase } from '../lib/supabase';
 
 type AuthContextType = {
@@ -12,6 +13,7 @@ type AuthContextType = {
     signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any; data?: any }>;
     signOut: () => Promise<void>;
     sendPasswordResetEmail: (email: string) => Promise<{ error: any }>;
+    resetInactivityTimer: () => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -23,32 +25,77 @@ const AuthContext = createContext<AuthContextType>({
     signUp: async () => ({ error: null }),
     signOut: async () => { },
     sendPasswordResetEmail: async () => ({ error: null }),
+    resetInactivityTimer: () => { },
 });
 
 export function useAuth() {
     return useContext(AuthContext);
 }
 
+// Durée d'inactivité avant déconnexion automatique : 30 minutes
+const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [session, setSession] = useState<Session | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
+    const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const clearInactivityTimer = () => {
+        if (inactivityTimer.current) {
+            clearTimeout(inactivityTimer.current);
+            inactivityTimer.current = null;
+        }
+    };
+
+    const resetInactivityTimer = () => {
+        clearInactivityTimer();
+        // Ne démarrer le timer que si l'utilisateur est connecté
+        setSession(current => {
+            if (current) {
+                inactivityTimer.current = setTimeout(async () => {
+                    await supabase.auth.signOut();
+                }, INACTIVITY_TIMEOUT_MS);
+            }
+            return current;
+        });
+    };
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             setUser(session?.user ?? null);
             setIsLoading(false);
+            if (session) resetInactivityTimer();
         });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
             setUser(session?.user ?? null);
             setIsLoading(false);
+            if (session) {
+                resetInactivityTimer();
+            } else {
+                clearInactivityTimer();
+            }
         });
 
-        return () => subscription.unsubscribe();
+        // Réinitialiser le timer quand l'app revient au premier plan
+        const handleAppState = (nextState: AppStateStatus) => {
+            if (nextState === 'active') {
+                resetInactivityTimer();
+            } else {
+                clearInactivityTimer();
+            }
+        };
+        const appStateSub = AppState.addEventListener('change', handleAppState);
+
+        return () => {
+            subscription.unsubscribe();
+            appStateSub.remove();
+            clearInactivityTimer();
+        };
     }, []);
 
     const signIn = async (email: string, password: string) => {
@@ -105,11 +152,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         session,
         user,
         isLoading,
-        isAdmin, // Add logic for admin check if needed
+        isAdmin,
         signIn,
         signUp,
         signOut,
         sendPasswordResetEmail,
+        resetInactivityTimer,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

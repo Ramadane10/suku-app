@@ -10,17 +10,12 @@ const SHOW_TAB_BAR_ROUTES = [
   '/home',
   '/boutique',
   '/orders',
-  '/cart',
   '/profile',
-  '/profile-edit',
-  '/profile-settings',
-  '/profile-contact',
-  '/wishlist',
-  '/addresses',
 ];
 
 // Routes où la BottomTabBar ne doit PAS être affichée
 const HIDE_TAB_BAR_ROUTES = [
+  '/cart',
   '/product-details',
   '/shipping',
   '/payment',
@@ -32,6 +27,11 @@ const HIDE_TAB_BAR_ROUTES = [
   '/welcome',
   '/onboarding',
   '/signup-success',
+  '/profile-edit',
+  '/profile-settings',
+  '/profile-contact',
+  '/wishlist',
+  '/addresses',
 ];
 
 export default function PersistentBottomTabBar() {

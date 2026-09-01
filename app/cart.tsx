@@ -56,9 +56,10 @@ const CartScreen = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Header
         title="Mon Panier"
-        cartCount={cartCount}
-        onMenuPress={() => setIsMenuVisible(true)}
-        onCartPress={() => router.push('/cart')}
+        showBack={true}
+        showMenu={false}
+        showCart={false}
+        onBackPress={() => router.back()}
       />
       {cartItems.length === 0 ? (
         <View style={styles.emptyContainer}>

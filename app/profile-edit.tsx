@@ -1,12 +1,13 @@
-import { FontAwesome, Ionicons } from '@expo/vector-icons';
+import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState, useEffect } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Header from '../src/components/ui/Header';
 import fonts from '../src/constants/fonts';
-import { useTheme } from '../src/hooks/useTheme';
-import { useProfile } from '../src/hooks/useProfile';
 import { useAuth } from '../src/context/AuthContext';
+import { useProfile } from '../src/hooks/useProfile';
+import { useTheme } from '../src/hooks/useTheme';
 
 export const options = { headerShown: false };
 
@@ -58,14 +59,14 @@ const ProfileEdit = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Header */}
-          <View style={[styles.header, { backgroundColor: colors.surface }]}>
-            <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color={colors.text} />
-            </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>Modifier le profil</Text>
-            <View style={{ width: 24 }} />
-          </View>
+          <Header
+            title="Modifier le profil"
+            showBack={true}
+            showMenu={false}
+            showCart={false}
+            showNotifications={false}
+            onBackPress={() => router.back()}
+          />
 
           {loading ? (
             <View style={styles.loadingContainer}>

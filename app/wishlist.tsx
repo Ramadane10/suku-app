@@ -31,7 +31,9 @@ const WishlistScreen = () => {
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <Header
           title="Favoris"
-          onMenuPress={handleMenuPress}
+          showBack={true}
+          showMenu={false}
+          onBackPress={() => router.back()}
           cartCount={getCartCount()}
           onCartPress={() => router.push('/cart')}
         />
@@ -54,7 +56,9 @@ const WishlistScreen = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Header
         title="Favoris"
-        onMenuPress={handleMenuPress}
+        showBack={true}
+        showMenu={false}
+        onBackPress={() => router.back()}
         cartCount={getCartCount()}
         onCartPress={() => router.push('/cart')}
       />

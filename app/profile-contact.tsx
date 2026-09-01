@@ -1,8 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Header from '../src/components/ui/Header';
 import fonts from '../src/constants/fonts';
 import { useTheme } from '../src/hooks/useTheme';
 
@@ -21,14 +21,14 @@ const ProfileContact = () => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
-        <View style={[styles.header, { backgroundColor: colors.surface }]}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={colors.text} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Contactez-nous</Text>
-          <View style={{ width: 24 }} />
-        </View>
+        <Header
+          title="Contactez-nous"
+          showBack={true}
+          showMenu={false}
+          showCart={false}
+          showNotifications={false}
+          onBackPress={() => router.back()}
+        />
 
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>CONTACT</Text>
         <View style={[styles.infoRow, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
