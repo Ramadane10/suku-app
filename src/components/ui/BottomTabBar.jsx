@@ -48,7 +48,7 @@ const BottomTabBar = React.memo(() => {
     return tabs.find(tab => tab.matchers.some(matcher => pathname.startsWith(matcher)))?.key || 'home';
   }, [pathname, tabs]);
 
-  const handlePress = useCallback((route: string) => {
+  const handlePress = useCallback((route) => {
     router.push(route);
   }, [router]);
 

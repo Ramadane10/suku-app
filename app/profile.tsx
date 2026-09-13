@@ -16,12 +16,13 @@ import { useAuth } from '../src/context/AuthContext';
 import { useCart } from '../src/context/CartContext';
 import { useAddresses } from '../src/hooks/useAddresses';
 import { useProfile } from '../src/hooks/useProfile';
+import { supabase } from '../src/lib/supabase';
 
 const ProfileScreen = () => {
   const router = useRouter();
   const { colors } = useTheme();
   const { signOut, user } = useAuth();
-  const { showConfirm } = useCustomAlert();
+  const { showConfirm, showError, showSuccess } = useCustomAlert();
   const { addresses, fetchAddresses } = useAddresses();
   const { profile, loading: profileLoading } = useProfile();
   const { getCartCount } = useCart();
@@ -64,10 +65,36 @@ const ProfileScreen = () => {
 
   const handleDeleteAccount = () => {
     showConfirm(
-      'Supprimer le compte',
-      'Cette action est irréversible. Toutes vos données (commandes, adresses, profil) seront définitivement supprimées.\n\nPour procéder, contactez le support au +224 628 17 96 58.',
-      () => { router.push('/profile-contact'); },
-      'Contacter le support',
+      'Supprimer définitivement le compte',
+      'Cette action est irréversible. Toutes vos données personnelles (commandes, adresses, profil, panier, favoris, notifications) seront définitivement supprimées.\n\nÊtes-vous absolument sûr ?',
+      async () => {
+        try {
+          if (!user) return;
+          // 1. Tenter d'exécuter la fonction RPC Supabase (cascade automatique)
+          const { error: rpcErr } = await supabase.rpc('delete_user_account');
+
+          // 2. Si la fonction RPC n'est pas installée, supprimer directement les données
+          if (rpcErr) {
+            await Promise.allSettled([
+              supabase.from('addresses').delete().eq('user_id', user.id),
+              supabase.from('favorites').delete().eq('user_id', user.id),
+              supabase.from('notifications').delete().eq('user_id', user.id),
+              supabase.from('user_settings').delete().eq('user_id', user.id),
+              supabase.from('reviews').delete().eq('user_id', user.id),
+              supabase.from('orders').delete().eq('user_id', user.id),
+              supabase.from('carts').delete().eq('user_id', user.id),
+              supabase.from('profiles').delete().eq('id', user.id),
+            ]);
+          }
+
+          await signOut();
+          showSuccess('Compte supprimé', 'Votre compte et vos données ont été supprimés avec succès.');
+          router.replace('/login');
+        } catch (err: any) {
+          showError('Erreur', 'Impossible de supprimer le compte: ' + (err.message || ''));
+        }
+      },
+      'Supprimer définitivement',
       'Annuler'
     );
   };

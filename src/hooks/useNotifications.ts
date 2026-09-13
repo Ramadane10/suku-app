@@ -71,7 +71,7 @@ export function useNotifications() {
     try {
       setUnreadCount(0);
       try {
-        if (Constants.appOwnership !== 'expo') {
+        if (Platform.OS !== 'web' && Constants.appOwnership !== 'expo') {
           const Notifications = require('expo-notifications');
           Notifications.setBadgeCountAsync(0).catch(() => {});
         }

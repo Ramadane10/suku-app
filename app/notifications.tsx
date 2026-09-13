@@ -40,18 +40,13 @@ export default function NotificationsScreen() {
 
             if (data) {
                 setNotifications(data);
-                // Marquer comme lus en arrière-plan, sans bloquer l'affichage
-                const hasUnread = data.some((n: any) => !n.is_read);
-                if (hasUnread) {
-                    markAllAsRead().catch(() => {});
-                }
             }
         } catch (err) {
             console.error('Error fetching notifications:', err);
         } finally {
             setLoading(false);
         }
-    }, [user, markAllAsRead]);
+    }, [user]);
 
     useEffect(() => {
         fetchNotifications();
@@ -59,17 +54,23 @@ export default function NotificationsScreen() {
 
     const markAsRead = async (id: string) => {
         try {
+            setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
             const { error } = await supabase
                 .from('notifications')
                 .update({ is_read: true })
                 .eq('id', id);
 
-            if (!error) {
-                setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+            if (error) {
+                console.error('Error marking as read:', error);
             }
         } catch (err) {
             console.error('Error marking as read:', err);
         }
+    };
+
+    const handleMarkAllAsRead = async () => {
+        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+        await markAllAsRead();
     };
 
     const formatTime = (dateString: string) => {
@@ -183,6 +184,8 @@ export default function NotificationsScreen() {
         );
     }
 
+    const unreadCountLocal = notifications.filter(n => !n.is_read).length;
+
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <Header
@@ -193,6 +196,18 @@ export default function NotificationsScreen() {
                 showNotifications={false}
                 cartCount={getCartCount()}
             />
+            {unreadCountLocal > 0 && (
+                <View style={[styles.unreadBar, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+                    <Text style={[styles.unreadBarText, { color: colors.textSecondary }]}>
+                        {unreadCountLocal} non lue{unreadCountLocal > 1 ? 's' : ''}
+                    </Text>
+                    <TouchableOpacity onPress={handleMarkAllAsRead} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                        <Text style={[styles.markAllText, { color: colors.primary }]}>
+                            Tout marquer comme lu
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            )}
             {loading && notifications.length === 0 ? (
                 <View style={styles.centerContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
@@ -297,5 +312,21 @@ const styles = StyleSheet.create({
         fontFamily: fonts.bold,
         fontSize: 16,
         color: '#FFFFFF',
+    },
+    unreadBar: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+    },
+    unreadBarText: {
+        fontFamily: fonts.medium,
+        fontSize: 13,
+    },
+    markAllText: {
+        fontFamily: fonts.bold,
+        fontSize: 13,
     },
 });

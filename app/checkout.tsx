@@ -180,7 +180,7 @@ const CheckoutScreen = () => {
                 {shipping.address || 'Aucune adresse renseignée'}
               </Text>
               <Text style={[styles.infoTextSub, { color: themeColors.textSecondary }]}>
-                {shipping.city}{shipping.city && shipping.country ? ', ' : ''}{shipping.country}
+                {`${shipping.city || ''}${shipping.city && shipping.country ? ', ' : ''}${shipping.country || ''}`}
               </Text>
             </View>
           </View>
@@ -213,7 +213,7 @@ const CheckoutScreen = () => {
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.orderItemName, { color: themeColors.text }]}>{item.name || 'Produit'}</Text>
                   <Text style={[styles.orderItemDetails, { color: themeColors.textSecondary }]}>
-                    {(item.quantity || item.quantity_kg || 0)} kg × {formatPrice(item.pricePerKilo || item.unit_price || 0, true)}
+                    {`${item.quantity || item.quantity_kg || 0} kg × ${formatPrice(item.pricePerKilo || item.unit_price || 0, true)}`}
                   </Text>
                 </View>
                 <Text style={[styles.orderItemPrice, { color: themeColors.primary }]}>
@@ -253,7 +253,9 @@ const CheckoutScreen = () => {
               <Text style={styles.orderBtnText}>Traitement en cours...</Text>
             </View>
           ) : (
-            <Text style={styles.orderBtnText}>Payer {formatPrice(calculateTotal())}</Text>
+            <View style={styles.loadingContainer}>
+              <Text style={styles.orderBtnText}>{`Payer ${formatPrice(calculateTotal())}`}</Text>
+            </View>
           )}
         </TouchableOpacity>
       </ScrollView>

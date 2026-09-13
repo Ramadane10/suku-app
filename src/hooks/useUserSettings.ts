@@ -3,20 +3,17 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
 export interface UserSettings {
-  id: string;
   user_id: string;
-  face_id_enabled: boolean;
   order_updates: boolean;
-  new_arrivals: boolean;
-  promotions: boolean;
-  sales_alerts: boolean;
-  created_at: string;
-  updated_at: string;
+  face_id_enabled?: boolean;
+  new_arrivals?: boolean;
+  promotions?: boolean;
+  sales_alerts?: boolean;
 }
 
-const DEFAULT_SETTINGS = {
-  face_id_enabled: false,
+const DEFAULT_SETTINGS: Omit<UserSettings, 'user_id'> = {
   order_updates: true,
+  face_id_enabled: false,
   new_arrivals: true,
   promotions: false,
   sales_alerts: true,
@@ -39,37 +36,40 @@ export function useUserSettings() {
       setLoading(true);
       setError(null);
 
-      // Récupérer les paramètres existants
       const { data, error: fetchError } = await supabase
         .from('user_settings')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        // PGRST116 = no rows returned
-        throw fetchError;
+      if (fetchError) {
+        console.warn('Erreur lecture user_settings, utilisation des valeurs par défaut:', fetchError.message);
+        setSettings({ user_id: user.id, ...DEFAULT_SETTINGS });
+        return;
       }
 
       if (data) {
-        setSettings(data);
+        setSettings({
+          ...DEFAULT_SETTINGS,
+          ...data,
+          order_updates: data.order_updates ?? true,
+        });
       } else {
-        // Créer les paramètres par défaut si aucun n'existe
-        const { data: newSettings, error: createError } = await supabase
+        // Initialiser avec les paramètres par défaut en base
+        const { data: created } = await supabase
           .from('user_settings')
-          .insert([{
+          .upsert({
             user_id: user.id,
             ...DEFAULT_SETTINGS,
-          }])
+          }, { onConflict: 'user_id' })
           .select()
-          .single();
+          .maybeSingle();
 
-        if (createError) throw createError;
-        setSettings(newSettings);
+        setSettings(created || { user_id: user.id, ...DEFAULT_SETTINGS });
       }
     } catch (err: any) {
       console.error('Error fetching user settings:', err);
-      setError(err.message);
+      setSettings({ user_id: user.id, ...DEFAULT_SETTINGS });
     } finally {
       setLoading(false);
     }
@@ -88,47 +88,33 @@ export function useUserSettings() {
       setLoading(true);
       setError(null);
 
-      // Vérifier si les paramètres existent
-      const { data: existing } = await supabase
-        .from('user_settings')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      let result;
-
-      if (existing) {
-        // Mettre à jour les paramètres existants
-        const { data, error: updateError } = await supabase
-          .from('user_settings')
-          .update({
-            ...updates,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', user.id)
-          .select()
-          .single();
-
-        if (updateError) throw updateError;
-        result = data;
-      } else {
-        // Créer les paramètres s'ils n'existent pas
-        const { data, error: createError } = await supabase
-          .from('user_settings')
-          .insert([{
-            user_id: user.id,
-            ...DEFAULT_SETTINGS,
-            ...updates,
-          }])
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        result = data;
+      // Filtrer uniquement les colonnes valides de user_settings (jamais id ou updated_at)
+      const validColumns = ['order_updates', 'face_id_enabled', 'new_arrivals', 'promotions', 'sales_alerts'];
+      const payload: any = { user_id: user.id };
+      for (const col of validColumns) {
+        if (col in updates) {
+          payload[col] = (updates as any)[col];
+        }
       }
 
-      setSettings(result);
-      return result;
+      const { data, error: upsertError } = await supabase
+        .from('user_settings')
+        .upsert(payload, { onConflict: 'user_id' })
+        .select()
+        .maybeSingle();
+
+      if (upsertError) {
+        console.error('Upsert user_settings error:', upsertError);
+        throw upsertError;
+      }
+
+      const nextSettings = data || {
+        ...(settings || { user_id: user.id, ...DEFAULT_SETTINGS }),
+        ...payload,
+      };
+
+      setSettings(nextSettings);
+      return nextSettings;
     } catch (err: any) {
       console.error('Error updating user settings:', err);
       setError(err.message);
@@ -136,7 +122,7 @@ export function useUserSettings() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, settings]);
 
   const updateSetting = useCallback(async (key: keyof UserSettings, value: any) => {
     return updateSettings({ [key]: value } as Partial<UserSettings>);
@@ -151,4 +137,5 @@ export function useUserSettings() {
     updateSetting,
   };
 }
+
 

@@ -164,6 +164,8 @@ export default function OrdersScreen() {
           showNotifications={true}
           notificationCount={unreadCount}
           onNotificationPress={() => router.push("/notifications")}
+          cartCount={getCartCount()}
+          onCartPress={() => router.push('/cart')}
         />
         <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -184,6 +186,8 @@ export default function OrdersScreen() {
           showNotifications={true}
           notificationCount={unreadCount}
           onNotificationPress={() => router.push("/notifications")}
+          cartCount={getCartCount()}
+          onCartPress={() => router.push('/cart')}
         />
         <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -348,6 +352,8 @@ export default function OrdersScreen() {
         showNotifications={true}
         notificationCount={unreadCount}
         onNotificationPress={() => router.push("/notifications")}
+        cartCount={getCartCount()}
+        onCartPress={() => router.push('/cart')}
       />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: 100 }]}
