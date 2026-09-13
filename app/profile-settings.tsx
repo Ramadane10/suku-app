@@ -140,7 +140,7 @@ const ProfileSettings = () => {
 
   const handleDeleteAccount = () => {
     showConfirm(
-      'Supprimer définitivement le compte',
+      'Supprimer le compte',
       'Cette action est irréversible. Toutes vos données personnelles (commandes, adresses, favoris, panier, notifications, profil) seront définitivement supprimées.\n\nÊtes-vous absolument sûr ?',
       async () => {
         try {
@@ -169,7 +169,7 @@ const ProfileSettings = () => {
           showError('Erreur', 'Impossible de supprimer le compte: ' + (err.message || ''));
         }
       },
-      'Supprimer définitivement',
+      'Supprimer',
       'Annuler'
     );
   };
