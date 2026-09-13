@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../src/components/ui/Button';
 import InputField from '../src/components/ui/InputField';
 import fonts from '../src/constants/fonts';
+import { useCustomAlert } from '../src/context/AlertContext';
 import { useAuth } from '../src/context/AuthContext';
 import { useTheme } from '../src/hooks/useTheme';
 
@@ -14,6 +15,7 @@ export default function ForgotPasswordScreen() {
     const router = useRouter();
     const { isDark, colors } = useTheme();
     const { sendPasswordResetEmail } = useAuth();
+    const { showError } = useCustomAlert();
 
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
@@ -21,11 +23,7 @@ export default function ForgotPasswordScreen() {
 
     const handleResetPassword = async () => {
         if (!email) {
-            if (Platform.OS === 'web') {
-                window.alert('Veuillez entrer votre adresse email.');
-            } else {
-                alert('Veuillez entrer votre adresse email.');
-            }
+            showError('Email requis', 'Veuillez entrer votre adresse email.');
             return;
         }
 
@@ -42,11 +40,7 @@ export default function ForgotPasswordScreen() {
                     message = 'Veuillez patienter quelques instants avant de réessayer.';
                 }
 
-                if (Platform.OS === 'web') {
-                    window.alert(title + '\n' + message);
-                } else {
-                    alert(title + ': ' + message);
-                }
+                showError(title, message);
             } else {
                 setSent(true);
             }
@@ -110,7 +104,7 @@ export default function ForgotPasswordScreen() {
                             <View style={styles.inputWrap}>
                                 <Text style={[styles.label, { color: colors.text }]}>Adresse email</Text>
                                 <InputField
-                                    placeholder="votre@email.com"
+                                    placeholder="souleymane@nwanma.gn"
                                     value={email}
                                     onChangeText={setEmail}
                                     keyboardType="email-address"

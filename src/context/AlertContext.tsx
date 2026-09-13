@@ -27,7 +27,8 @@ interface AlertContextType {
         message: string,
         onConfirm: () => void,
         confirmText?: string,
-        cancelText?: string
+        cancelText?: string,
+        onCancel?: () => void
     ) => void;
     hideAlert: () => void;
 }
@@ -93,8 +94,30 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         showAlert({ type: 'success', title, message });
     };
 
+    const formatErrorMessage = (msg?: string): string => {
+        if (!msg) return 'Une erreur est survenue. Veuillez réessayer.';
+        const lower = msg.toLowerCase();
+        if (
+            lower.includes('failed to fetch') ||
+            lower.includes('network request failed') ||
+            lower.includes('networkerror') ||
+            lower.includes('network error') ||
+            lower.includes('fetch error')
+        ) {
+            return 'Connexion internet indisponible. Veuillez vérifier votre réseau et réanalyser.';
+        }
+        if (lower.includes('invalid login credentials')) {
+            return 'Email ou mot de passe incorrect.';
+        }
+        if (lower.includes('user already registered')) {
+            return 'Un compte existe déjà avec cette adresse email.';
+        }
+        return msg;
+    };
+
     const showError = (title: string, message?: string) => {
-        showAlert({ type: 'error', title, message });
+        const friendlyMessage = formatErrorMessage(message);
+        showAlert({ type: 'error', title, message: friendlyMessage });
     };
 
     const showInfo = (title: string, message?: string) => {
@@ -106,7 +129,8 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         message: string,
         onConfirm: () => void,
         confirmText = 'Confirmer',
-        cancelText = 'Annuler'
+        cancelText = 'Annuler',
+        onCancel?: () => void
     ) => {
         showAlert({
             type: 'confirm',
@@ -115,6 +139,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             confirmText,
             cancelText,
             onConfirm,
+            onCancel,
         });
     };
 

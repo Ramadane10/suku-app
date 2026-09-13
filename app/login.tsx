@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../src/components/ui/Button';
 import InputField from '../src/components/ui/InputField';
 import fonts from '../src/constants/fonts';
+import { useCustomAlert } from '../src/context/AlertContext';
 import { useAuth } from '../src/context/AuthContext';
 import { useTheme } from '../src/hooks/useTheme';
 
@@ -14,6 +15,7 @@ export default function LoginScreen() {
   const router = useRouter();
   const { isDark, colors } = useTheme();
   const { signIn } = useAuth();
+  const { showError } = useCustomAlert();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -21,11 +23,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      if (Platform.OS === 'web') {
-        window.alert('Erreur\nVeuillez remplir tous les champs.');
-      } else {
-        alert('Veuillez remplir tous les champs.');
-      }
+      showError('Champs requis', 'Veuillez remplir tous les champs.');
       return;
     }
 
@@ -41,11 +39,7 @@ export default function LoginScreen() {
           message = 'Email ou mot de passe incorrect.\nSi vous n\'avez pas de compte, veuillez vous inscrire.';
         }
 
-        if (Platform.OS === 'web') {
-          window.alert(title + '\n' + message);
-        } else {
-          alert(title + ': ' + message);
-        }
+        showError(title, message);
       } else {
         router.replace('/home');
       }
@@ -86,7 +80,7 @@ export default function LoginScreen() {
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={[styles.label, { color: colors.text }]}>Adresse email</Text>
             <InputField
-              placeholder="votre@email.com"
+              placeholder="barrymamadouramadane326@gmail.com"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"

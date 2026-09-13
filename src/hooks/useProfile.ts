@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
+import { CACHE_TTL, cacheManager } from '../utils/cacheManager';
 
 export interface Profile {
   id: string;
@@ -21,14 +22,25 @@ export function useProfile() {
   const { user } = useAuth();
 
   // Charger le profil
-  const fetchProfile = useCallback(async () => {
+  const fetchProfile = useCallback(async (forceRefresh = false) => {
     if (!user) {
       setProfile(null);
       setLoading(false);
       return;
     }
 
+    const cacheKey = `user_profile_${user.id}`;
+
     try {
+      if (!forceRefresh) {
+        const cached = await cacheManager.get<Profile>(cacheKey);
+        if (cached.data) {
+          setProfile(cached.data);
+          setLoading(false);
+          if (!cached.isStale) return;
+        }
+      }
+
       setLoading(true);
       setError(null);
 
@@ -41,24 +53,27 @@ export function useProfile() {
       if (fetchError) {
         // Si le profil n'existe pas, le créer
         if (fetchError.code === 'PGRST116') {
+          const phoneVal = user.user_metadata?.phone || user.user_metadata?.phone_number || user.phone || null;
           const { data: newProfile, error: createError } = await supabase
             .from('profiles')
             .insert([{
               id: user.id,
               email: user.email,
               full_name: user.user_metadata?.full_name || null,
-              phone: user.user_metadata?.phone || null,
+              phone: phoneVal,
             }])
             .select()
             .single();
 
           if (createError) throw createError;
           setProfile(newProfile);
+          cacheManager.set(cacheKey, newProfile, CACHE_TTL.LONG);
         } else {
           throw fetchError;
         }
       } else {
         setProfile(data);
+        cacheManager.set(cacheKey, data, CACHE_TTL.LONG);
       }
     } catch (err: any) {
       console.error('Error fetching profile:', err);
@@ -112,6 +127,9 @@ export function useProfile() {
       }
 
       setProfile(data);
+      if (user) {
+        cacheManager.set(`user_profile_${user.id}`, data, CACHE_TTL.LONG);
+      }
       return data;
     } catch (err: any) {
       console.error('Error updating profile:', err);

@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import fonts from '../src/constants/fonts';
+import { useCustomAlert } from '../src/context/AlertContext';
 import { useAuth } from '../src/context/AuthContext';
 import { useOrder } from '../src/context/OrderContext';
 import { useAddresses } from '../src/hooks/useAddresses';
@@ -15,8 +16,9 @@ const ShippingScreen = () => {
   const { shipping, saveShipping } = useOrder();
   const { colors } = useTheme();
   const { user } = useAuth();
-  const { addresses, loading: addressesLoading, getDefaultAddress, createAddress } = useAddresses();
-  const [fullName, setFullName] = useState('Thierno Souleymane');
+  const { showError } = useCustomAlert();
+  const { addresses, loading: addressesLoading, fetchAddresses, getDefaultAddress, createAddress } = useAddresses();
+  const [fullName, setFullName] = useState('Mamadou Ramadane Barry');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
@@ -24,6 +26,13 @@ const ShippingScreen = () => {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const router = useRouter();
+
+  // Actualiser la liste des adresses à chaque mise en focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchAddresses(true);
+    }, [fetchAddresses])
+  );
 
   // Charger l'adresse par défaut si disponible
   useEffect(() => {
@@ -50,7 +59,7 @@ const ShippingScreen = () => {
 
   const handleContinue = async () => {
     if (!fullName || !phone || !address || !city) {
-      Alert.alert('Erreur', 'Merci de remplir tous les champs de livraison.');
+      showError('Erreur', 'Merci de remplir tous les champs de livraison.');
       return;
     }
 
@@ -115,7 +124,7 @@ const ShippingScreen = () => {
       });
       router.push('/payment');
     } catch (error: any) {
-      Alert.alert('Erreur', error.message || 'Impossible de sauvegarder l\'adresse.');
+      showError('Erreur', error.message || 'Impossible de sauvegarder l\'adresse.');
     }
   };
 
@@ -177,7 +186,7 @@ const ShippingScreen = () => {
                   </View>
                   <Text style={[styles.addressTextBold, { color: colors.text }]}>{addr.address_line}</Text>
                   <Text style={[styles.addressTextSub, { color: colors.textSecondary }]}>
-                    {addr.postal_code} {addr.city}, {addr.country}
+                    {addr.city}, {addr.country}
                   </Text>
                 </TouchableOpacity>
               ))}

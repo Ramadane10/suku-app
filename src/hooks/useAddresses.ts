@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
+import { CACHE_TTL, cacheManager } from '../utils/cacheManager';
 
 export interface Address {
   id: string;
@@ -21,14 +22,24 @@ export function useAddresses() {
   const { user } = useAuth();
 
   // Charger les adresses de l'utilisateur
-  const fetchAddresses = useCallback(async () => {
+  const fetchAddresses = useCallback(async (forceRefresh = false) => {
     if (!user) {
       setAddresses([]);
       setLoading(false);
       return;
     }
 
+    const cacheKey = `user_addresses_${user.id}`;
     try {
+      if (!forceRefresh) {
+        const cached = await cacheManager.get<Address[]>(cacheKey);
+        if (cached.data && cached.data.length > 0) {
+          setAddresses(cached.data);
+          setLoading(false);
+          if (!cached.isStale) return;
+        }
+      }
+
       setLoading(true);
       setError(null);
 
@@ -41,7 +52,9 @@ export function useAddresses() {
 
       if (fetchError) throw fetchError;
 
-      setAddresses(data || []);
+      const freshData = data || [];
+      setAddresses(freshData);
+      cacheManager.set(cacheKey, freshData, CACHE_TTL.MEDIUM);
     } catch (err: any) {
       console.error('Error fetching addresses:', err);
       setError(err.message);
@@ -88,7 +101,18 @@ export function useAddresses() {
 
       if (createError) throw createError;
 
-      await fetchAddresses();
+      // Mettre à jour l'état local immédiatement
+      if (data) {
+        setAddresses((prev) => {
+          if (data.is_default) {
+            return [data, ...prev.map((a) => ({ ...a, is_default: false }))];
+          }
+          return [data, ...prev];
+        });
+      }
+
+      if (user) await cacheManager.invalidate(`user_addresses_${user.id}`);
+      await fetchAddresses(true);
       return data;
     } catch (err: any) {
       console.error('Error creating address:', err);
@@ -132,7 +156,8 @@ export function useAddresses() {
 
       if (updateError) throw updateError;
 
-      await fetchAddresses();
+      if (user) await cacheManager.invalidate(`user_addresses_${user.id}`);
+      await fetchAddresses(true);
       return data;
     } catch (err: any) {
       console.error('Error updating address:', err);
@@ -155,7 +180,8 @@ export function useAddresses() {
 
       if (deleteError) throw deleteError;
 
-      await fetchAddresses();
+      if (user) await cacheManager.invalidate(`user_addresses_${user.id}`);
+      await fetchAddresses(true);
     } catch (err: any) {
       console.error('Error deleting address:', err);
       throw new Error(`Erreur lors de la suppression de l'adresse: ${err.message}`);
@@ -186,7 +212,8 @@ export function useAddresses() {
 
       if (updateError) throw updateError;
 
-      await fetchAddresses();
+      if (user) await cacheManager.invalidate(`user_addresses_${user.id}`);
+      await fetchAddresses(true);
       return data;
     } catch (err: any) {
       console.error('Error setting default address:', err);

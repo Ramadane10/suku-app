@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import fonts from '../../constants/fonts';
 import { useCart } from '../../context/CartContext';
@@ -86,7 +86,7 @@ const ProductCard = ({
           productId: actualProductId,
           name,
           price,
-          pricePerKilo: parseFloat(price?.replace('€/kg', '') || '0'),
+          pricePerKilo: parseFloat(String(price || '').replace(/[^0-9.-]/g, '') || '0'),
           image,
           category: props.category || 'FRUITS',
         },

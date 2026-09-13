@@ -1,5 +1,8 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
+import { useRouter } from 'expo-router';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { formatPrice } from '../utils/formatters';
+import { useCustomAlert } from './AlertContext';
 import { useAuth } from './AuthContext';
 
 const FavoritesContext = createContext();
@@ -16,6 +19,8 @@ export const FavoritesProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { showConfirm } = useCustomAlert();
+  const router = useRouter();
 
   // Charger les favoris depuis Supabase
   const loadFavorites = useCallback(async () => {
@@ -23,7 +28,7 @@ export const FavoritesProvider = ({ children }) => {
 
     try {
       setLoading(true);
-      
+
       const { data, error } = await supabase
         .from('favorites')
         .select(`
@@ -48,25 +53,29 @@ export const FavoritesProvider = ({ children }) => {
 
       // Transformer les données pour correspondre au format attendu
       const formattedFavorites = (data || []).map(fav => {
+        const prod = Array.isArray(fav.product) ? fav.product[0] : fav.product;
+        const cat = Array.isArray(prod?.category) ? prod.category[0] : prod?.category;
+
         let imageSource;
-        if (fav.product?.image_url) {
-          imageSource = { uri: fav.product.image_url };
+        if (prod?.image_url) {
+          imageSource = { uri: prod.image_url };
         } else {
-          // Image par défaut
           try {
             imageSource = require('../../assets/images/onboarding1.png');
           } catch {
             imageSource = { uri: 'https://via.placeholder.com/150' };
           }
         }
-        
+
         return {
           id: fav.id,
-          productId: fav.product_id,
-          name: fav.product?.name || 'Produit',
-          price: `${fav.product?.price_per_kg || 0}€/kg`,
+          productId: fav.product_id || prod?.id,
+          name: prod?.name || 'Produit',
+          price: formatPrice(prod?.price_per_kg || 0, true),
+          rawPrice: prod?.price_per_kg || 0,
           image: imageSource,
-          category: fav.product?.category?.name || 'FRUITS',
+          imageUrl: prod?.image_url,
+          category: cat?.name || 'BIO',
         };
       });
 
@@ -90,7 +99,13 @@ export const FavoritesProvider = ({ children }) => {
   // Ajouter un favori
   const addFavorite = useCallback(async (product) => {
     if (!user) {
-      console.warn('User must be logged in to add favorites');
+      showConfirm(
+        'Connexion requise',
+        'Veuillez vous connecter pour ajouter des articles à vos favoris.',
+        () => router.push('/login'),
+        'Se connecter',
+        'Annuler'
+      );
       return;
     }
 
@@ -174,10 +189,10 @@ export const FavoritesProvider = ({ children }) => {
   }, [favorites]);
 
   const value = useMemo(() => ({
-    favorites, 
+    favorites,
     loading,
-    addFavorite, 
-    removeFavorite, 
+    addFavorite,
+    removeFavorite,
     isFavorite,
     refreshFavorites: loadFavorites,
   }), [favorites, loading, addFavorite, removeFavorite, isFavorite]);

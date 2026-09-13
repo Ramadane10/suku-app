@@ -1,14 +1,17 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/ui/Header';
 import SideMenu from '../src/components/ui/SideMenu';
 import fonts from '../src/constants/fonts';
+import { useCustomAlert } from '../src/context/AlertContext';
+import { useAuth } from '../src/context/AuthContext';
 import { useCart } from '../src/context/CartContext';
 import { useTheme } from '../src/hooks/useTheme';
+import { formatPrice } from '../src/utils/formatters';
 
 export const options = { headerShown: false };
 
@@ -17,6 +20,8 @@ const CartScreen = () => {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const router = useRouter();
   const { colors } = useTheme();
+  const { user } = useAuth();
+  const { showConfirm } = useCustomAlert();
 
   // Mémoriser les valeurs calculées
   const cartTotal = useMemo(() => getCartTotal(), [getCartTotal, cartItems]);
@@ -52,6 +57,20 @@ const CartScreen = () => {
     );
   }
 
+  const handleOrderPress = () => {
+    if (!user) {
+      showConfirm(
+        'Connexion requise 🔒',
+        'Veuillez vous connecter ou créer un compte pour passer votre commande.',
+        () => router.push('/login'),
+        'Se connecter',
+        'Plus tard'
+      );
+      return;
+    }
+    router.push('/shipping');
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Header
@@ -78,7 +97,7 @@ const CartScreen = () => {
                 <View style={styles.itemInfo}>
                   <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
                   <Text style={[styles.itemPrice, { color: colors.textSecondary }]}>{item.price} x {item.quantity}kg</Text>
-                  <Text style={[styles.itemTotal, { color: colors.primary }]}>Total : {item.totalPrice}€</Text>
+                  <Text style={[styles.itemTotal, { color: colors.primary }]}>Total : {formatPrice(item.totalPrice)}</Text>
                   <View style={styles.quantityRow}>
                     <TouchableOpacity onPress={() => handleUpdateQuantity(item.id, item.quantity - 0.5)} style={[styles.qtyBtn, { backgroundColor: colors.secondary }]}>
                       <Text style={[styles.qtyBtnText, { color: colors.text }]}>-</Text>
@@ -97,12 +116,12 @@ const CartScreen = () => {
           </ScrollView>
           <View style={[styles.footer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={[styles.totalLabel, { color: colors.text }]}>Total :</Text>
-            <Text style={[styles.totalValue, { color: colors.primary }]}>{cartTotal}€</Text>
+            <Text style={[styles.totalValue, { color: colors.primary }]}>{formatPrice(cartTotal)}</Text>
             <TouchableOpacity style={[styles.clearBtn, { backgroundColor: colors.danger }]} onPress={clearCart}>
               <Text style={styles.clearBtnText}>Vider le panier</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={[styles.orderBtn, { backgroundColor: colors.primary }]} onPress={() => router.push('/shipping')}>
+          <TouchableOpacity style={[styles.orderBtn, { backgroundColor: colors.primary }]} onPress={handleOrderPress}>
             <Text style={styles.orderBtnText}>Commander</Text>
           </TouchableOpacity>
         </>

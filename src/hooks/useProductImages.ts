@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { CACHE_TTL, cacheManager } from '../utils/cacheManager';
 
 export interface ProductImage {
   id: string;
@@ -17,8 +18,18 @@ export function useProductImages(productId?: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchImages = useCallback(async (pid: string) => {
+  const fetchImages = useCallback(async (pid: string, forceRefresh = false) => {
+    const cacheKey = `product_images_${pid}`;
     try {
+      if (!forceRefresh) {
+        const cached = await cacheManager.get<ProductImage[]>(cacheKey);
+        if (cached.data && cached.data.length > 0) {
+          setImages(cached.data);
+          setLoading(false);
+          if (!cached.isStale) return;
+        }
+      }
+
       setLoading(true);
       setError(null);
 
@@ -38,6 +49,7 @@ export function useProductImages(productId?: string) {
         display_order: img.display_order || img.sort_order || 0,
       }));
       setImages(normalizedData);
+      cacheManager.set(cacheKey, normalizedData, CACHE_TTL.LONG);
     } catch (err: any) {
       console.error('Error fetching product images:', err);
       setError(err.message);

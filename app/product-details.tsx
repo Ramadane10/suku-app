@@ -25,6 +25,7 @@ import { useProductImages } from '../src/hooks/useProductImages';
 import { useReviews } from '../src/hooks/useReviews';
 import { useTheme } from '../src/hooks/useTheme';
 import { supabase } from '../src/lib/supabase';
+import { formatPrice } from '../src/utils/formatters';
 
 const { width } = Dimensions.get('window');
 const IMAGE_HEIGHT = width * 0.9;
@@ -46,12 +47,12 @@ const ProductDetails = () => {
   const { images: productImages, getPrimaryImage, getAllImages } = useProductImages(productId);
   const userReview = getUserReview();
   const productName = params.name as string || 'Produit';
-  const productPrice = params.price as string || '0€/kg';
+  const productPrice = params.price as string || formatPrice(0, true);
   const productCategory = params.category as string || 'FRUITS';
   const productImage = params.image as string;
 
-  // Extraire le prix par kilo du string (ex: "4.99€/kg" -> 4.99)
-  const pricePerKilo = parseFloat(productPrice.replace('€/kg', '')) || 4.99;
+  // Extraire le prix par kilo du string
+  const pricePerKilo = parseFloat(String(productPrice || '').replace(/[^0-9.-]/g, '')) || 0;
 
   const [selectedWeight, setSelectedWeight] = useState(1);
   const [productStock, setProductStock] = useState<number | null>(null);
@@ -496,11 +497,11 @@ const ProductDetails = () => {
           {/* Prix */}
           <View style={[styles.priceSection, { borderColor: colors.border }]}>
             <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>Prix au kilo</Text>
-            <Text style={[styles.pricePerKilo, { color: colors.text }]}>{pricePerKilo}€/kg</Text>
+            <Text style={[styles.pricePerKilo, { color: colors.text }]}>{formatPrice(pricePerKilo, true)}</Text>
 
             <View style={styles.totalPriceContainer}>
               <Text style={[styles.totalPriceLabel, { color: colors.textSecondary }]}>Total</Text>
-              <Text style={[styles.totalPrice, { color: colors.primary }]}>{totalPrice}€</Text>
+              <Text style={[styles.totalPrice, { color: colors.primary }]}>{formatPrice(totalPrice)}</Text>
             </View>
           </View>
 

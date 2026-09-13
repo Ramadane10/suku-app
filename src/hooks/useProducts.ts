@@ -1,6 +1,10 @@
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Category, Product } from "../types";
+import { CACHE_TTL, cacheManager } from "../utils/cacheManager";
+
+const PRODUCTS_CACHE_KEY = "products_list";
+const CATEGORIES_CACHE_KEY = "categories_list";
 
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -12,27 +16,53 @@ export function useProducts() {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (forceRefresh = false) => {
     try {
-      setLoading(true);
+      // 1. Try to load from cache first for instant render
+      if (!forceRefresh) {
+        const cachedProducts = await cacheManager.get<Product[]>(PRODUCTS_CACHE_KEY);
+        const cachedCategories = await cacheManager.get<Category[]>(CATEGORIES_CACHE_KEY);
 
-      // 1. Fetch Categories
+        if (cachedProducts.data && cachedProducts.data.length > 0) {
+          setProducts(cachedProducts.data);
+          if (cachedCategories.data) {
+            setCategories(cachedCategories.data);
+          }
+          setLoading(false);
+
+          // If cache is still fresh, skip network request entirely
+          if (!cachedProducts.isStale && !cachedCategories.isStale) {
+            return;
+          }
+        }
+      }
+
+      // If no cache or forced refresh or stale cache, perform network request
+      if (products.length === 0 && !forceRefresh) {
+        setLoading(true);
+      }
+
+      // 2. Fetch Categories from Supabase
       const { data: categoriesData, error: categoriesError } = await supabase
         .from("categories")
         .select("*")
         .order("name");
 
       if (categoriesError) throw categoriesError;
-      setCategories(categoriesData || []);
+      const freshCategories = categoriesData || [];
+      setCategories(freshCategories);
+      cacheManager.set(CATEGORIES_CACHE_KEY, freshCategories, CACHE_TTL.MEDIUM);
 
-      // 2. Fetch Products with Category info
+      // 3. Fetch Products with Category info from Supabase
       const { data: productsData, error: productsError } = await supabase
         .from("products")
         .select("*, category:categories(*)")
         .order("created_at", { ascending: false });
 
       if (productsError) throw productsError;
-      setProducts(productsData || []);
+      const freshProducts = productsData || [];
+      setProducts(freshProducts);
+      cacheManager.set(PRODUCTS_CACHE_KEY, freshProducts, CACHE_TTL.MEDIUM);
     } catch (err: any) {
       console.error("Error fetching data:", err);
       setError(err.message);

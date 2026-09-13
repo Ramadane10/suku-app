@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import { CACHE_TTL, cacheManager } from '../utils/cacheManager';
 
 export interface Order {
   id: string;
@@ -31,30 +32,55 @@ export interface OrderItem {
   product_id: string;
 }
 
+const PAGE_SIZE = 5;
+
 export function useOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
     if (user) {
-      fetchOrders();
+      fetchOrders(false, 1);
     } else {
       setOrders([]);
       setLoading(false);
     }
   }, [user]);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (forceRefresh = false, pageNum = 1) => {
     if (!user) return;
 
+    const cacheKey = `user_orders_${user.id}_p${pageNum}`;
+
     try {
-      setLoading(true);
+      if (pageNum === 1 && !forceRefresh) {
+        const cached = await cacheManager.get<Order[]>(cacheKey);
+        if (cached.data && cached.data.length > 0) {
+          setOrders(cached.data);
+          setLoading(false);
+          setHasMore(cached.data.length >= PAGE_SIZE);
+          if (!cached.isStale) return;
+        }
+      }
+
+      if (pageNum === 1 && orders.length === 0 && !forceRefresh) {
+        setLoading(true);
+      } else if (pageNum > 1) {
+        setLoadingMore(true);
+      }
+
       setError(null);
 
-      // Récupérer les commandes avec les adresses et items
-      const { data: ordersData, error: ordersError } = await supabase
+      const from = (pageNum - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      // Récupérer les commandes avec pagination
+      const { data: ordersData, error: ordersError, count } = await supabase
         .from('orders')
         .select(`
           id,
@@ -69,9 +95,10 @@ export function useOrders() {
             postal_code,
             country
           )
-        `)
+        `, { count: 'exact' })
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (ordersError) throw ordersError;
 
@@ -112,13 +139,39 @@ export function useOrders() {
         })
       );
 
-      setOrders(ordersWithItems);
+      if (pageNum === 1) {
+        setOrders(ordersWithItems);
+      } else {
+        setOrders((prev) => [...prev, ...ordersWithItems]);
+      }
+
+      setPage(pageNum);
+
+      const totalCount = count || 0;
+      const loadedCount = (pageNum - 1) * PAGE_SIZE + ordersWithItems.length;
+      setHasMore(loadedCount < totalCount && ordersWithItems.length === PAGE_SIZE);
+
+      if (pageNum === 1) {
+        cacheManager.set(cacheKey, ordersWithItems, CACHE_TTL.SHORT);
+      }
     } catch (err: any) {
       console.error('Error fetching orders:', err);
       setError(err.message);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
+  };
+
+  const loadMore = async () => {
+    if (loading || loadingMore || !hasMore) return;
+    await fetchOrders(true, page + 1);
+  };
+
+  const refresh = async () => {
+    setPage(1);
+    setHasMore(true);
+    await fetchOrders(true, 1);
   };
 
   const createOrder = async (params: {
@@ -231,11 +284,15 @@ export function useOrders() {
       }
 
       // 5. Mettre à jour le statut de la commande et du paiement
+      const isCash = params.paymentMethod === 'cash';
+      const initialStatus = 'pending';
+      const initialPaymentStatus = isCash ? 'cash_on_delivery' : 'paid';
+
       const { error: updateError } = await supabase
         .from('orders')
         .update({
-          status: 'paid',
-          payment_status: 'paid',
+          status: initialStatus,
+          payment_status: initialPaymentStatus,
         })
         .eq('id', orderData.id);
 
@@ -246,7 +303,7 @@ export function useOrders() {
       // Mettre à jour le statut du paiement
       await supabase
         .from('payments')
-        .update({ status: 'paid' })
+        .update({ status: isCash ? 'pending' : 'paid' })
         .eq('order_id', orderData.id);
 
       // Recharger les commandes
@@ -345,6 +402,9 @@ export function useOrders() {
   return {
     orders,
     loading,
+    loadingMore,
+    hasMore,
+    loadMore,
     error,
     refresh: fetchOrders,
     createOrder,

@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React, { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -15,8 +15,10 @@ import ProductCard from "../src/components/ui/ProductCard";
 import SectionTitle from "../src/components/ui/SectionTitle";
 import SideMenu from "../src/components/ui/SideMenu";
 import { useCart } from "../src/context/CartContext";
+import { useNotifications } from "../src/hooks/useNotifications";
 import { useProducts } from "../src/hooks/useProducts";
 import { useTheme } from "../src/hooks/useTheme";
+import { formatPrice } from "../src/utils/formatters";
 
 export const options = { headerShown: false };
 
@@ -69,6 +71,7 @@ const HomeScreen = () => {
   const router = useRouter();
   const { colors } = useTheme();
   const { getCartCount } = useCart();
+  const { unreadCount } = useNotifications();
   const {
     products,
     categories: dbCategories,
@@ -113,7 +116,7 @@ const HomeScreen = () => {
       params: {
         productId: product.id,
         name: product.name,
-        price: `${product.price_per_kg}€/kg`,
+        price: formatPrice(product.price_per_kg, true),
         category: product.category?.name,
         image: product.image_url,
       },
@@ -126,7 +129,7 @@ const HomeScreen = () => {
       id={product.id}
       productId={product.id}
       name={product.name}
-      price={`${product.price_per_kg}€/kg`}
+      price={formatPrice(product.price_per_kg, true)}
       image={
         product.image_url
           ? { uri: product.image_url }
@@ -145,7 +148,7 @@ const HomeScreen = () => {
       <Header
         title="Nwanma"
         onMenuPress={handleMenuPress}
-        notificationCount={0}
+        notificationCount={unreadCount}
         onNotificationPress={() => router.push("/notifications")}
         fixed={true}
         cartCount={getCartCount()}

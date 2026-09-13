@@ -87,7 +87,13 @@ const WishlistScreen = () => {
                 style={[styles.card, { backgroundColor: colors.surface }]}
                 onPress={() => router.push({
                   pathname: '/product-details',
-                  params: { productId: item.id }
+                  params: {
+                    productId: item.productId,
+                    name: item.name,
+                    price: item.price,
+                    category: typeof item.category === 'string' ? item.category : item.category?.name,
+                    image: item.imageUrl || (typeof item.image === 'object' && item.image?.uri ? item.image.uri : undefined),
+                  }
                 })}
               >
                 <Image source={item.image} style={styles.image} contentFit="cover" transition={200} />
@@ -98,7 +104,9 @@ const WishlistScreen = () => {
                   <AntDesign name="heart" size={20} color={colors.danger} />
                 </TouchableOpacity>
                 <View style={styles.info}>
-                  <Text style={[styles.category, { color: colors.primary }]}>{item.category?.name || 'BIO'}</Text>
+                  <Text style={[styles.category, { color: colors.primary }]}>
+                    {typeof item.category === 'string' ? item.category : (item.category?.name || 'BIO')}
+                  </Text>
                   <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>{item.name}</Text>
                   <View style={styles.priceRow}>
                     <Text style={[styles.price, { color: colors.primary }]}>{item.price}</Text>

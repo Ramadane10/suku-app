@@ -1,5 +1,4 @@
 import { useRouter } from 'expo-router';
-import React from 'react';
 import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/ui/Header';
@@ -12,10 +11,10 @@ const ProfileContact = () => {
   const router = useRouter();
   const { colors } = useTheme();
   const handleCall = () => {
-    Linking.openURL('tel:+2246269279451');
+    Linking.openURL('tel:+224626927951');
   };
   const handleEmail = () => {
-    Linking.openURL('mailto:contact@nwanma.com');
+    Linking.openURL('mailto:oumarkoulibalyze17@gmail.com');
   };
 
   return (
@@ -33,12 +32,12 @@ const ProfileContact = () => {
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>CONTACT</Text>
         <View style={[styles.infoRow, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
           <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Notre adresse</Text>
-          <Text style={[styles.infoValue, { color: colors.text }]}>1412 rue Steiner, Paris, 75015</Text>
+          <Text style={[styles.infoValue, { color: colors.text }]}>Cimenterie, Conakry, Guinée</Text>
         </View>
         <View style={[styles.infoRow, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
           <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>E-mail</Text>
           <TouchableOpacity onPress={handleEmail}>
-            <Text style={[styles.infoValueLink, { color: colors.primary }]}>contact@nwanma.com</Text>
+            <Text style={[styles.infoValueLink, { color: colors.primary }]}>oumarkoulibalyze17@gmail.com</Text>
           </TouchableOpacity>
         </View>
         <Text style={[styles.infoNote, { color: colors.textSecondary }]}>Notre service client est ouvert du lundi au vendredi, 10h - 17h.</Text>

@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../src/constants/colors';
@@ -11,6 +11,7 @@ import { useOrder } from '../src/context/OrderContext';
 import { useNotifications } from '../src/hooks/useNotifications';
 import { useOrders } from '../src/hooks/useOrders';
 import { useTheme } from '../src/hooks/useTheme';
+import { formatPrice } from '../src/utils/formatters';
 
 export const options = { headerShown: false };
 
@@ -67,7 +68,7 @@ const CheckoutScreen = () => {
       }));
 
       // Créer la commande dans Supabase
-      await createOrder({
+      const createdOrder = await createOrder({
         cartItems: formattedItems,
         shippingAddress: {
           id: shipping.id,
@@ -80,27 +81,57 @@ const CheckoutScreen = () => {
         totalAmount: calculateTotal(),
       });
 
-      // Envoyer une notification
-      const orderTitle = 'Commande confirmée !';
-      const orderMessage = `Votre commande de ${calculateTotal()}€ a été enregistrée avec succès.`;
+      const shortId = createdOrder?.id ? `CMD-${createdOrder.id.slice(0, 8).toUpperCase()}` : '';
+      const orderRef = shortId ? ` (#${shortId})` : '';
+      const itemsCount = formattedItems.length;
+      const formattedTotal = formatPrice(calculateTotal());
 
-      await sendLocalNotification(orderTitle, orderMessage);
-      await createNotification(orderTitle, orderMessage, 'order');
+      const orderTitle = payment === 'cash'
+        ? `Commande enregistrée !`
+        : `Commande confirmée !`;
 
-      showConfirm(
-        'Paiement réussi 🎉',
-        `Merci pour votre achat via ${paymentMethods.find(m => m.key === payment)?.label} ! Votre commande a été enregistrée.`,
-        async () => {
-          if (!isDirectPurchase) {
-            await clearCart();
-          }
-          clearDirectPurchase();
-          clearOrder();
-          router.push('/orders');
-        },
-        'Voir mes commandes',
-        'Accueil'
-      );
+      const orderMessage = payment === 'cash'
+        ? `Votre commande de ${itemsCount} article(s) d'une valeur de ${formattedTotal} a bien été prise en compte. Le règlement s'effectuera à la livraison.`
+        : `Votre commande de ${itemsCount} article(s) d'une valeur de ${formattedTotal} a été enregistrée avec succès. Merci pour votre confiance !`;
+
+      await sendLocalNotification(orderTitle, orderMessage, { orderId: createdOrder?.id });
+      await createNotification(orderTitle, orderMessage, 'order', { orderId: createdOrder?.id });
+
+      const handleOnConfirm = async () => {
+        if (!isDirectPurchase) await clearCart();
+        clearDirectPurchase();
+        clearOrder();
+        router.push('/orders');
+      };
+
+      const handleOnHome = async () => {
+        if (!isDirectPurchase) await clearCart();
+        clearDirectPurchase();
+        clearOrder();
+        router.replace('/home');
+      };
+
+      if (payment === 'cash') {
+        // Paiement à la livraison : pas de simulation, juste un message informatif
+        showConfirm(
+          'Commande enregistrée',
+          `Votre commande de ${formatPrice(calculateTotal())} a bien été passée.\n\nVous paierez à la livraison en espèces ou Mobile Money.\n\nNous vous contacterons pour confirmer la livraison.`,
+          handleOnConfirm,
+          'Voir mes commandes',
+          'Accueil',
+          handleOnHome
+        );
+      } else {
+        // Orange Money / Mobile Money : confirmation simple (sans traitement réel)
+        showConfirm(
+          'Commande enregistrée',
+          `Votre commande via ${paymentMethods.find(m => m.key === payment)?.label} a été enregistrée.\n\n`,
+          handleOnConfirm,
+          'Voir mes commandes',
+          'Accueil',
+          handleOnHome
+        );
+      }
     } catch (error: any) {
       console.error('Error processing payment:', error);
       showError(
@@ -143,7 +174,7 @@ const CheckoutScreen = () => {
                 {shipping.address || 'Aucune adresse renseignée'}
               </Text>
               <Text style={[styles.infoTextSub, { color: themeColors.textSecondary }]}>
-                {shipping.postalCode} {shipping.city} {shipping.city ? ',' : ''} {shipping.country}
+                {shipping.city}{shipping.city && shipping.country ? ', ' : ''}{shipping.country}
               </Text>
             </View>
           </View>
@@ -176,11 +207,11 @@ const CheckoutScreen = () => {
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.orderItemName, { color: themeColors.text }]}>{item.name || 'Produit'}</Text>
                   <Text style={[styles.orderItemDetails, { color: themeColors.textSecondary }]}>
-                    {(item.quantity || item.quantity_kg || 0)} kg × {(item.pricePerKilo || item.unit_price || 0)}€/kg
+                    {(item.quantity || item.quantity_kg || 0)} kg × {formatPrice(item.pricePerKilo || item.unit_price || 0, true)}
                   </Text>
                 </View>
                 <Text style={[styles.orderItemPrice, { color: themeColors.primary }]}>
-                  {(item.totalPrice || item.total_price || 0)}€
+                  {formatPrice(item.totalPrice || item.total_price || 0)}
                 </Text>
               </View>
             ))
@@ -192,7 +223,7 @@ const CheckoutScreen = () => {
 
           <View style={styles.summaryRow}>
             <Text style={[styles.summaryLabel, { color: themeColors.textSecondary }]}>Sous-total</Text>
-            <Text style={[styles.summaryValue, { color: themeColors.text }]}>{calculateTotal().toFixed(2)}€</Text>
+            <Text style={[styles.summaryValue, { color: themeColors.text }]}>{formatPrice(calculateTotal())}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={[styles.summaryLabel, { color: themeColors.textSecondary }]}>Livraison</Text>
@@ -200,7 +231,7 @@ const CheckoutScreen = () => {
           </View>
           <View style={[styles.summaryRowTotal, { borderTopColor: themeColors.border }]}>
             <Text style={[styles.totalLabel, { color: themeColors.text }]}>Total à payer</Text>
-            <Text style={[styles.totalValue, { color: themeColors.primary }]}>{calculateTotal().toFixed(2)}€</Text>
+            <Text style={[styles.totalValue, { color: themeColors.primary }]}>{formatPrice(calculateTotal())}</Text>
           </View>
         </View>
 
@@ -216,7 +247,7 @@ const CheckoutScreen = () => {
               <Text style={styles.orderBtnText}>Traitement en cours...</Text>
             </View>
           ) : (
-            <Text style={styles.orderBtnText}>Payer {calculateTotal().toFixed(2)}€</Text>
+            <Text style={styles.orderBtnText}>Payer {formatPrice(calculateTotal())}</Text>
           )}
         </TouchableOpacity>
       </ScrollView>

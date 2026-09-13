@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -95,12 +95,12 @@ export const CartProvider = ({ children }) => {
             id: item.id,
             productId: item.product?.id,
             name: item.product?.name || 'Produit',
-            price: `${pricePerKilo}€/kg`,
+            price: formatPrice(pricePerKilo, true),
             pricePerKilo: pricePerKilo,
             image: imageSource,
             category: item.product?.category?.name || 'FRUITS',
             quantity: parseFloat(item.quantity_kg),
-            totalPrice: parseFloat(item.total_price).toFixed(2),
+            totalPrice: item.total_price,
           };
         });
 
@@ -217,7 +217,7 @@ export const CartProvider = ({ children }) => {
         throw new Error(`Stock insuffisant. Il ne reste que ${available.toFixed(2)} kg disponible.`);
       }
 
-      const pricePerKilo = product.pricePerKilo || parseFloat(product.price?.replace('€/kg', '') || '0') || productsData.price_per_kg;
+      const pricePerKilo = product.pricePerKilo || parseFloat(String(product.price || '').replace(/[^0-9.-]/g, '') || '0') || productsData.price_per_kg;
       const totalPrice = pricePerKilo * quantityKg;
 
       // MISE À JOUR OPTIMISTE

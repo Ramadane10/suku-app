@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -19,6 +19,7 @@ import fonts from "../src/constants/fonts";
 import { useCart } from "../src/context/CartContext";
 import { useProducts } from "../src/hooks/useProducts";
 import { useTheme } from "../src/hooks/useTheme";
+import { formatPrice } from "../src/utils/formatters";
 
 export const options = { headerShown: false };
 
@@ -35,6 +36,7 @@ export default function BoutiqueScreen() {
   );
   const [showFilters, setShowFilters] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [displayLimit, setDisplayLimit] = useState(8);
 
   const handleMenuPress = useCallback(() => {
     setIsMenuVisible(true);
@@ -82,6 +84,14 @@ export default function BoutiqueScreen() {
 
     return filtered;
   }, [searchQuery, selectedCategory, sortBy, products]);
+
+  const displayedProducts = useMemo(() => {
+    return filteredProducts.slice(0, displayLimit);
+  }, [filteredProducts, displayLimit]);
+
+  const handleLoadMore = () => {
+    setDisplayLimit((prev) => prev + 8);
+  };
 
   if (loading) {
     return (
@@ -257,7 +267,7 @@ export default function BoutiqueScreen() {
         )}
       </View>
       <FlatList
-        data={filteredProducts}
+        data={displayedProducts}
         keyExtractor={(item) => item.id}
         numColumns={2}
         columnWrapperStyle={styles.column}
@@ -269,7 +279,7 @@ export default function BoutiqueScreen() {
               id={item.id}
               productId={item.id}
               name={item.name}
-              price={`${item.price_per_kg}€/kg`}
+              price={formatPrice(item.price_per_kg, true)}
               image={
                 item.image_url
                   ? { uri: item.image_url }
@@ -284,7 +294,7 @@ export default function BoutiqueScreen() {
                   params: {
                     productId: item.id,
                     name: item.name,
-                    price: `${item.price_per_kg}€/kg`,
+                    price: formatPrice(item.price_per_kg, true),
                     category: item.category?.name,
                     image: item.image_url,
                   },
@@ -293,6 +303,21 @@ export default function BoutiqueScreen() {
             />
           </View>
         )}
+        ListFooterComponent={
+          displayedProducts.length < filteredProducts.length ? (
+            <TouchableOpacity
+              style={[
+                styles.loadMoreButton,
+                { backgroundColor: colors.surface, borderColor: colors.primary },
+              ]}
+              onPress={handleLoadMore}
+            >
+              <Text style={[styles.loadMoreText, { color: colors.primary }]}>
+                Voir plus de produits ({filteredProducts.length - displayedProducts.length} restants)
+              </Text>
+            </TouchableOpacity>
+          ) : null
+        }
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
@@ -412,7 +437,20 @@ const styles = StyleSheet.create({
   },
   sortButtonText: {
     fontFamily: fonts.medium,
+    fontSize: 13,
+  },
+  loadMoreButton: {
+    marginTop: 16,
+    marginBottom: 20,
+    marginHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadMoreText: {
+    fontFamily: fonts.bold,
     fontSize: 14,
-    textAlign: "center",
   },
 });

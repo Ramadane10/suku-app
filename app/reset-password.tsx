@@ -1,18 +1,20 @@
 import { FontAwesome } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../src/components/ui/Button';
 import InputField from '../src/components/ui/InputField';
 import fonts from '../src/constants/fonts';
+import { useCustomAlert } from '../src/context/AlertContext';
 import { useTheme } from '../src/hooks/useTheme';
 import { supabase } from '../src/lib/supabase';
 
 export default function ResetPasswordScreen() {
     const router = useRouter();
     const { colors } = useTheme();
+    const { showError, showConfirm } = useCustomAlert();
     const url = Linking.useURL();
 
     const [password, setPassword] = useState('');
@@ -41,7 +43,7 @@ export default function ResetPasswordScreen() {
                         if (!error) {
                             setSessionActive(true);
                         } else {
-                            Alert.alert('Erreur', 'Lien invalide ou expiré.');
+                            showError('Erreur', 'Lien invalide ou expiré.');
                         }
                     }
                 }
@@ -52,12 +54,12 @@ export default function ResetPasswordScreen() {
 
     const handleUpdatePassword = async () => {
         if (password !== confirmPassword) {
-            Alert.alert('Erreur', 'Les mots de passe ne correspondent pas.');
+            showError('Erreur', 'Les mots de passe ne correspondent pas.');
             return;
         }
 
         if (password.length < 6) {
-            Alert.alert('Erreur', 'Le mot de passe doit contenir au moins 6 caractères.');
+            showError('Erreur', 'Le mot de passe doit contenir au moins 6 caractères.');
             return;
         }
 
@@ -68,14 +70,18 @@ export default function ResetPasswordScreen() {
             });
 
             if (error) {
-                Alert.alert('Erreur', error.message);
+                showError('Erreur', error.message);
             } else {
-                Alert.alert('Succès', 'Votre mot de passe a été mis à jour.', [
-                    { text: 'Se connecter', onPress: () => router.replace('/login') }
-                ]);
+                showConfirm(
+                    'Succès',
+                    'Votre mot de passe a été mis à jour avec succès.',
+                    () => router.replace('/login'),
+                    'Se connecter',
+                    'Fermer'
+                );
             }
         } catch (err) {
-            Alert.alert('Erreur', 'Une erreur inattendue est survenue.');
+            showError('Erreur', 'Une erreur inattendue est survenue.');
             console.error(err);
         } finally {
             setLoading(false);

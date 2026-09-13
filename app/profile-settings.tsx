@@ -1,13 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/ui/Header';
 import fonts from '../src/constants/fonts';
+import { useCustomAlert } from '../src/context/AlertContext';
 import { useAuth } from '../src/context/AuthContext';
 import { useTheme } from '../src/hooks/useTheme';
 import { useUserSettings } from '../src/hooks/useUserSettings';
+import { supabase } from '../src/lib/supabase';
 
 export const options = { headerShown: false };
 
@@ -16,6 +18,7 @@ const ProfileSettings = () => {
   const { colors, theme, toggleTheme } = useTheme();
   const { user, signOut } = useAuth();
   const { settings, loading, updateSetting } = useUserSettings();
+  const { showConfirm, showError, showSuccess } = useCustomAlert();
 
   const [faceId, setFaceId] = useState(false);
   const [orderUpdates, setOrderUpdates] = useState(false);
@@ -39,8 +42,8 @@ const ProfileSettings = () => {
     try {
       await updateSetting('face_id_enabled', value);
     } catch (error: any) {
-      Alert.alert('Erreur', 'Impossible de mettre à jour ce paramètre.');
-      setFaceId(!value); // Revenir à l'état précédent
+      showError('Erreur', 'Impossible de mettre à jour ce paramètre.');
+      setFaceId(!value);
     }
   };
 
@@ -49,7 +52,7 @@ const ProfileSettings = () => {
     try {
       await updateSetting('order_updates', value);
     } catch (error: any) {
-      Alert.alert('Erreur', 'Impossible de mettre à jour ce paramètre.');
+      showError('Erreur', 'Impossible de mettre à jour ce paramètre.');
       setOrderUpdates(!value);
     }
   };
@@ -59,7 +62,7 @@ const ProfileSettings = () => {
     try {
       await updateSetting('new_arrivals', value);
     } catch (error: any) {
-      Alert.alert('Erreur', 'Impossible de mettre à jour ce paramètre.');
+      showError('Erreur', 'Impossible de mettre à jour ce paramètre.');
       setNewArrivals(!value);
     }
   };
@@ -69,7 +72,7 @@ const ProfileSettings = () => {
     try {
       await updateSetting('promotions', value);
     } catch (error: any) {
-      Alert.alert('Erreur', 'Impossible de mettre à jour ce paramètre.');
+      showError('Erreur', 'Impossible de mettre à jour ce paramètre.');
       setPromotions(!value);
     }
   };
@@ -79,30 +82,50 @@ const ProfileSettings = () => {
     try {
       await updateSetting('sales_alerts', value);
     } catch (error: any) {
-      Alert.alert('Erreur', 'Impossible de mettre à jour ce paramètre.');
+      showError('Erreur', 'Impossible de mettre à jour ce paramètre.');
       setSalesAlerts(!value);
     }
   };
 
   const handleLogout = async () => {
-    Alert.alert(
+    showConfirm(
       'Déconnexion',
       'Êtes-vous sûr de vouloir vous déconnecter ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Déconnexion',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await signOut();
-              router.replace('/login');
-            } catch (error: any) {
-              Alert.alert('Erreur', 'Impossible de se déconnecter.');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await signOut();
+          router.replace('/login');
+        } catch (error: any) {
+          showError('Erreur', 'Impossible de se déconnecter.');
+        }
+      },
+      'Déconnexion',
+      'Annuler'
+    );
+  };
+
+  const handleDeleteAccount = () => {
+    showConfirm(
+      '⚠️ Supprimer le compte',
+      'Cette action est irréversible. Toutes vos données (commandes, adresses, profil) seront définitivement supprimées.\n\nÊtes-vous absolument sûr ?',
+      async () => {
+        try {
+          if (!user) return;
+          // Supprimer le compte via Supabase Auth
+          const { error } = await supabase.auth.admin?.deleteUser(user.id) ||
+            await supabase.rpc('delete_user_account');
+          if (error) throw error;
+          await signOut();
+          router.replace('/login');
+        } catch (error: any) {
+          showError(
+            'Suppression impossible',
+            'La suppression du compte a échoué. Veuillez contacter le support à contact@nwanma.com.'
+          );
+        }
+      },
+      'Supprimer définitivement',
+      'Annuler'
     );
   };
 
@@ -202,6 +225,13 @@ const ProfileSettings = () => {
         >
           <Text style={[styles.logoutText, { color: colors.text }]}>Se déconnecter</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.deleteBtn, { backgroundColor: colors.danger + '15', borderColor: colors.danger }]}
+          onPress={handleDeleteAccount}
+        >
+          <Ionicons name="trash-outline" size={18} color={colors.danger} style={{ marginRight: 8 }} />
+          <Text style={[styles.deleteText, { color: colors.danger }]}>Supprimer mon compte</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -269,6 +299,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoutText: {
+    fontFamily: fonts.bold,
+    fontSize: 16,
+  },
+  deleteBtn: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteText: {
     fontFamily: fonts.bold,
     fontSize: 16,
   },

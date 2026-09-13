@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import colors from '../src/constants/colors';
@@ -23,7 +23,7 @@ const paymentMethods = [
   {
     key: 'mobile',
     label: 'Mobile Money',
-    subtitle: 'MTN Mobile Money, Moov Money ou Wave',
+    subtitle: 'MTN Mobile Money',
     iconName: 'wallet-outline' as const,
     iconColor: '#00875A',
     iconBg: '#E6F4EA',

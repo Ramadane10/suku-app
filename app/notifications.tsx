@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../src/components/ui/Header';
@@ -64,22 +64,58 @@ export default function NotificationsScreen() {
     };
 
     const formatTime = (dateString: string) => {
+        if (!dateString) return '';
         const now = new Date();
         const past = new Date(dateString);
-        const diffInMs = now.getTime() - past.getTime();
-        const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+        const diffInMs = Math.max(0, now.getTime() - past.getTime());
+        const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
 
-        if (diffInHours < 1) return 'À l\'instant';
+        if (diffInMinutes < 1) return "À l'instant";
+        if (diffInMinutes < 60) return `Il y a ${diffInMinutes} min`;
+
+        const diffInHours = Math.floor(diffInMinutes / 60);
         if (diffInHours < 24) return `Il y a ${diffInHours}h`;
+
         const diffInDays = Math.floor(diffInHours / 24);
-        return `Il y a ${diffInDays}j`;
+        if (diffInDays < 30) return `Il y a ${diffInDays}j`;
+
+        return past.toLocaleDateString('fr-FR');
     };
 
     const getIconName = (type: string) => {
         switch (type) {
-            case 'order': return 'bicycle-outline';
+            case 'order': return 'receipt-outline';
             case 'promo': return 'pricetag-outline';
             default: return 'notifications-outline';
+        }
+    };
+
+    const handleNotificationPress = async (item: any) => {
+        await markAsRead(item.id);
+        // Navigation contextuelle selon le type
+        if (item.type === 'order') {
+            let targetOrderId = null;
+            if (item.data) {
+                try {
+                    const parsed = typeof item.data === 'string' ? JSON.parse(item.data) : item.data;
+                    targetOrderId = parsed?.orderId || parsed?.order_id;
+                } catch (e) {
+                    console.error('Error parsing notification data:', e);
+                }
+            }
+
+            if (!targetOrderId && item.order_id) {
+                targetOrderId = item.order_id;
+            }
+
+            if (targetOrderId) {
+                router.push({ pathname: '/orders', params: { orderId: targetOrderId } });
+            } else {
+                // Fallback: ouvrir la commande la plus récente
+                router.push({ pathname: '/orders', params: { orderId: 'latest' } });
+            }
+        } else if (item.type === 'promo') {
+            router.push('/boutique');
         }
     };
 
@@ -89,7 +125,7 @@ export default function NotificationsScreen() {
                 styles.notificationItem,
                 { backgroundColor: item.is_read ? colors.surface : colors.primary + '10', borderBottomColor: colors.border }
             ]}
-            onPress={() => markAsRead(item.id)}
+            onPress={() => handleNotificationPress(item)}
         >
             <View style={[styles.iconContainer, { backgroundColor: colors.light }]}>
                 <Ionicons name={getIconName(item.type)} size={24} color={colors.primary} />
@@ -106,6 +142,37 @@ export default function NotificationsScreen() {
             {!item.is_read && <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />}
         </TouchableOpacity>
     );
+
+    if (!user) {
+        return (
+            <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+                <Header
+                    title="Notifications"
+                    showMenu={false}
+                    showBack={true}
+                    onBackPress={() => router.back()}
+                    showNotifications={false}
+                    cartCount={getCartCount()}
+                />
+                <View style={styles.centerContainer}>
+                    <Ionicons name="notifications-outline" size={80} color={colors.grey} />
+                    <Text style={[styles.title, { color: colors.text, marginTop: 16, textAlign: 'center' }]}>
+                        Connexion requise
+                    </Text>
+                    <Text style={[styles.message, { color: colors.textSecondary, textAlign: 'center', marginTop: 8, marginHorizontal: 32 }]}>
+                        Connectez-vous pour consulter vos notifications et alertes de commandes.
+                    </Text>
+                    <TouchableOpacity
+                        style={[styles.guestBtn, { backgroundColor: colors.primary, marginTop: 24 }]}
+                        onPress={() => router.push('/login')}
+                    >
+                        <Ionicons name="log-in-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+                        <Text style={styles.guestBtnText}>Se connecter</Text>
+                    </TouchableOpacity>
+                </View>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -205,5 +272,20 @@ const styles = StyleSheet.create({
         fontFamily: fonts.medium,
         fontSize: 16,
         marginTop: 16,
+    },
+    guestBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 14,
+        paddingHorizontal: 28,
+        borderRadius: 14,
+        width: '100%',
+        maxWidth: 280,
+    },
+    guestBtnText: {
+        fontFamily: fonts.bold,
+        fontSize: 16,
+        color: '#FFFFFF',
     },
 });

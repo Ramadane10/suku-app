@@ -3,6 +3,7 @@ import * as Linking from 'expo-linking';
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { supabase } from '../lib/supabase';
+import { cacheManager } from '../utils/cacheManager';
 
 type AuthContextType = {
     session: Session | null;
@@ -137,6 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const signOut = async () => {
+        await cacheManager.invalidatePrefix('user_');
         await supabase.auth.signOut();
     };
 

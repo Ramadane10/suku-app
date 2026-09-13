@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import fonts from '../src/constants/fonts';
@@ -18,18 +18,20 @@ export default function AddressesScreen() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchAddresses(true);
+    setRefreshing(false);
+  }, [fetchAddresses]);
+
   // Refresh the list every time this screen comes into focus (e.g. navigating back from address-form)
   useFocusEffect(
     useCallback(() => {
-      fetchAddresses();
-    }, [fetchAddresses])
+      if (user) {
+        fetchAddresses(true);
+      }
+    }, [fetchAddresses, user])
   );
-
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await fetchAddresses();
-    setRefreshing(false);
-  }, [fetchAddresses]);
 
   const handleDelete = (addressId: string) => {
     showConfirm(
@@ -63,21 +65,29 @@ export default function AddressesScreen() {
   if (!user) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={[styles.iconButton, { backgroundColor: colors.light }]}
+            activeOpacity={0.3}
+          >
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Mes adresses</Text>
-          <View style={{ width: 44 }} />
+          <Text style={[styles.title, { color: colors.text }]}>Mes adresses</Text>
+          <View style={{ width: 40 }} />
         </View>
         <View style={styles.emptyContainer}>
-          <Ionicons name="location-outline" size={64} color={colors.grey} />
-          <Text style={[styles.emptyText, { color: colors.text }]}>Connectez-vous pour gérer vos adresses</Text>
+          <Ionicons name="location-outline" size={80} color={colors.grey} />
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>Connexion requise</Text>
+          <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+            Connectez-vous pour enregistrer et gérer vos adresses de livraison.
+          </Text>
           <TouchableOpacity
-            style={[styles.loginBtn, { backgroundColor: colors.primary }]}
+            style={[styles.guestBtn, { backgroundColor: colors.primary }]}
             onPress={() => router.push('/login')}
           >
-            <Text style={styles.loginBtnText}>Se connecter</Text>
+            <Ionicons name="log-in-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={styles.guestBtnText}>Se connecter</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -147,7 +157,7 @@ export default function AddressesScreen() {
                   )}
                   <Text style={[styles.addressLine, { color: colors.text }]}>{address.address_line}</Text>
                   <Text style={[styles.addressDetails, { color: colors.textSecondary }]}>
-                    {address.postal_code} {address.city}, {address.country}
+                    {address.city}, {address.country}
                   </Text>
                 </View>
                 <View style={styles.addressActions}>
@@ -305,6 +315,48 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  emptyTitle: {
+    fontFamily: fonts.bold,
+    fontSize: 20,
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontFamily: fonts.regular,
+    fontSize: 15,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  guestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 14,
+    width: '100%',
+    maxWidth: 280,
+  },
+  guestBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: 16,
+    color: '#FFFFFF',
   },
 });
 

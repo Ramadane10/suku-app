@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
+import { CACHE_TTL, cacheManager } from '../utils/cacheManager';
 
 export interface Review {
   id: string;
@@ -29,8 +30,19 @@ export function useReviews(productId?: string) {
   const { user } = useAuth();
 
   // Charger les avis d'un produit
-  const fetchReviews = useCallback(async (pid: string) => {
+  const fetchReviews = useCallback(async (pid: string, forceRefresh = false) => {
+    const cacheKey = `product_reviews_${pid}`;
     try {
+      if (!forceRefresh) {
+        const cached = await cacheManager.get<{ reviews: Review[]; stats: ProductReviewStats | null }>(cacheKey);
+        if (cached.data) {
+          setReviews(cached.data.reviews);
+          setStats(cached.data.stats);
+          setLoading(false);
+          if (!cached.isStale) return;
+        }
+      }
+
       setLoading(true);
       setError(null);
 
@@ -62,28 +74,37 @@ export function useReviews(productId?: string) {
       setReviews(reviewsWithProfiles);
 
       // Calculer les statistiques
+      let calculatedStats: ProductReviewStats = {
+        averageRating: 0,
+        totalReviews: 0,
+        ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+      };
+
       if (reviewsWithProfiles && reviewsWithProfiles.length > 0) {
         const total = reviewsWithProfiles.length;
         const sum = reviewsWithProfiles.reduce((acc, r) => acc + r.rating, 0);
         const average = sum / total;
-        
+
         const distribution: { [key: number]: number } = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
         reviewsWithProfiles.forEach(r => {
           distribution[r.rating] = (distribution[r.rating] || 0) + 1;
         });
 
-        setStats({
+        calculatedStats = {
           averageRating: Math.round(average * 10) / 10,
           totalReviews: total,
           ratingDistribution: distribution,
-        });
-      } else {
-        setStats({
-          averageRating: 0,
-          totalReviews: 0,
-          ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
-        });
+        };
       }
+
+      setStats(calculatedStats);
+
+      // Cache the reviews & stats
+      cacheManager.set(
+        cacheKey,
+        { reviews: reviewsWithProfiles, stats: calculatedStats },
+        CACHE_TTL.SHORT
+      );
     } catch (err: any) {
       console.error('Error fetching reviews:', err);
       setError(err.message);
@@ -130,8 +151,8 @@ export function useReviews(productId?: string) {
           .single();
 
         if (updateError) throw updateError;
-        
-        await fetchReviews(pid);
+        await cacheManager.invalidate(`product_reviews_${pid}`);
+        await fetchReviews(pid, true);
         return data;
       } else {
         // Créer un nouvel avis
@@ -147,8 +168,8 @@ export function useReviews(productId?: string) {
           .single();
 
         if (createError) throw createError;
-        
-        await fetchReviews(pid);
+        await cacheManager.invalidate(`product_reviews_${pid}`);
+        await fetchReviews(pid, true);
         return data;
       }
     } catch (err: any) {
@@ -172,7 +193,8 @@ export function useReviews(productId?: string) {
 
       if (deleteError) throw deleteError;
 
-      await fetchReviews(pid);
+      await cacheManager.invalidate(`product_reviews_${pid}`);
+      await fetchReviews(pid, true);
     } catch (err: any) {
       console.error('Error deleting review:', err);
       throw new Error(`Erreur lors de la suppression de l'avis: ${err.message}`);

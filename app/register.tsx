@@ -1,18 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../src/components/ui/Button';
 import InputField from '../src/components/ui/InputField';
 import fonts from '../src/constants/fonts';
+import { useCustomAlert } from '../src/context/AlertContext';
 import { useAuth } from '../src/context/AuthContext';
 import { useTheme } from '../src/hooks/useTheme';
 
 export default function RegisterScreen() {
   const { isDark, colors } = useTheme();
   const { signUp } = useAuth();
+  const { showError } = useCustomAlert();
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
@@ -25,20 +27,12 @@ export default function RegisterScreen() {
 
   const handleSignUp = async () => {
     if (!email || !password || !confirmPassword || !fullName) {
-      if (Platform.OS === 'web') {
-        window.alert('Erreur\nVeuillez remplir tous les champs obligatoires.');
-      } else {
-        alert('Veuillez remplir tous les champs obligatoires.');
-      }
+      showError('Champs requis', 'Veuillez remplir tous les champs obligatoires.');
       return;
     }
 
     if (password !== confirmPassword) {
-      if (Platform.OS === 'web') {
-        window.alert('Erreur\nLes mots de passe ne correspondent pas.');
-      } else {
-        alert('Les mots de passe ne correspondent pas.');
-      }
+      showError('Erreur mot de passe', 'Les mots de passe ne correspondent pas.');
       return;
     }
 
@@ -60,11 +54,7 @@ export default function RegisterScreen() {
           message = 'Le mot de passe doit contenir au moins 6 caractères.';
         }
 
-        if (Platform.OS === 'web') {
-          window.alert(title + '\n' + message);
-        } else {
-          alert(title + ': ' + message);
-        }
+        showError(title, message);
       } else {
         router.replace('/signup-success');
       }
@@ -111,7 +101,7 @@ export default function RegisterScreen() {
 
               <Text style={[styles.label, { color: colors.text }]}>Nom complet</Text>
               <InputField
-                placeholder="Ex: Ramadane Barry"
+                placeholder="Mamadou Ramadane Barry"
                 value={fullName}
                 onChangeText={setFullName}
                 autoCapitalize="words"
@@ -120,7 +110,7 @@ export default function RegisterScreen() {
 
               <Text style={[styles.label, { color: colors.text }]}>Numéro de téléphone</Text>
               <InputField
-                placeholder="Ex: +224 626 92 79 51"
+                placeholder="626 92 79 51"
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
                 keyboardType="phone-pad"
@@ -147,7 +137,7 @@ export default function RegisterScreen() {
 
               <Text style={[styles.label, { color: colors.text }]}>Adresse email</Text>
               <InputField
-                placeholder="votre@email.com"
+                placeholder="barrymamadouramadane326@gmail.com"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"

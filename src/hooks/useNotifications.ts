@@ -10,10 +10,49 @@ import { useUserSettings } from './useUserSettings';
 export function useNotifications() {
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
   const [notification, setNotification] = useState<any | null>(null);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
   const notificationListener = useRef<any>(null);
   const responseListener = useRef<any>(null);
   const { user } = useAuth();
   const { settings } = useUserSettings();
+
+  useEffect(() => {
+    if (!user) {
+      setUnreadCount(0);
+      return;
+    }
+
+    const fetchUnreadCount = async () => {
+      try {
+        const { count, error } = await supabase
+          .from('notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('is_read', false);
+
+        if (!error && count !== null) {
+          setUnreadCount(count);
+        }
+      } catch (err) {
+        console.error('Error fetching unread notification count:', err);
+      }
+    };
+
+    fetchUnreadCount();
+
+    const subscription = supabase
+      .channel('notifications_unread_count')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+        () => fetchUnreadCount()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [user]);
 
   useEffect(() => {
     // Ne pas charger les notifications dans Expo Go pour éviter les erreurs SDK 53+
@@ -122,6 +161,7 @@ export function useNotifications() {
   return {
     expoPushToken,
     notification,
+    unreadCount,
     sendLocalNotification,
     scheduleNotification,
     shouldSendNotification,
@@ -167,4 +207,6 @@ async function registerForPushNotificationsAsync() {
     return null;
   }
 }
+
+export default useNotifications;
 

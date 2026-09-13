@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     KeyboardAvoidingView,
     Platform,
@@ -116,7 +116,7 @@ export default function AddressFormScreen() {
                 <ScrollView contentContainerStyle={styles.scrollContent}>
                     <Text style={[styles.label, { color: colors.text }]}>Adresse</Text>
                     <InputField
-                        placeholder="Ex: 123 Avenue de la République"
+                        placeholder="Kipé, Ratoma, Conakry"
                         value={addressLine}
                         onChangeText={setAddressLine}
                         leftIcon={<Ionicons name="location-outline" size={20} color={colors.primary} />}
@@ -124,7 +124,7 @@ export default function AddressFormScreen() {
 
                     <Text style={[styles.label, { color: colors.text }]}>Ville</Text>
                     <InputField
-                        placeholder="Ex: Paris, Conakry..."
+                        placeholder="Conakry, Kindia, Labé, Kankan..."
                         value={city}
                         onChangeText={setCity}
                         leftIcon={<Ionicons name="business-outline" size={20} color={colors.primary} />}
@@ -132,7 +132,7 @@ export default function AddressFormScreen() {
 
                     <Text style={[styles.label, { color: colors.text }]}>Pays</Text>
                     <InputField
-                        placeholder="Ex: France, Guinée..."
+                        placeholder="Guinée"
                         value={country}
                         onChangeText={setCountry}
                         leftIcon={<Ionicons name="earth-outline" size={20} color={colors.primary} />}
