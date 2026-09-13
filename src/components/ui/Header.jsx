@@ -21,7 +21,7 @@ import { useTheme } from '../../hooks/useTheme';
  * @param {function} [props.onCartPress]
  * @param {boolean} [props.showCart]
  */
-const Header = ({
+const Header = React.memo(({
   title,
   onMenuPress,
   notificationCount = 0,
@@ -102,7 +102,7 @@ const Header = ({
       </View>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

@@ -1,15 +1,17 @@
 import { AntDesign, Feather, FontAwesome } from '@expo/vector-icons';
 import { usePathname, useRouter } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../hooks/useTheme';
 
-const BottomTabBar = () => {
+const BottomTabBar = React.memo(() => {
   const router = useRouter();
   const pathname = usePathname();
   const { colors } = useTheme();
-  const { getCartCount } = useCart();
+  const { cartItems } = useCart();
+
+  const cartCount = useMemo(() => cartItems.length, [cartItems]);
 
   const tabs = useMemo(() => [
     {
@@ -46,7 +48,9 @@ const BottomTabBar = () => {
     return tabs.find(tab => tab.matchers.some(matcher => pathname.startsWith(matcher)))?.key || 'home';
   }, [pathname, tabs]);
 
-  const cartCount = getCartCount();
+  const handlePress = useCallback((route: string) => {
+    router.push(route);
+  }, [router]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
@@ -56,7 +60,7 @@ const BottomTabBar = () => {
           <TouchableOpacity
             key={tab.key}
             style={styles.tabItem}
-            onPress={() => router.push(tab.route)}
+            onPress={() => handlePress(tab.route)}
           >
             <View style={styles.iconContainer}>
               {tab.icon(isFocused)}
@@ -74,7 +78,7 @@ const BottomTabBar = () => {
       })}
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -127,4 +131,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BottomTabBar;
+export default BottomTabBar;

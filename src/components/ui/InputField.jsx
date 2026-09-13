@@ -1,20 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import fonts from '../../constants/fonts';
 import { useTheme } from '../../hooks/useTheme';
 
-/**
- * @param {object} props
- * @param {string} [props.placeholder]
- * @param {string} [props.value]
- * @param {function} [props.onChangeText]
- * @param {boolean} [props.secureTextEntry]
- * @param {import('react-native').KeyboardTypeOptions} [props.keyboardType]
- * @param {'none' | 'sentences' | 'words' | 'characters'} [props.autoCapitalize]
- * @param {React.ReactNode} [props.leftIcon]
- * @param {React.ReactNode} [props.rightIcon]  — custom right icon (overrides built-in eye toggle)
- * @param {import('react-native').ViewStyle} [props.style]
- */
 const InputField = ({
   placeholder,
   value,
@@ -25,8 +13,12 @@ const InputField = ({
   leftIcon = null,
   rightIcon = null,
   style,
+  onFocus,
+  onBlur,
+  ...props
 }) => {
   const { colors } = useTheme();
+  const [isFocused, setIsFocused] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -35,9 +27,13 @@ const InputField = ({
         style={[
           styles.input,
           {
-            borderColor: colors.border,
+            borderColor: isFocused ? colors.primary : colors.border,
+            borderWidth: isFocused ? 1.5 : 1,
             color: colors.text,
             backgroundColor: colors.surface,
+            // @ts-ignore
+            outlineStyle: 'none',
+            outlineWidth: 0,
           },
           leftIcon ? styles.inputWithIcon : null,
           (rightIcon || secureTextEntry) ? styles.inputWithRightIcon : null,
@@ -50,6 +46,15 @@ const InputField = ({
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
         placeholderTextColor={colors.textSecondary}
+        onFocus={(e) => {
+          setIsFocused(true);
+          if (onFocus) onFocus(e);
+        }}
+        onBlur={(e) => {
+          setIsFocused(false);
+          if (onBlur) onBlur(e);
+        }}
+        {...props}
       />
       {rightIcon ? (
         <View style={styles.rightIconContainer}>{rightIcon}</View>

@@ -1,7 +1,7 @@
 import { Feather, FontAwesome, Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -29,6 +29,9 @@ const ProfileEdit = () => {
   const { user } = useAuth();
   const { profile, loading, updateProfile } = useProfile();
   const { showError, showSuccess } = useCustomAlert();
+
+  const scrollRef = useRef<ScrollView>(null);
+  const phoneFieldRef = useRef<View>(null);
 
   // Mode d'édition (par défaut verrouillé en consultation seule)
   const [isEditing, setIsEditing] = useState(false);
@@ -109,7 +112,8 @@ const ProfileEdit = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <Header
           title={isEditing ? "Éditer le profil" : "Détails du compte"}
@@ -126,7 +130,12 @@ const ProfileEdit = () => {
           }}
         />
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           {loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={colors.primary} />
@@ -222,7 +231,10 @@ const ProfileEdit = () => {
               </View>
 
               {/* Champ Téléphone */}
-              <View style={styles.fieldGroup}>
+              <View
+                ref={phoneFieldRef}
+                style={styles.fieldGroup}
+              >
                 <Text style={[
                   styles.fieldLabel,
                   { color: isEditing && focusedField === 'phone' ? colors.primary : colors.text }
@@ -251,7 +263,15 @@ const ProfileEdit = () => {
                       placeholderTextColor={colors.textSecondary + '80'}
                       value={phone}
                       onChangeText={setPhone}
-                      onFocus={() => setFocusedField('phone')}
+                      onFocus={() => {
+                        setFocusedField('phone');
+                        // Scroll automatiquement pour que le champ soit visible au-dessus du clavier
+                        setTimeout(() => {
+                          phoneFieldRef.current?.measureInWindow((x, y, width, height) => {
+                            scrollRef.current?.scrollTo({ y: y - 120, animated: true });
+                          });
+                        }, 100);
+                      }}
                       onBlur={() => setFocusedField(null)}
                       keyboardType="phone-pad"
                       underlineColorAndroid="transparent"
@@ -306,7 +326,7 @@ const ProfileEdit = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 60, paddingTop: 12 },
+  scrollContent: { paddingHorizontal: 20, paddingBottom: 180, paddingTop: 12 },
   loadingContainer: {
     padding: 40,
     alignItems: 'center',

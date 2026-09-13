@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -25,11 +25,19 @@ export const options = { headerShown: false };
 
 export default function BoutiqueScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ q?: string }>();
   const { colors } = useTheme();
   const { products, loading, getProductsByCategory, categories } =
     useProducts();
   const { getCartCount } = useCart();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(params.q || "");
+
+  useEffect(() => {
+    if (params.q !== undefined) {
+      setSearchQuery(params.q);
+    }
+  }, [params.q]);
+
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"name" | "price_asc" | "price_desc">(
     "name",
@@ -89,9 +97,42 @@ export default function BoutiqueScreen() {
     return filteredProducts.slice(0, displayLimit);
   }, [filteredProducts, displayLimit]);
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     setDisplayLimit((prev) => prev + 8);
-  };
+  }, []);
+
+  const handleProductPress = useCallback((item: any) => {
+    router.push({
+      pathname: "/product-details",
+      params: {
+        productId: item.id,
+        name: item.name,
+        price: formatPrice(item.price_per_kg, true),
+        category: item.category?.name,
+        image: item.image_url,
+      },
+    });
+  }, [router]);
+
+  const renderProductItem = useCallback(({ item }: { item: any }) => (
+    <View style={styles.gridItem}>
+      <ProductCard
+        id={item.id}
+        productId={item.id}
+        name={item.name}
+        price={formatPrice(item.price_per_kg, true)}
+        image={
+          item.image_url
+            ? { uri: item.image_url }
+            : require("../assets/images/onboarding1.png")
+        }
+        category={item.category?.name || "FRUITS"}
+        stockQuantity={item.stock_quantity}
+        style={styles.card}
+        onPress={() => handleProductPress(item)}
+      />
+    </View>
+  ), [handleProductPress]);
 
   if (loading) {
     return (
@@ -273,36 +314,11 @@ export default function BoutiqueScreen() {
         columnWrapperStyle={styles.column}
         contentContainerStyle={[styles.listContent, { paddingBottom: 80 }]}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <View style={styles.gridItem}>
-            <ProductCard
-              id={item.id}
-              productId={item.id}
-              name={item.name}
-              price={formatPrice(item.price_per_kg, true)}
-              image={
-                item.image_url
-                  ? { uri: item.image_url }
-                  : require("../assets/images/onboarding1.png")
-              }
-              category={item.category?.name || "FRUITS"}
-              stockQuantity={item.stock_quantity}
-              style={styles.card}
-              onPress={() =>
-                router.push({
-                  pathname: "/product-details",
-                  params: {
-                    productId: item.id,
-                    name: item.name,
-                    price: formatPrice(item.price_per_kg, true),
-                    category: item.category?.name,
-                    image: item.image_url,
-                  },
-                })
-              }
-            />
-          </View>
-        )}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={5}
+        removeClippedSubviews={true}
+        renderItem={renderProductItem}
         ListFooterComponent={
           displayedProducts.length < filteredProducts.length ? (
             <TouchableOpacity
@@ -340,7 +356,8 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     paddingHorizontal: 16,
-    paddingBottom: 8,
+    paddingTop: 16,
+    paddingBottom: 10,
   },
   searchInput: {
     flexDirection: "row",

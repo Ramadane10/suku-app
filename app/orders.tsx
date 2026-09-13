@@ -153,160 +153,23 @@ export default function OrdersScreen() {
     }
   };
 
-  // 1. Si on vient d'une notification (orderId dans l'URL), afficher la vue détails directement sans modale ni liste en arrière-plan
-  if (orderId) {
-    const targetOrder = selectedOrder || (orders && orders.length > 0
-      ? (orderId === 'latest' ? orders[0] : orders.find(o => o.id === orderId || o.id.toLowerCase().startsWith(orderId.toLowerCase())) || orders[0])
-      : null);
-
-    if (!targetOrder || loading) {
-      return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-          <Header
-            title="Détails de la commande"
-            showBack={true}
-            showMenu={false}
-            onBackPress={() => router.back()}
-            cartCount={getCartCount()}
-            onCartPress={() => router.push('/cart')}
-          />
-          <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={[styles.loadingText, { color: colors.textSecondary, marginTop: 12 }]}>
-              Chargement des détails...
-            </Text>
-          </View>
-        </SafeAreaView>
-      );
-    }
-
-    const translatedStatus = translateStatus(targetOrder.status, targetOrder.payment?.method, targetOrder.payment_status);
-    const statusStyle = statusStyles[translatedStatus] || { bg: colors.secondary, text: colors.text };
-    const timeline = getTimeline(targetOrder.status, targetOrder.payment_status);
-
+  // Quand on vient d'une notification et que les commandes chargent encore
+  if (orderId && loading && orders.length === 0) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <Header
-          title={`CMD-${targetOrder.id.slice(0, 8).toUpperCase()}`}
-          showBack={true}
-          showMenu={false}
-          onBackPress={() => {
-            setSelectedOrder(null);
-            router.back();
-          }}
-          cartCount={getCartCount()}
-          onCartPress={() => router.push('/cart')}
+          title="Commandes"
+          showMenu={true}
+          onMenuPress={() => setIsMenuVisible(true)}
+          showNotifications={true}
+          notificationCount={unreadCount}
+          onNotificationPress={() => router.push("/notifications")}
         />
-
-        <ScrollView contentContainerStyle={styles.modalContent}>
-          {/* Statut & Date */}
-          <View style={[styles.detailSection, { backgroundColor: colors.surface }]}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <View style={styles.detailRow}>
-                <Ionicons name="calendar-outline" size={18} color={colors.primary} />
-                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Date de commande</Text>
-              </View>
-              <View style={[styles.statusPill, { backgroundColor: statusStyle.bg }]}>
-                <Text style={[styles.statusText, { color: statusStyle.text }]}>{translatedStatus}</Text>
-              </View>
-            </View>
-            <Text style={[styles.detailValue, { color: colors.text }]}>
-              {formatDateTime(targetOrder.created_at)}
-            </Text>
-          </View>
-
-          {/* Articles */}
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Articles commandés</Text>
-          <View style={[styles.detailSection, { backgroundColor: colors.surface }]}>
-            {targetOrder.items.map((item, idx) => (
-              <View
-                key={`${targetOrder.id}-direct-${idx}`}
-                style={[
-                  styles.itemRow,
-                  idx < targetOrder.items.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border, paddingBottom: 12, marginBottom: 12 }
-                ]}
-              >
-                <View style={styles.itemInfo}>
-                  <Text style={[styles.itemName, { color: colors.text }]}>{item.product_name}</Text>
-                  <Text style={[styles.itemQtySub, { color: colors.textSecondary }]}>
-                    {item.quantity_kg} kg × {formatPrice(item.unit_price, true)}
-                  </Text>
-                </View>
-                <Text style={[styles.itemTotal, { color: colors.primary }]}>
-                  {formatPrice(item.total_price)}
-                </Text>
-              </View>
-            ))}
-
-            {/* Total */}
-            <View style={[styles.totalRow, { borderTopWidth: 1, borderTopColor: colors.border, marginTop: 8, paddingTop: 12 }]}>
-              <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>
-                {targetOrder.payment?.method === 'cash' ? 'Total à payer à la livraison' : 'Total payé'}
-              </Text>
-              <Text style={[styles.totalValue, { color: colors.primary }]}>
-                {formatPrice(targetOrder.total_amount)}
-              </Text>
-            </View>
-          </View>
-
-          {/* Adresse de livraison */}
-          {targetOrder.shipping_address && (
-            <>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Adresse de livraison</Text>
-              <View style={[styles.detailSection, { backgroundColor: colors.surface }]}>
-                <View style={styles.detailRow}>
-                  <Ionicons name="location-outline" size={18} color={colors.primary} />
-                  <View style={{ flex: 1, marginLeft: 8 }}>
-                    <Text style={[styles.detailValue, { color: colors.text }]}>
-                      {targetOrder.shipping_address.address_line}
-                    </Text>
-                    <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
-                      {targetOrder.shipping_address.city}, {targetOrder.shipping_address.country}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </>
-          )}
-
-          {/* Mode de paiement */}
-          {targetOrder.payment && (
-            <>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Paiement</Text>
-              <View style={[styles.detailSection, { backgroundColor: colors.surface }]}>
-                <View style={styles.detailRow}>
-                  <Ionicons name="card-outline" size={18} color={colors.primary} />
-                  <View style={{ marginLeft: 8, flex: 1 }}>
-                    <Text style={[styles.detailValue, { color: colors.text }]}>
-                      {translatePayment(targetOrder.payment.method)}
-                    </Text>
-                    {targetOrder.payment.method === 'cash' && (
-                      <Text style={[styles.detailLabel, { color: colors.warning || '#E67E22', marginTop: 2 }]}>
-                        Paiement en espèces ou Mobile Money lors de la réception
-                      </Text>
-                    )}
-                  </View>
-                </View>
-              </View>
-            </>
-          )}
-
-          {/* Suivi / Timeline */}
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Suivi de commande</Text>
-          <View style={[styles.detailSection, { backgroundColor: colors.surface }]}>
-            {timeline.map((step, idx) => (
-              <View key={`direct-step-${idx}`} style={styles.timelineRow}>
-                <MaterialCommunityIcons
-                  name="checkbox-marked-circle"
-                  size={20}
-                  color={idx === timeline.length - 1 ? statusStyle.text : colors.primary}
-                  style={styles.timelineIcon}
-                />
-                <Text style={[styles.timelineText, { color: colors.text }]}>{step}</Text>
-              </View>
-            ))}
-          </View>
-        </ScrollView>
+        <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Chargement des commandes...</Text>
+        </View>
+        <SideMenu isVisible={isMenuVisible} onClose={() => setIsMenuVisible(false)} />
       </SafeAreaView>
     );
   }
@@ -337,10 +200,13 @@ export default function OrdersScreen() {
     const statusStyle = statusStyles[translatedStatus] || { bg: colors.secondary, text: colors.text };
     const timeline = getTimeline(selectedOrder.status, selectedOrder.payment_status);
 
+    // Si on vient d'une notification, pas d'animation pour éviter tout flash
+    const fromNotification = !!orderId;
+
     return (
       <Modal
         visible={!!selectedOrder}
-        animationType="slide"
+        animationType={fromNotification ? 'none' : 'slide'}
         presentationStyle="pageSheet"
         onRequestClose={handleCloseModal}
       >

@@ -11,6 +11,7 @@ import { useOrder } from '../src/context/OrderContext';
 import { useNotifications } from '../src/hooks/useNotifications';
 import { useOrders } from '../src/hooks/useOrders';
 import { useTheme } from '../src/hooks/useTheme';
+import { useUserSettings } from '../src/hooks/useUserSettings';
 import { formatPrice } from '../src/utils/formatters';
 
 export const options = { headerShown: false };
@@ -30,6 +31,7 @@ const CheckoutScreen = () => {
   const [processing, setProcessing] = useState(false);
   const { colors: themeColors } = useTheme();
   const { sendLocalNotification, createNotification } = useNotifications();
+  const { settings: userSettings } = useUserSettings();
   const insets = useSafeAreaInsets();
 
   // Déterminer si c'est un achat direct ou depuis le panier
@@ -94,7 +96,11 @@ const CheckoutScreen = () => {
         ? `Votre commande de ${itemsCount} article(s) d'une valeur de ${formattedTotal} a bien été prise en compte. Le règlement s'effectuera à la livraison.`
         : `Votre commande de ${itemsCount} article(s) d'une valeur de ${formattedTotal} a été enregistrée avec succès. Merci pour votre confiance !`;
 
-      await sendLocalNotification(orderTitle, orderMessage, { orderId: createdOrder?.id });
+      // Notif push locale : respecte le réglage de l'utilisateur
+      if (userSettings?.order_updates !== false) {
+        await sendLocalNotification(orderTitle, orderMessage, { orderId: createdOrder?.id });
+      }
+      // Toujours sauvegarder dans l'historique des notifications
       await createNotification(orderTitle, orderMessage, 'order', { orderId: createdOrder?.id });
 
       const handleOnConfirm = async () => {

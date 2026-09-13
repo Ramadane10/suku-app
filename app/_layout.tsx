@@ -54,8 +54,8 @@ export default function RootLayout() {
                   <Stack
                     screenOptions={{
                       headerShown: false,
-                      animation: 'fade',
-                      animationDuration: 150,
+                      animation: 'none',
+                      contentStyle: { backgroundColor: '#F7F9F6' },
                     }}
                   />
                   <PersistentBottomTabBar />

@@ -19,6 +19,12 @@ export function useNotifications() {
   useEffect(() => {
     if (!user) {
       setUnreadCount(0);
+      try {
+        if (Platform.OS !== 'web' && Constants.appOwnership !== 'expo') {
+          const Notifications = require('expo-notifications');
+          Notifications.setBadgeCountAsync(0).catch(() => {});
+        }
+      } catch (e) {}
       return;
     }
 
@@ -32,6 +38,12 @@ export function useNotifications() {
 
         if (!error && count !== null) {
           setUnreadCount(count);
+          try {
+            if (Platform.OS !== 'web' && Constants.appOwnership !== 'expo') {
+              const Notifications = require('expo-notifications');
+              Notifications.setBadgeCountAsync(count).catch(() => {});
+            }
+          } catch (e) {}
         }
       } catch (err) {
         console.error('Error fetching unread notification count:', err);
@@ -53,6 +65,27 @@ export function useNotifications() {
       supabase.removeChannel(subscription);
     };
   }, [user]);
+
+  const markAllAsRead = async () => {
+    if (!user) return;
+    try {
+      setUnreadCount(0);
+      try {
+        if (Constants.appOwnership !== 'expo') {
+          const Notifications = require('expo-notifications');
+          Notifications.setBadgeCountAsync(0).catch(() => {});
+        }
+      } catch (e) {}
+
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+    } catch (err) {
+      console.error('Error marking all notifications as read:', err);
+    }
+  };
 
   useEffect(() => {
     // Ne pas charger les notifications dans Expo Go pour éviter les erreurs SDK 53+
@@ -166,6 +199,7 @@ export function useNotifications() {
     scheduleNotification,
     shouldSendNotification,
     createNotification,
+    markAllAsRead,
   };
 }
 

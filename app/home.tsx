@@ -1,3 +1,4 @@
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -6,9 +7,11 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import CategoryTabs from "../src/components/ui/CategoryTabs";
 import Header from "../src/components/ui/Header";
 import ProductCard from "../src/components/ui/ProductCard";
@@ -65,6 +68,25 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  searchInputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 12,
+    borderWidth: 1.5,
+    height: 48,
+  },
+  searchTextInput: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 15,
+    paddingVertical: 0,
+    paddingRight: 8,
+  },
 });
 
 const HomeScreen = () => {
@@ -83,7 +105,18 @@ const HomeScreen = () => {
   } = useProducts();
 
   const [selectedCategory, setSelectedCategory] = useState<string>("TOUS");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.trim().toLowerCase();
+    return products.filter((p) =>
+      p.name?.toLowerCase().includes(q) ||
+      p.category?.name?.toLowerCase().includes(q) ||
+      p.description?.toLowerCase().includes(q)
+    );
+  }, [products, searchQuery]);
 
   const categoryNames = useMemo(
     () => ["TOUS", ...dbCategories.map((c) => c.name)],
@@ -108,9 +141,7 @@ const HomeScreen = () => {
     [selectedCategory, getProductsByCategory],
   );
 
-  const insets = useSafeAreaInsets();
-
-  const handleProductPress = (product: any) => {
+  const handleProductPress = useCallback((product: any) => {
     router.push({
       pathname: "/product-details",
       params: {
@@ -121,9 +152,9 @@ const HomeScreen = () => {
         image: product.image_url,
       },
     });
-  };
+  }, [router]);
 
-  const renderProduct = (product: any, style = {}) => (
+  const renderProduct = useCallback((product: any, style = {}) => (
     <ProductCard
       key={product.id}
       id={product.id}
@@ -141,25 +172,84 @@ const HomeScreen = () => {
       onPress={() => handleProductPress(product)}
       style={style}
     />
-  );
+  ), [handleProductPress]);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Header
         title="Nwanma"
         onMenuPress={handleMenuPress}
         notificationCount={unreadCount}
         onNotificationPress={() => router.push("/notifications")}
-        fixed={true}
         cartCount={getCartCount()}
       />
 
-      <View style={{ height: 60 + insets.top }} />
+      {/* Barre de recherche */}
+      <View style={styles.searchContainer}>
+        <View style={[styles.searchInputWrapper, { backgroundColor: colors.surface, borderColor: searchQuery ? colors.primary : colors.border }]}>
+          <Feather name="search" size={18} color={searchQuery ? colors.primary : colors.grey} style={{ marginLeft: 12 }} />
+          <TextInput
+            style={[styles.searchTextInput, { color: colors.text }]}
+            placeholder="Rechercher un produit..."
+            placeholderTextColor={colors.textSecondary}
+            value={searchQuery}
+            onChangeText={(t) => { setSearchQuery(t); if (selectedCategory !== "TOUS") setSelectedCategory("TOUS"); }}
+            returnKeyType="search"
+            onSubmitEditing={() => {
+              if (searchQuery.trim()) {
+                router.push({ pathname: "/boutique", params: { q: searchQuery.trim() } });
+                setSearchQuery("");
+              }
+            }}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery("")} style={{ padding: 8 }}>
+              <Ionicons name="close-circle" size={18} color={colors.grey} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
 
       {loading ? (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
+      ) : searchQuery.trim() ? (
+        <FlatList
+          data={searchResults}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          columnWrapperStyle={styles.column}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          initialNumToRender={6}
+          maxToRenderPerBatch={8}
+          windowSize={5}
+          removeClippedSubviews={true}
+          ListHeaderComponent={
+            <View style={{ paddingBottom: 8, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+              <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+                {searchResults.length} résultat{searchResults.length !== 1 ? "s" : ""}
+              </Text>
+              <TouchableOpacity onPress={() => { router.push({ pathname: "/boutique", params: { q: searchQuery } }); setSearchQuery(""); }}>
+                <Text style={{ color: colors.primary, fontSize: 13, fontWeight: "600" }}>Tout voir</Text>
+              </TouchableOpacity>
+            </View>
+          }
+          renderItem={({ item }) => (
+            <View style={styles.gridItem}>
+              {renderProduct(item, styles.card)}
+            </View>
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Feather name="search" size={48} color={colors.grey} />
+              <Text style={[styles.emptyText, { color: colors.textSecondary, marginTop: 12 }]}>
+                Aucun résultat pour « {searchQuery} »
+              </Text>
+            </View>
+          }
+        />
       ) : (
         <>
           <View
@@ -232,6 +322,10 @@ const HomeScreen = () => {
               columnWrapperStyle={styles.column}
               contentContainerStyle={styles.listContent}
               showsVerticalScrollIndicator={false}
+              initialNumToRender={6}
+              maxToRenderPerBatch={8}
+              windowSize={5}
+              removeClippedSubviews={true}
               renderItem={({ item }) => (
                 <View style={styles.gridItem}>
                   {renderProduct(item, styles.card)}
@@ -249,7 +343,7 @@ const HomeScreen = () => {
         </>
       )}
       <SideMenu isVisible={isMenuVisible} onClose={handleCloseMenu} />
-    </View>
+    </SafeAreaView>
   );
 };
 

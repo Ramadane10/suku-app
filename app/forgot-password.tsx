@@ -55,8 +55,16 @@ export default function ForgotPasswordScreen() {
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+                style={{ flex: 1 }}
+            >
+                <ScrollView
+                    contentContainerStyle={[styles.scrollContent, { paddingBottom: 160 }]}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                >
 
                     {/* Logo Header */}
                     <View style={styles.logoHeader}>
@@ -104,7 +112,7 @@ export default function ForgotPasswordScreen() {
                             <View style={styles.inputWrap}>
                                 <Text style={[styles.label, { color: colors.text }]}>Adresse email</Text>
                                 <InputField
-                                    placeholder="souleymane@nwanma.gn"
+                                    placeholder="exemple@gmail.com"
                                     value={email}
                                     onChangeText={setEmail}
                                     keyboardType="email-address"

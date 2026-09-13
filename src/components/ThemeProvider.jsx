@@ -27,8 +27,7 @@ export const ThemeProvider = ({ children }) => {
       <StatusBar
         style={theme === 'dark' ? 'light' : 'dark'}
         backgroundColor={colors.background}
-        translucent={Platform.OS === 'android'}
-        animated
+        translucent={false}
       />
       {children}
     </>

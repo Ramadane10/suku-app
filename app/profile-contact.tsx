@@ -11,7 +11,7 @@ const ProfileContact = () => {
   const router = useRouter();
   const { colors } = useTheme();
   const handleCall = () => {
-    Linking.openURL('tel:+224626927951');
+    Linking.openURL('tel:+224628179658');
   };
   const handleEmail = () => {
     Linking.openURL('mailto:oumarkoulibalyze17@gmail.com');

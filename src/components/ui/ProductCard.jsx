@@ -1,14 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import fonts from '../../constants/fonts';
+import { useCustomAlert } from '../../context/AlertContext';
+import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useFavorites } from '../../context/FavoritesContext';
 import { useTheme } from '../../hooks/useTheme';
 
-const ProductCard = ({
+const ProductCard = React.memo(({
   id,
   productId,
   name,
@@ -22,6 +24,8 @@ const ProductCard = ({
   ...props
 }) => {
   const router = useRouter();
+  const { user } = useAuth();
+  const { showError, showSuccess, showConfirm } = useCustomAlert();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const { addToCart } = useCart();
   const { colors } = useTheme();
@@ -52,6 +56,16 @@ const ProductCard = ({
   const handleToggleFavorite = useCallback((e) => {
     e.stopPropagation();
 
+    if (!user) {
+      showConfirm(
+        'Connexion requise',
+        'Veuillez vous connecter pour ajouter des favoris.',
+        () => router.push('/login'),
+        'Se connecter'
+      );
+      return;
+    }
+
     if (!actualProductId) {
       console.warn('Product ID is required to toggle favorite');
       return;
@@ -59,6 +73,7 @@ const ProductCard = ({
 
     if (isFavorite(actualProductId)) {
       removeFavorite(actualProductId);
+      showSuccess('Favoris', `${name} a été retiré de vos favoris.`);
     } else {
       addFavorite({
         id: actualProductId,
@@ -68,14 +83,30 @@ const ProductCard = ({
         image,
         category: props.category || 'FRUITS'
       });
+      showSuccess('Favoris', `${name} a été ajouté à vos favoris !`);
     }
-  }, [actualProductId, name, price, image, props.category, isFavorite, addFavorite, removeFavorite]);
+  }, [actualProductId, name, price, image, props.category, isFavorite, addFavorite, removeFavorite, user, showConfirm, showSuccess, router]);
 
   const handleAddToCart = useCallback(async (e) => {
     e.stopPropagation();
 
+    if (!user) {
+      showConfirm(
+        'Connexion requise',
+        'Veuillez vous connecter pour ajouter des produits au panier.',
+        () => router.push('/login'),
+        'Se connecter'
+      );
+      return;
+    }
+
     if (!actualProductId) {
       console.warn('Product ID is required to add to cart');
+      return;
+    }
+
+    if (isOutOfStock) {
+      showError('Rupture de stock', 'Ce produit est actuellement en rupture de stock.');
       return;
     }
 
@@ -92,10 +123,12 @@ const ProductCard = ({
         },
         1
       );
+      showSuccess('Panier mis à jour', `${name} a été ajouté au panier !`);
     } catch (error) {
       console.error('Error adding to cart:', error);
+      showError('Panier', error?.message || 'Impossible d\'ajouter ce produit au panier.');
     }
-  }, [actualProductId, name, price, image, props.category, addToCart]);
+  }, [actualProductId, name, price, image, props.category, addToCart, user, isOutOfStock, showConfirm, showSuccess, showError, router]);
 
   return (
     <TouchableOpacity
@@ -195,7 +228,7 @@ const ProductCard = ({
       </View>
     </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
   card: {

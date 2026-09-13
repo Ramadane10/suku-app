@@ -7,6 +7,7 @@ import Header from '../src/components/ui/Header';
 import fonts from '../src/constants/fonts';
 import { useAuth } from '../src/context/AuthContext';
 import { useCart } from '../src/context/CartContext';
+import { useNotifications } from '../src/hooks/useNotifications';
 import { useTheme } from '../src/hooks/useTheme';
 import { supabase } from '../src/lib/supabase';
 
@@ -23,6 +24,7 @@ export default function NotificationsScreen() {
     const { colors } = useTheme();
     const { getCartCount } = useCart();
     const { user } = useAuth();
+    const { markAllAsRead } = useNotifications();
     const [notifications, setNotifications] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -36,13 +38,20 @@ export default function NotificationsScreen() {
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: false });
 
-            if (data) setNotifications(data);
+            if (data) {
+                setNotifications(data);
+                // Marquer comme lus en arrière-plan, sans bloquer l'affichage
+                const hasUnread = data.some((n: any) => !n.is_read);
+                if (hasUnread) {
+                    markAllAsRead().catch(() => {});
+                }
+            }
         } catch (err) {
             console.error('Error fetching notifications:', err);
         } finally {
             setLoading(false);
         }
-    }, [user]);
+    }, [user, markAllAsRead]);
 
     useEffect(() => {
         fetchNotifications();
@@ -184,7 +193,7 @@ export default function NotificationsScreen() {
                 showNotifications={false}
                 cartCount={getCartCount()}
             />
-            {loading ? (
+            {loading && notifications.length === 0 ? (
                 <View style={styles.centerContainer}>
                     <ActivityIndicator size="large" color={colors.primary} />
                 </View>
@@ -194,6 +203,7 @@ export default function NotificationsScreen() {
                     renderItem={renderItem}
                     keyExtractor={item => item.id}
                     contentContainerStyle={styles.listContent}
+                    showsVerticalScrollIndicator={false}
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
                             <Ionicons name="notifications-off-outline" size={64} color={colors.grey} />

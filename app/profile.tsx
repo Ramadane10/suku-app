@@ -21,7 +21,7 @@ const ProfileScreen = () => {
   const router = useRouter();
   const { colors } = useTheme();
   const { signOut, user } = useAuth();
-  const { showConfirm, showSuccess } = useCustomAlert();
+  const { showConfirm } = useCustomAlert();
   const { addresses, fetchAddresses } = useAddresses();
   const { profile, loading: profileLoading } = useProfile();
   const { getCartCount } = useCart();
@@ -65,13 +65,9 @@ const ProfileScreen = () => {
   const handleDeleteAccount = () => {
     showConfirm(
       'Supprimer le compte',
-      'Cette action est irréversible. Toutes vos données seront définitivement supprimées.',
-      () => {
-        // TODO: Implémenter la suppression du compte (Supabase)
-        showSuccess('Compte supprimé', 'Votre compte a été supprimé avec succès.');
-        router.replace('/welcome');
-      },
-      'Supprimer',
+      'Cette action est irréversible. Toutes vos données (commandes, adresses, profil) seront définitivement supprimées.\n\nPour procéder, contactez le support au +224 628 17 96 58.',
+      () => { router.push('/profile-contact'); },
+      'Contacter le support',
       'Annuler'
     );
   };
